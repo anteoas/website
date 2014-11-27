@@ -96,6 +96,7 @@ header {
 	color: $font_white;
 	height: 800px;
 	width: 100%;
+	position: relative;
 
 	@media only screen and (max-width: 480px) {
 		background: url('../images/bg_720p.jpg') no-repeat center center scroll;
@@ -111,6 +112,19 @@ header {
 		background: url('../images/bg_1080p.jpg') no-repeat center center fixed;
 		background-size: cover;
 	}
+
+	.credit {
+		position: absolute;
+		right: 10px;
+		bottom: 10px;
+		font-size: 75%;
+		letter-spacing: 0.06em;
+
+		@media only screen and (max-width: 480px) {
+			font-size: 60%;
+			opacity: 0.8;
+		}
+	}	
 }
 
 .nav_container {
