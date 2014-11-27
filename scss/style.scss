@@ -1,0 +1,229 @@
+// Variables
+$lightblue: #00bbe9;
+$turquoise: #00d7af;
+
+$font_family: 'Ubuntu', sans-serif;
+$font_normal: 400;
+$font_bold: 700;
+$font_grey: #828890;
+$font_white: #ffffff;
+
+$bg_logo: #2e4456;
+$bg_white: #ffffff;
+$bg_grey: #edeef2;
+$bg_greyblue: #2e4456;
+$bg_darkblue: #1d3343;
+
+
+// Global
+html {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	font-family: $font_family;
+	font-weight: $font_normal;
+	font-size: 62.5%;
+	word-spacing: 0.1em;
+	letter-spacing: 0.03em;
+}
+
+body {
+	padding: 0;
+	margin: 0;
+	font-size: 1.6rem;
+	color: $font_grey;
+	background: $bg_darkblue;
+}
+
+h1,
+h2,
+h3 {
+	font-weight: $font_bold;
+}
+
+h2 {
+	border-left: solid 3px $lightblue;
+	padding: 5px 0px 5px 15px;
+	font-size: 2.0rem;
+	margin: 0;
+}
+
+p {
+	line-height: 200%;
+}
+
+a:link {
+	color: $turquoise;
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+a:visited {
+	color: $turquoise;
+}
+
+.bg_wrapper {
+	width: 100%;
+	padding: 80px 0px 80px 0px;
+}
+
+.container {
+	width: 80%;
+	max-width: 960px;
+	margin: auto;
+}
+
+.content_wrapper {
+	padding: 30px 0px 30px 0px;
+	margin: auto;
+
+	@media only screen and (max-width:600px) {
+		width: 100%;
+	}
+
+	@media only screen and (min-width: 601px) {
+		width: 80%;
+	}
+}
+
+
+// Specifics
+header {
+	color: $font_white;
+	height: 800px;
+	width: 100%;
+
+	@media only screen and (max-width: 480px) {
+		background: url('../images/bg_720p.jpg') no-repeat center center scroll;
+		background-size: cover;		
+	}
+
+	@media only screen and (min-width:481px) and (max-width:1280px) {
+		background: url('../images/bg_720p.jpg') no-repeat center center fixed;
+		background-size: cover;
+	}
+
+	@media only screen and (min-width:1281px) {
+		background: url('../images/bg_1080p.jpg') no-repeat center center fixed;
+		background-size: cover;
+	}
+}
+
+.nav_container {
+	width: 100%;
+	overflow: hidden;
+	height: auto;
+
+	.branding {
+		height: 40px;
+		padding: 0px 20px 0px 20px;
+		line-height: 40px;
+		float: left;
+		background: $bg_greyblue;
+		color: $lightblue;
+		text-align: center;
+
+		.logo {
+			margin: 0;
+			padding: 0;
+			font-size: 2rem;
+		}
+	}
+
+	.menu {
+		width: auto;
+		overflow: hidden;
+		background: $bg_darkblue;
+		height: 50px;
+		position: relative;
+
+		.branding_fold {
+			display: block;
+			float: left;
+			height: 40px;
+			width: 15px;
+			background: $bg_greyblue;
+		}
+
+		.branding_fold:after {
+			content: "";
+			position: absolute;
+			display: block;
+			border-style: solid;
+			border-color: #000 transparent transparent transparent;
+			bottom: 0;
+		}
+
+		.branding_fold:after {
+			left: 0;
+			border-width: 10px 15px 0 0;
+		}	
+	}
+}
+
+#intro_content {
+	height: 80%;
+	display: table;
+	box-sizing: border-box;
+
+	.title {
+		font-size: 4.3em;
+		display: table-cell;
+		vertical-align: middle;
+
+		.subtitle {
+			max-width: 80%;
+			display: block;
+			font-weight: $font_normal;
+			font-size: 50%;
+		}
+	}
+}
+
+#content_middle {
+	background: $bg_grey;
+}
+
+#content_bottom {
+	background: $bg_darkblue;
+	color: $font_white;
+
+	.content_wrapper {
+		text-align: center;
+
+		@media only screen and (max-width:600px) {
+			text-align: left;
+		}
+
+	}
+}
+
+.mail_link {
+	letter-spacing: 0.1em;
+}
+
+#company_info_container {
+	margin-top: 60px;
+
+	.company_info {
+		display: block;
+		margin-bottom: 5px;
+	}
+
+	.info_label {
+		display: block;
+		font-weight: $font_bold;
+		margin: 10px 0px 5px 0px;
+	}
+}
+
+footer {
+	width: 100%;
+	padding: 10px 0px 10px 0px;
+	background: $bg_greyblue;
+	text-align: center;
+}
