@@ -127,56 +127,23 @@ header {
 	}	
 }
 
-.nav_container {
-	width: 100%;
-	overflow: hidden;
-	height: auto;
+.top-bar {
+	padding: 10px 15px;
+	background: $bg_darkblue;
+	text-align: left;
 
-	.branding {
-		height: 40px;
-		padding: 0px 20px 0px 20px;
-		line-height: 40px;
-		float: left;
-		background: $bg_greyblue;
-		color: $lightblue;
-		text-align: center;
-
-		.logo {
-			margin: 0;
-			padding: 0;
-			font-size: 2rem;
-		}
+	.logo-img {
+		width: 40px;
+		vertical-align: middle;
 	}
 
-	.menu {
-		width: auto;
-		overflow: hidden;
-		background: $bg_darkblue;
-		height: 50px;
-		position: relative;
-
-		.branding_fold {
-			display: block;
-			float: left;
-			height: 40px;
-			width: 15px;
-			background: $bg_greyblue;
-		}
-
-		.branding_fold:after {
-			content: "";
-			position: absolute;
-			display: block;
-			border-style: solid;
-			border-color: #000 transparent transparent transparent;
-			bottom: 0;
-		}
-
-		.branding_fold:after {
-			left: 0;
-			border-width: 10px 15px 0 0;
-		}	
+	.logo-text {
+		vertical-align: middle;
+		margin-left: 15px;
+		font-size: 2.4rem;
+		font-weight: $font_bold;
 	}
+
 }
 
 #intro_content {
