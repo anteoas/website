@@ -13,6 +13,7 @@ $bg_white: #ffffff;
 $bg_grey: #edeef2;
 $bg_greyblue: #2e4456;
 $bg_darkblue: #1d3343;
+$bg_darkerblue: #092130;
 
 
 // Global
@@ -199,6 +200,11 @@ header {
 	background: $bg_grey;
 }
 
+#products {
+	color: $font_white;
+	background: $bg_greyblue;
+}
+
 #contact {
 	background: $bg_darkblue;
 	color: $font_white;
@@ -235,6 +241,6 @@ header {
 footer {
 	width: 100%;
 	padding: 10px 0px 10px 0px;
-	background: $bg_greyblue;
+	background: $bg_darkerblue;
 	text-align: center;
 }
