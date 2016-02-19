@@ -1,2 +1,3 @@
 # Ignore the cache file created by Sass
 .sass-cache
+node_modules
