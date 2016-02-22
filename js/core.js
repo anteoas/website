@@ -17,4 +17,20 @@ jQuery(document).ready(function($){
 		}
 	});
 
+	// Function to display additional product content
+	$(".content_more_btn").click(function(e){
+		e.preventDefault();
+
+		var elem = $(this);
+		var block = $(this).next('.content_more');
+
+		if(block.is(":visible")) {
+			$(".fa", this).removeClass('fa-chevron-down').addClass('fa-chevron-right');
+			block.slideUp(500);
+		} else {
+			$(".fa", this).removeClass('fa-chevron-right').addClass('fa-chevron-down');
+			block.slideDown(500);
+		}
+	});
+
 });
