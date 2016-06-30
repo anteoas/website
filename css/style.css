@@ -273,6 +273,12 @@ header .credit {
   margin: auto;
   width: 50%;
 }
+@media only screen and (max-width: 600px) {
+  .company_info_container .ntnu-logo img {
+    display: inline;
+    width: 80%;
+  }
+}
 
 footer {
   width: 100%;

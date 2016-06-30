@@ -308,6 +308,10 @@ header {
 		display: block;
 		margin: auto;
 		width: 50%;
+		@media only screen and (max-width:600px) {
+			display: inline;
+			width: 80%;
+		}
 	}
 }
 
