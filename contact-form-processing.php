@@ -1,6 +1,6 @@
 <?php
 
-$errors = [];
+$errors = array();
 $errorMessage = '';
 
 if (!empty($_POST)) {
@@ -11,27 +11,29 @@ if (!empty($_POST)) {
     $message = $_POST['message'];
 
     if (empty($name)) {
-        $errors[] = 'Name is empty';
+        array_push($errors, 'Name is empty');
     }
 
     if (empty($email)) {
-        $errors[] = 'Email is empty';
+        array_push($errors, 'Email is empty');
     } else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = 'Email is invalid';
+        array_push($errors, 'Email is invalid');
     }
 
     if (empty($phone)) {
-        $errors[] = 'Phone is empty';
+        array_push($errors, 'Phone is empty');
     }
 
     if (empty($message)) {
-        $errors[] = 'Message is empty';
+        array_push($errors, 'Message is empty');
     }
 
 
     if (!empty($errors)) {
         $allErrors = join('<br/>', $errors);
         $errorMessage = "<p style='color: red;'>{$allErrors}</p>";
+        echo $errorMessage;
+        header( "Refresh:10; url=https://anteo.no/", true, 303);
     } else {
         $to      = 'post@anteo.no';
         $subject = 'Kundekontakt ' . $product;
