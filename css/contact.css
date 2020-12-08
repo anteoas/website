@@ -33,7 +33,7 @@ input[type=text], select, textarea {
   margin-top: 6px;
   margin-bottom: 16px;
   resize: vertical;
-  color: #e3e6e3;
+  color: #070707;
 }
 input[type=email], select, textarea {
   width: 100%;
@@ -44,7 +44,18 @@ input[type=email], select, textarea {
   margin-top: 6px;
   margin-bottom: 16px;
   resize: vertical;
-  color: #e3e6e3;
+  color: #070707;
+}
+input[type=number], select, textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  margin-top: 6px;
+  margin-bottom: 16px;
+  resize: vertical;
+  color: #070707;
 }
 
 
@@ -59,7 +70,7 @@ textarea[name=message]{
   margin-top: 6px;
   margin-bottom: 16px;
   resize: vertical;
-  color: #e3e6e3;
+  color: #070707;
 }
 
 input[type=submit] {
