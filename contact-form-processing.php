@@ -42,10 +42,8 @@ if (!empty($_POST)) {
                     "\tEpost : $email.\n".
                     "\tTelefon : $phone.\n".
                     "\tMelding : $message.\n\n";
-        $headers = array(
-            'From' => 'alert@anteo.no',
-            'Reply-To' => $email
-        );
+        $headers = 'From: alert@anteo.no' . "\r\n" .
+                    'Reply-To: ' . $email . "\r\n";
 
         mail($to, $subject, $message, $headers);    
 
