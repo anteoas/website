@@ -243,6 +243,31 @@
 			<h2>Kontakt oss.</h2>
 			<div class="content_wrapper">
 				<p>Send oss en epost for nærmere dialog og diskusjon om løsninger som passer.</p>
+<!-- Contact form -->
+				   <div class="contactcontainer">
+           
+				       <form id="contact-form" method="post" action="contact-form-handler.php">
+					<label for="product">VELG PRODUKT :</label>
+					    <select id="product" class="form-control" name="product">
+					      <option value="fishctrl">FishCtrl</option>
+					      <option value="livetracking">Live Tracking</option>
+					      <option value="sonekart">Sonekart</option>
+					      <option value="oppdrag">Oppdrag</option>
+					      <option value="logifish">Logifish</option>
+					    </select><br>
+					    <input type="text" name="name" class="form-control" placeholder="Navn" required><br>
+
+					  <input type="email" name="email" class="form-control coloumn" placeholder="E-post" required>
+					  <br>
+					   <input type="text" name="phone" class="form-control" placeholder="Telefonnummer" required><br>
+					     <br>
+					  <textarea name="message" class="form-control" placeholder="Beskjed" row="4" required></textarea>
+
+					  <br>
+
+					  <input type="submit" class="form-control submit" value="SEND BESKJED">
+				      </form>
+            			</div>
 
 				<a class="mail_link" href="mailto:post@anteo.no">post@anteo.no</a>
 
