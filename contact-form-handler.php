@@ -16,7 +16,7 @@
                             "User phone: $visitor_phone.\n".
                                 "User Messsage: $message.\n";
    
-    $to = "stianrakke@gmail.com";
+    $to = "post@anteo.no";
 
     $headers = "from: $email_from \r\n";
 
