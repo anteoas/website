@@ -23,5 +23,5 @@
     $headers .= "reply-to: $visitor_email";
 
     mail($to,$email_subject,$product,$email_body, $headers);
-    header("Location: index.htm");
+    header("Location: index.html");
 ?>
