@@ -6,7 +6,7 @@
     $visitor_phone =$_POST['phone'];
     $message =$_POST['message'];
 
-    $email_from = 'stianrakke@gmail.com';
+    $email_from = 'post@anteo.no';
 
     $email_subject = 'Kundekontakt';
 
