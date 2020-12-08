@@ -81,7 +81,7 @@ input[type=submit]:hover {
 .contactcontainer {
 	width: 100%;
 	position: relative;
-	margin-left: 25%;
+	
   	border-radius: 5px;
  	padding: 20px;
 }
