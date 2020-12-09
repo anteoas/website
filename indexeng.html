@@ -214,6 +214,69 @@
 			<h2>Contact</h2>
 			<div class="content_wrapper">
 				<p>Please send us an email for any questions regarding our products or suitability for your company.</p>
+				<!-- Contact form -->
+				<div class="contactcontainer">
+						
+					<form id="contact-form" method="post" action="contact-form-processing.php">
+					<label for="product">Choose Product :</label>
+					<select id="product" class="form-control" name="product">
+					<option value="fishctrl">FishCtrl</option>
+					<option value="livetracking">Live Tracking</option>
+					<option value="sonekart">Map</option>
+					<option value="oppdrag">Assignment</option>
+					<option value="logifish">Logifish</option>
+					</select><br>
+					<input type="text" name="name" class="form-control" placeholder="Name" required><br>
+					<input type="email" style="cursor: pointer;" name="email" class="form-control" placeholder="Email" required><br>
+						<input type="number" name="phone" class="form-control" placeholder="Telephone" required min="10000000"><br>
+					<br>
+					<textarea name="message" class="form-control" placeholder="Message" rows="4" required></textarea><br>
+					<input type="submit" name="submit" class="form-control submit" value="SEND MESSAGE">
+				</form>
+				<script src="//cdnjs.cloudflare.com/ajax/libs/validate.js/0.13.1/validate.min.js"></script>
+				<script>
+					const constraints = {
+						name: {
+							presence: true
+						},
+						email: {
+							presence: true,
+							email: true
+						},
+						phone: {
+							presence: true
+						},
+						message: {
+							presence: true
+						}
+					};
+
+					const form = document.getElementById('contact-form');
+
+					form.addEventListener('submit', function (event) {
+						const formValues = {
+							name: form.elements.name.value,
+							email: form.elements.email.value,
+							phone: form.elements.phone.value,
+							message: form.elements.message.value
+						};
+
+						const errors = validate(formValues, constraints);
+
+						if (errors) {
+							event.preventDefault();
+							const errorMessage = Object
+								.values(errors)
+								.map(function (fieldValues) {
+									return fieldValues.join(', ')
+								})
+								.join("\n");
+
+							alert(errorMessage);
+						}
+					}, false);
+				</script>
+				</div>
 
 				<a class="mail_link" href="mailto:post@anteo.no">post@anteo.no</a>
 
