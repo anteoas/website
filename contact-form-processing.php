@@ -47,7 +47,7 @@ if (!empty($_POST)) {
 
         mail($to, $subject, $message, $headers);    
 
-        header("Location: index.html");
+        header("Location: " . $_SERVER['HTTP_REFERER']);
     }
 }
 
