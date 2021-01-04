@@ -12,6 +12,8 @@ if (!empty($_POST)) {
 
     if (empty($name)) {
         array_push($errors, 'Name is empty');
+    } else if (preg_match("/enrysaste/", $name)) {
+        array_push($errors, 'Name is invalid');
     }
 
     if (empty($email)) {
@@ -22,10 +24,16 @@ if (!empty($_POST)) {
 
     if (empty($phone)) {
         array_push($errors, 'Phone is empty');
+    } else if (!($phone[0]==4) and !($phone[0]==9)) {
+        array_push($errors, 'Phone is invalid');
+    } else if (!is_numeric($phone)) {
+        array_push($errors, 'Phone is invalid');
     }
 
     if (empty($message)) {
         array_push($errors, 'Message is empty');
+    } else if (preg_match("/http/", $message)) {
+        array_push($errors, 'Message contain invalid content');
     }
 
 
