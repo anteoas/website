@@ -1,6 +1,6 @@
 {
-  "watch": ["content", "src/templates", "src/assets/css", "scripts/build.js"],
-  "ext": "js,json,md,html,css",
+  "watch": ["content", "src", "scripts", "config"],
+  "ext": "js,json,md,html,css,jpg,jpeg,png,gif,svg,webp",
   "ignore": ["dist/*", ".temp/*", "node_modules/*"],
   "exec": "node scripts/build.js"
 }

@@ -34,44 +34,50 @@ class ImageProcessor {
 
   // Extract image requirements from HTML
   extractFromHtml(html, sourceFile = '') {
-    // Match images with query parameters
-    const regex = /src="([^"]+\.(jpg|jpeg|png|gif|webp|svg)\?[^"]*)"/gi;
-    let match;
-
-    while ((match = regex.exec(html)) !== null) {
-      const fullUrl = match[1];
-      const [cleanPath, queryString] = fullUrl.split('?');
-      
-      // Skip external URLs
-      if (cleanPath.startsWith('http')) continue;
-      
-      // Parse query parameters
-      const params = new URLSearchParams(queryString);
-      const size = params.get('size');
-      
-      if (size) {
-        const [width, height] = size.split('x').map(Number);
-        const format = params.get('format');
-        const quality = parseInt(params.get('quality') || '80');
+    // Match images with query parameters in src attributes
+    const srcRegex = /src="([^"]+\.(jpg|jpeg|png|gif|webp|svg)\?[^"]*)"/gi;
+    // Match images with query parameters in background-image styles
+    const bgRegex = /background-image:\s*url\(['"]?([^'"]+\.(jpg|jpeg|png|gif|webp|svg)\?[^'")]+)['"]?\)/gi;
+    
+    const patterns = [srcRegex, bgRegex];
+    
+    patterns.forEach(regex => {
+      let match;
+      while ((match = regex.exec(html)) !== null) {
+        const fullUrl = match[1];
+        const [cleanPath, queryString] = fullUrl.split('?');
         
-        // Remove base path and /assets/images/ prefix
-        let imagePath = cleanPath;
-        imagePath = imagePath.replace(/^\//, '');
-        imagePath = imagePath.replace(/^assets\/images\//, '');
+        // Skip external URLs
+        if (cleanPath.startsWith('http')) continue;
         
-        const key = `${imagePath}@${width}x${height}${format ? `.${format}` : ''}`;
+        // Parse query parameters
+        const params = new URLSearchParams(queryString);
+        const size = params.get('size');
         
-        this.requirements.set(key, {
-          sourcePath: imagePath,
-          width,
-          height,
-          format,
-          quality,
-          originalUrl: fullUrl,
-          usedIn: sourceFile
-        });
+        if (size) {
+          const [width, height] = size.split('x').map(Number);
+          const format = params.get('format');
+          const quality = parseInt(params.get('quality') || '80');
+          
+          // Remove base path and /assets/images/ prefix
+          let imagePath = cleanPath;
+          imagePath = imagePath.replace(/^\//, '');
+          imagePath = imagePath.replace(/^assets\/images\//, '');
+          
+          const key = `${imagePath}@${width}x${height}${format ? `.${format}` : ''}`;
+          
+          this.requirements.set(key, {
+            sourcePath: imagePath,
+            width,
+            height,
+            format,
+            quality,
+            originalUrl: fullUrl,
+            usedIn: sourceFile
+          });
+        }
       }
-    }
+    });
   }
 
   // Process all collected images
@@ -311,10 +317,20 @@ class ImageProcessor {
 
   // Replace image URLs in HTML with processed versions
   replaceUrlsInHtml(html) {
-    return html.replace(/src="([^"]+\.(jpg|jpeg|png|gif|webp|svg)\?[^"]*)"/gi, (match, url) => {
+    // Replace src attributes
+    html = html.replace(/src="([^"]+\.(jpg|jpeg|png|gif|webp|svg)\?[^"]*)"/gi, (match, url) => {
       const processedUrl = this.getProcessedUrl(url);
       return `src="${processedUrl}"`;
     });
+    
+    // Replace background-image in style attributes
+    html = html.replace(/background-image:\s*url\(['"]?([^'"]+\.(jpg|jpeg|png|gif|webp|svg)\?[^'")]+)['"]?\)/gi, (match, url) => {
+      const processedUrl = this.getProcessedUrl(url);
+      console.log(`Replacing background-image: ${url} -> ${processedUrl}`);
+      return `background-image: url('${processedUrl}')`;
+    });
+    
+    return html;
   }
 }
 

@@ -1084,7 +1084,7 @@ footer {
     }
     
     .news-card .news-image {
-        height: 180px; /* Reduced from 220px */
+        height: 240px; /* Increased from 180px */
         margin: 0 -1rem; /* Extend image to full width */
         width: calc(100% + 2rem);
         border-radius: 0;
