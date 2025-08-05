@@ -17,6 +17,7 @@ Static site generator for Anteo AS using markdown files, Node.js, and GitHub Pag
 - **Styling**: Plain CSS (no framework)
 - **Deployment**: GitHub Pages via Actions
 - **Dependencies**: marked, gray-matter, handlebars, fs-extra, glob
+- **Dev Dependencies**: nodemon, serve, browser-sync
 
 ### Directory Structure
 ```
@@ -31,7 +32,9 @@ anteo-website/
 ├── templates/        # Handlebars HTML templates
 ├── public/           # Generated site (git-ignored)
 ├── build.js          # Build script
-└── package.json      # Dependencies
+├── dev-server.js     # Development server with auto-reload
+├── package.json      # Dependencies
+└── nodemon.json      # Nodemon configuration
 ```
 
 ### Key Design Decisions
@@ -54,12 +57,15 @@ anteo-website/
 - **Link processing** - Updates markdown links with base path
 - **Template system** - Base template wraps page/product/news templates
 - **Clean builds** - Removes old directories
+- **Auto-reload development** - Browser refreshes on file changes
+- **Team member management** - Auto-generates team grid from markdown files
 
 ### Commands
 ```bash
-npm run build  # Build site
-npm run serve  # Serve locally
-npm run dev    # Watch & rebuild
+npm run build    # Build site
+npm run serve    # Serve locally (static)
+npm run dev      # Watch, rebuild & auto-reload browser
+npm run dev-simple  # Watch & rebuild (no auto-reload)
 ```
 
 ## Content Structure
@@ -123,6 +129,8 @@ description: "Article summary"
 3. ✅ **Navigation 404s** - Links updated to use base path
 4. ✅ **Dev loop** - Nodemon configured to ignore public directory
 5. ✅ **News metadata dots** - Template shows only existing fields
+6. ✅ **Brand colors** - Updated to Anteo green (#30b499) and dark blue (#1d3343)
+7. ✅ **Auto-reload** - Browser-sync added for automatic page refresh
 
 ### Pending Tasks
 1. Add more content (team, case studies, etc.)
@@ -140,6 +148,16 @@ description: "Article summary"
 4. **Add images**: Place in `src/assets/images/`
 5. **Modify templates**: Edit files in `templates/`
 6. **Test locally**: Run `npm run dev`
+
+### Downloading Images from Web
+The AI assistant has `curl` available and can download images directly:
+```bash
+curl -o src/assets/images/team/person-name.jpg "https://example.com/image.jpg"
+```
+This is useful for:
+- Downloading team member photos from anteo.no
+- Getting logo files
+- Fetching any other web assets
 
 ### Important Patterns
 - All URLs use `{{basePath}}` prefix in templates

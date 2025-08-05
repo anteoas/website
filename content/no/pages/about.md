@@ -26,3 +26,9 @@ Vi tror på kraften i samarbeid og jobber tett med aktører i hele verdikjeden.
 ## Kontorer
 
 Vi har kontorer i Trondheim og Bergen, og betjener kunder langs hele norskekysten.
+
+## Teamet vårt
+
+Møt folkene som jobber hver dag for å gjøre havbruksnæringen mer effektiv og bærekraftig.
+
+[Se våre ansatte →](/team/)

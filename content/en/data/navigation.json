@@ -1,0 +1,24 @@
+{
+  "main": [
+    {
+      "label": "Home",
+      "url": "/"
+    },
+    {
+      "label": "About",
+      "url": "/about.html"
+    },
+    {
+      "label": "Products",
+      "url": "/products.html"
+    },
+    {
+      "label": "News",
+      "url": "/news/"
+    },
+    {
+      "label": "Contact",
+      "url": "/contact.html"
+    }
+  ]
+}

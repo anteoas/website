@@ -5,7 +5,8 @@
   "scripts": {
     "build": "node build.js",
     "serve": "npx serve public",
-    "dev": "nodemon & npm run serve"
+    "dev": "node dev-server.js",
+    "dev-simple": "nodemon & npm run serve"
   },
   "dependencies": {
     "marked": "^11.1.0",
@@ -16,6 +17,7 @@
   },
   "devDependencies": {
     "nodemon": "^3.0.2",
-    "serve": "^14.2.1"
+    "serve": "^14.2.1",
+    "browser-sync": "^3.0.2"
   }
 }
