@@ -5,7 +5,7 @@
   "scripts": {
     "build": "node build.js",
     "serve": "npx serve public",
-    "dev": "nodemon build.js & npm run serve"
+    "dev": "nodemon & npm run serve"
   },
   "dependencies": {
     "marked": "^11.1.0",

@@ -44,12 +44,7 @@ jobs:
       run: npm ci
     
     - name: Build site
-      run: |
-        npm run build
-        # Create .nojekyll to prevent GitHub from processing with Jekyll
-        touch public/.nojekyll
-        # Copy index.html to root for GitHub Pages
-        cp public/pages/index.html public/index.html
+      run: npm run build
     
     - name: Setup Pages
       uses: actions/configure-pages@v5

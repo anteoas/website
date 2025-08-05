@@ -1,16 +1,27 @@
-{{#> base}}
-{{#*inline "body"}}
 <div class="news-wrapper">
     <div class="container">
         <article class="news-article">
             <header class="article-header">
+                {{#if date}}
                 <div class="article-meta">
                     <time datetime="{{date}}">{{date}}</time>
-                    <span class="separator">•</span>
-                    <span class="author">{{author}}</span>
-                    <span class="separator">•</span>
-                    <span class="category">{{category}}</span>
+                    {{#if author}}<span class="separator">•</span><span class="author">{{author}}</span>{{/if}}
+                    {{#if category}}<span class="separator">•</span><span class="category">{{category}}</span>{{/if}}
                 </div>
+                {{else}}
+                    {{#if author}}
+                    <div class="article-meta">
+                        <span class="author">{{author}}</span>
+                        {{#if category}}<span class="separator">•</span><span class="category">{{category}}</span>{{/if}}
+                    </div>
+                    {{else}}
+                        {{#if category}}
+                        <div class="article-meta">
+                            <span class="category">{{category}}</span>
+                        </div>
+                        {{/if}}
+                    {{/if}}
+                {{/if}}
                 <h1>{{title}}</h1>
                 {{#if description}}
                 <p class="lead">{{description}}</p>
@@ -22,10 +33,8 @@
             </div>
             
             <footer class="article-footer">
-                <a href="/news/" class="back-link">← Tilbake til nyheter</a>
+                <a href="{{basePath}}/news/" class="back-link">← Tilbake til nyheter</a>
             </footer>
         </article>
     </div>
 </div>
-{{/inline}}
-{{/base}}
