@@ -18,6 +18,7 @@ For detailed documentation, see the [`/docs`](./docs) directory:
 - [Build System](./docs/build-system.md) - How the build process works
 - [Image Processing](./docs/image-processing.md) - Automatic image optimization
 - [JavaScript Architecture](./docs/javascript-architecture.md) - Module system and bundling
+- [Testing](./docs/testing.md) - Test suite and testing guidelines
 
 ## For Content Editors
 
@@ -58,6 +59,8 @@ Your content here...
 | `npm run build:dev` | Development build with source maps |
 | `npm run clean` | Remove build artifacts |
 | `npm run serve` | Preview production build |
+| `npm test` | Run all tests |
+| `npm run test:coverage` | Generate test coverage report |
 
 ### Key Features
 
