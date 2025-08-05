@@ -63,6 +63,29 @@ function applyDeploymentConfig(config) {
   });
   
   console.log(`✓ Deployment config applied to ${htmlFiles.length} HTML files`);
+  
+  // Process CSS files
+  if (basePath) {
+    const cssFiles = glob.sync('dist/**/*.css');
+    cssFiles.forEach(file => {
+      let content = readFileSync(file, 'utf8');
+      
+      // Replace absolute URLs in CSS
+      content = content
+        // Handle url('/...') with single quotes
+        .replace(/url\('\/([^']+)'\)/g, `url('${basePath}/$1')`)
+        // Handle url("/...") with double quotes
+        .replace(/url\("\/([^"]+)"\)/g, `url("${basePath}/$1")`)
+        // Handle url(/...) without quotes
+        .replace(/url\(\/([^)]+)\)/g, `url(${basePath}/$1)`);
+      
+      writeFileSync(file, content);
+    });
+    
+    if (cssFiles.length > 0) {
+      console.log(`✓ Base path applied to ${cssFiles.length} CSS files`);
+    }
+  }
 }
 
 /**

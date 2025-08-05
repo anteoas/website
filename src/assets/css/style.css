@@ -589,7 +589,7 @@ footer {
 
 /* Hero Section - Full screen with background image */
 .hero-headline {
-    background-image: url('/assets/images/hero-main.png');
+    background-image: url('../images/hero-main.png');
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
