@@ -2,19 +2,35 @@
 
 ## Overview
 
-The build system handles base paths (required for GitHub Pages deployment) through a post-processing step that modifies URLs after the main build completes.
+The build system handles base paths (required for GitHub Pages deployment) through a clean separation of concerns:
+
+1. **Build Phase** (`build-site.js`) - Builds the site with root-relative paths, knows nothing about deployment
+2. **Deployment Transform Phase** (`deployment-transform.js`) - Applies base paths as a post-processing step
 
 ## Architecture
+
+### Separation of Concerns
+
+The build system is split into distinct modules:
+
+```
+scripts/
+├── build.js                    # Main orchestrator
+├── build-site.js              # Pure build logic (no base path knowledge)
+└── deployment-transform.js     # Deployment-specific transforms
+```
 
 ### Build Phase
 - All URLs are generated as root-relative paths (`/assets/...`, `/about.html`)
 - Templates use standard HTML without path variables
 - No base path logic during content processing
+- Pure transformation of content to HTML
 
 ### Post-Processing Phase
 - Detects deployment target from environment variables
 - Applies base path to all URLs if needed
-- Single-pass transformation of HTML files
+- Single-pass transformation of HTML files only
+- CSS, JS, and JSON files are never modified
 
 ## Implementation
 
