@@ -31,6 +31,9 @@ describe('Build Integration Tests', () => {
       expect(fs.existsSync('dist/assets/css/style.css')).toBe(true);
       expect(fs.existsSync('dist/assets/js/bundle.min.js')).toBe(true);
       
+      // Check CSS bundling - variables.css should not exist separately
+      expect(fs.existsSync('dist/assets/css/variables.css')).toBe(false);
+      
       // Check URLs don't have base path
       const indexContent = fs.readFileSync('dist/index.html', 'utf8');
       expect(indexContent).toContain('href="/assets/css/style.css"');
