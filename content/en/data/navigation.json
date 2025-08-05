@@ -1,14 +1,6 @@
 {
   "main": [
     {
-      "label": "Home",
-      "url": "/"
-    },
-    {
-      "label": "About",
-      "url": "/about.html"
-    },
-    {
       "label": "Products",
       "url": "/products.html"
     },
@@ -17,8 +9,12 @@
       "url": "/news/"
     },
     {
-      "label": "Contact",
-      "url": "/contact.html"
+      "label": "Sustainability",
+      "url": "/sustainability.html"
+    },
+    {
+      "label": "About",
+      "url": "/about.html"
     }
   ]
 }

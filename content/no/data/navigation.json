@@ -1,11 +1,9 @@
 {
   "main": [
-    { "label": "Hjem", "url": "/" },
-    { "label": "Om oss", "url": "/about.html" },
     { "label": "Produkter", "url": "/products.html" },
-    { "label": "Team", "url": "/team/" },
     { "label": "Nyheter", "url": "/news/" },
-    { "label": "Kontakt", "url": "/contact.html" }
+    { "label": "Bærekraft", "url": "/sustainability.html" },
+    { "label": "Om oss", "url": "/about.html" }
   ],
   "products": [
     { "label": "Logistikkverktøy", "url": "/products/logistics-tools.html" },

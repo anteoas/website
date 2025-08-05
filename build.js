@@ -74,6 +74,12 @@ function build() {
     const siteData = JSON.parse(readFileSync(siteDataPath, 'utf8'));
     const navData = JSON.parse(readFileSync(navDataPath, 'utf8'));
     
+    // Dynamically set copyright year
+    const currentYear = new Date().getFullYear();
+    if (siteData.copyright) {
+      siteData.copyright = siteData.copyright.replace(/© \d{4}/, `© ${currentYear}`);
+    }
+    
     // Process all markdown files for this language
     const teamMembers = [];
     
