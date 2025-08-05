@@ -1,0 +1,29 @@
+/* CSS Variables / Custom Properties */
+:root {
+  /* Brand Colors */
+  --primary-color: #30b499;    /* Anteo green */
+  --secondary-color: #1d3343;  /* Anteo dark blue */
+  
+  /* Base Colors */
+  --text-color: #333;
+  --bg-color: #ffffff;
+  --gray-light: #f5f5f5;
+  --gray-medium: #e0e0e0;
+  
+  /* Layout */
+  --max-width: 1200px;
+  
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 2rem;
+  --space-xl: 3rem;
+  
+  /* Typography */
+  --font-family: 'Ubuntu', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --line-height: 1.6;
+  
+  /* Transitions */
+  --transition: all 0.3s ease;
+}
