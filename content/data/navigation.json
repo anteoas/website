@@ -1,10 +1,10 @@
 {
   "main": [
     { "label": "Hjem", "url": "/" },
-    { "label": "Om oss", "url": "/pages/about.html" },
-    { "label": "Produkter", "url": "/pages/products.html" },
+    { "label": "Om oss", "url": "/about.html" },
+    { "label": "Produkter", "url": "/products.html" },
     { "label": "Nyheter", "url": "/news/" },
-    { "label": "Kontakt", "url": "/pages/contact.html" }
+    { "label": "Kontakt", "url": "/contact.html" }
   ],
   "products": [
     { "label": "Logistikkverktøy", "url": "/products/logistics-tools.html" },

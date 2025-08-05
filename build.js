@@ -38,6 +38,12 @@ function build() {
   // Ensure output directory exists
   ensureDirSync('public');
   
+  // Clean up old pages directory if it exists
+  if (require('fs').existsSync('public/pages')) {
+    console.log('Cleaning up old pages directory...');
+    require('fs-extra').removeSync('public/pages');
+  }
+  
   // Create GitHub Pages files
   outputFileSync('public/.nojekyll', '');
   // Create CNAME if custom domain is set
@@ -89,13 +95,9 @@ function build() {
       .replace('content/', 'public/')
       .replace('.md', '.html');
     
-    // Special handling for index page
-    if (file === 'content/pages/index.md') {
-      // Also create a copy at root
-      const rootIndex = 'public/index.html';
-      ensureDirSync(path.dirname(rootIndex));
-      outputFileSync(rootIndex, fullPage);
-      console.log(`✓ Created root index: ${rootIndex}`);
+    // Move pages to root level
+    if (file.includes('/pages/')) {
+      outPath = outPath.replace('/pages/', '/');
     }
     
     ensureDirSync(path.dirname(outPath));

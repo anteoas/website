@@ -27,4 +27,4 @@ Sanntidsovervåkning for biosikkerhet. Få automatiske varsler om aktiviteter so
 
 Har du spesielle behov? Vi kan tilpasse våre løsninger eller utvikle nye moduler basert på dine krav. Ta kontakt for å diskutere mulighetene.
 
-[Kontakt oss](/pages/contact.html)
+[Kontakt oss](/contact.html)
