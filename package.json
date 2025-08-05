@@ -1,0 +1,21 @@
+{
+  "name": "anteo-website",
+  "version": "1.0.0",
+  "description": "Anteo AS website - Simple markdown-based site",
+  "scripts": {
+    "build": "node build.js",
+    "serve": "npx serve public",
+    "dev": "nodemon build.js & npm run serve"
+  },
+  "dependencies": {
+    "marked": "^11.1.0",
+    "gray-matter": "^4.0.3",
+    "handlebars": "^4.7.8",
+    "fs-extra": "^11.2.0",
+    "glob": "^10.3.10"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "serve": "^14.2.1"
+  }
+}

@@ -1,0 +1,31 @@
+{{#> base}}
+{{#*inline "body"}}
+<div class="news-wrapper">
+    <div class="container">
+        <article class="news-article">
+            <header class="article-header">
+                <div class="article-meta">
+                    <time datetime="{{date}}">{{date}}</time>
+                    <span class="separator">•</span>
+                    <span class="author">{{author}}</span>
+                    <span class="separator">•</span>
+                    <span class="category">{{category}}</span>
+                </div>
+                <h1>{{title}}</h1>
+                {{#if description}}
+                <p class="lead">{{description}}</p>
+                {{/if}}
+            </header>
+            
+            <div class="article-body">
+                {{{content}}}
+            </div>
+            
+            <footer class="article-footer">
+                <a href="/news/" class="back-link">← Tilbake til nyheter</a>
+            </footer>
+        </article>
+    </div>
+</div>
+{{/inline}}
+{{/base}}

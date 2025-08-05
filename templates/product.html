@@ -1,0 +1,40 @@
+{{#> base}}
+{{#*inline "body"}}
+<div class="product-wrapper">
+    <div class="container">
+        <article class="product-content">
+            <header class="product-header">
+                <div class="product-meta">
+                    <span class="category">{{category}}</span>
+                </div>
+                <h1>{{title}}</h1>
+                {{#if description}}
+                <p class="lead">{{description}}</p>
+                {{/if}}
+            </header>
+            
+            {{#if features}}
+            <div class="features-list">
+                <h3>Hovedfunksjoner</h3>
+                <ul>
+                    {{#each features}}
+                    <li>{{this}}</li>
+                    {{/each}}
+                </ul>
+            </div>
+            {{/if}}
+            
+            <div class="product-body">
+                {{{content}}}
+            </div>
+            
+            <div class="cta-section">
+                <h3>Interessert?</h3>
+                <p>Ta kontakt for mer informasjon eller en demonstrasjon.</p>
+                <a href="/pages/contact.html" class="btn btn-primary">Kontakt oss</a>
+            </div>
+        </article>
+    </div>
+</div>
+{{/inline}}
+{{/base}}

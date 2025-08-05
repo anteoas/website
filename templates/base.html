@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}} - {{name}}</title>
+    <meta name="description" content="{{description}}">
+    <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="container">
+                <a href="/" class="logo">Anteo</a>
+                <ul class="nav-menu">
+                    {{#each navigation.main}}
+                    <li><a href="{{this.url}}">{{this.label}}</a></li>
+                    {{/each}}
+                </ul>
+            </div>
+        </nav>
+    </header>
+    
+    <main>
+        {{{body}}}
+    </main>
+    
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>{{name}}</h3>
+                    <p>{{tagline}}</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Kontakt</h4>
+                    <p>{{contact.email}}<br>{{contact.phone}}</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Følg oss</h4>
+                    <a href="{{social.linkedin}}">LinkedIn</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>{{copyright}}</p>
+            </div>
+        </div>
+    </footer>
+    <script src="/assets/js/main.js"></script>
+</body>
+</html>

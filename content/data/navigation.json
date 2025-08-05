@@ -1,0 +1,14 @@
+{
+  "main": [
+    { "label": "Hjem", "url": "/" },
+    { "label": "Om oss", "url": "/pages/about.html" },
+    { "label": "Produkter", "url": "/pages/products.html" },
+    { "label": "Nyheter", "url": "/news/" },
+    { "label": "Kontakt", "url": "/pages/contact.html" }
+  ],
+  "products": [
+    { "label": "Logistikkverktøy", "url": "/products/logistics-tools.html" },
+    { "label": "FishJrnl", "url": "/products/fish-health.html" },
+    { "label": "Overvåkning", "url": "/products/monitoring.html" }
+  ]
+}
