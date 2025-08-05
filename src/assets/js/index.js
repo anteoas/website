@@ -1,14 +1,20 @@
-// Main entry point for all JavaScript
-import { initLanguageDetector, initLanguageSwitcher } from './modules/language-detector.js';
-import { initNavigation } from './modules/navigation.js';
+// Main entry point for Anteo website JavaScript
+import { init as initLanguageDetector } from './modules/language-detector.js';
+import { init as initNavigation } from './modules/navigation.js';
 
-// Initialize on page load
-initLanguageDetector(); // Run immediately for redirects
-
+// Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Anteo website initialized');
-    
-    // Initialize all modules
-    initLanguageSwitcher();
-    initNavigation();
+  console.log('Anteo website initialized');
+  
+  // Get configuration injected by build system
+  const config = window.ANTEO_CONFIG || {
+    basePath: '',
+    langPrefix: '',
+    currentLang: 'no',
+    defaultLang: 'no'
+  };
+  
+  // Initialize modules with configuration
+  initLanguageDetector(config);
+  initNavigation(config);
 });

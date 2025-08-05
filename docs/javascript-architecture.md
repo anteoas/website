@@ -2,114 +2,149 @@
 
 ## Overview
 
-The website uses a modular JavaScript architecture with ES6 modules, bundled using esbuild for optimal performance.
+The JavaScript architecture uses ES6 modules with a configuration-driven initialization pattern. All modules receive their configuration from the build system, ensuring consistent behavior across different deployment environments.
 
-## Directory Structure
+## Configuration System
 
-```
-src/assets/js/
-├── index.js              # Main entry point
-└── modules/              # Feature modules
-    ├── language-detector.js
-    └── navigation.js
-```
+### Build-Time Injection
 
-## Module System
-
-### Creating a Module
-
-Each module exports functions that can be imported by other modules:
+During the build process, configuration is injected into every HTML page:
 
 ```javascript
-// modules/feature.js
-export function initFeature() {
-    // Initialize feature
-}
-
-export function featureMethod() {
-    // Additional functionality
-}
+window.ANTEO_CONFIG = {
+  basePath: '/website',      // Base path for all URLs
+  customDomain: null,        // Custom domain if configured
+  environment: 'production', // Build environment
+  gitHubActions: true,       // Whether built in CI
+  langPrefix: '/en',         // Language prefix for URLs
+  currentLang: 'en',         // Current page language
+  defaultLang: 'no',         // Default site language
+  pageUrl: 'about'           // Current page identifier
+};
 ```
 
-### Module Guidelines
+### Runtime Usage
 
-- One feature per module
-- Export initialization functions
-- Keep modules focused and single-purpose
-- Use descriptive function names
-
-## Entry Point
-
-The `index.js` file serves as the main entry point:
+Modules are initialized with configuration during page load:
 
 ```javascript
-import { initLanguageDetector } from './modules/language-detector.js';
-import { initNavigation } from './modules/navigation.js';
-
-// Initialize modules
+// src/assets/js/index.js
 document.addEventListener('DOMContentLoaded', () => {
-    initLanguageDetector();
-    initNavigation();
+  const config = window.ANTEO_CONFIG || {
+    basePath: '',
+    langPrefix: '',
+    currentLang: 'no',
+    defaultLang: 'no'
+  };
+  
+  // Initialize all modules with config
+  initLanguageDetector(config);
+  initNavigation(config);
 });
+```
+
+## Module Structure
+
+### Module Pattern
+
+Each module exports an `init` function that accepts configuration:
+
+```javascript
+// src/assets/js/modules/example.js
+export function init(config = {}) {
+  const { basePath = '', currentLang = 'no' } = config;
+  
+  // Module implementation using config
+}
+```
+
+### Benefits
+
+1. **No URL Parsing** - Modules don't need to guess deployment paths
+2. **Testable** - Can test with different configurations
+3. **Consistent** - All modules use the same configuration source
+4. **Explicit Dependencies** - Clear what configuration each module needs
+
+## Available Modules
+
+### Language Detector (`language-detector.js`)
+
+Handles automatic language detection and redirects:
+
+```javascript
+export function init(config = {}) {
+  const { basePath = '', currentLang = 'no' } = config;
+  
+  // Detect browser language and redirect if needed
+  // Manage language preferences in localStorage
+  // Initialize language switcher UI
+}
+```
+
+### Navigation (`navigation.js`)
+
+Manages navigation interactions:
+
+```javascript
+export function init(config = {}) {
+  // Mobile menu toggle
+  // Smooth scrolling for anchor links
+  // Active state management
+}
 ```
 
 ## Build Process
 
-### Development Build
-- Command: `npm run build:dev` or `npm run dev`
-- Output: `dist/assets/js/bundle.js`
-- Features: Source maps, no minification
-- Use case: Local development and debugging
+### Development
 
-### Production Build
-- Command: `npm run build`
-- Output: `dist/assets/js/bundle.min.js`
-- Features: Minified, no source maps
-- Use case: Deployment to production
+```bash
+npm run build:dev
+```
+- Source maps enabled
+- No minification
+- Faster builds
 
-## Current Modules
+### Production
 
-### language-detector.js
-Handles automatic language detection and redirection based on browser preferences.
+```bash
+npm run build
+```
+- Minified output
+- No source maps
+- Optimized file size
 
-**Functions:**
-- `initLanguageDetector()` - Detects browser language and redirects if needed
-- `initLanguageSwitcher()` - Handles manual language switching
+### Bundling
 
-### navigation.js
-Manages navigation interactions and UI enhancements.
+JavaScript is bundled using esbuild:
+- Entry point: `src/assets/js/index.js`
+- Output: `dist/assets/js/bundle.js` (dev) or `bundle.min.js` (prod)
+- Format: IIFE (immediately invoked function expression)
+- Target: ES2015
 
-**Functions:**
-- `initNavigation()` - Sets up navigation event handlers
-- Smooth scrolling for anchor links
-- Mobile menu toggle (ready for implementation)
+## Testing Approach
 
-## Adding New Features
+Modules can be tested by providing different configurations:
 
-1. Create a new module file in `src/assets/js/modules/`
-2. Export the necessary functions
-3. Import in `index.js`
-4. Initialize in the DOMContentLoaded event
-
-Example:
 ```javascript
-// modules/analytics.js
-export function initAnalytics() {
-    // Analytics initialization code
-}
-
-// index.js
-import { initAnalytics } from './modules/analytics.js';
-
-document.addEventListener('DOMContentLoaded', () => {
-    initAnalytics();
+describe('Language Detector', () => {
+  it('should handle root deployment', () => {
+    const config = { basePath: '', currentLang: 'no' };
+    init(config);
+    // Test behavior
+  });
+  
+  it('should handle subdirectory deployment', () => {
+    const config = { basePath: '/website', currentLang: 'no' };
+    init(config);
+    // Test behavior
+  });
 });
 ```
 
-## Bundle Configuration
+## Best Practices
 
-The bundler (esbuild) is configured in `scripts/build.js`:
-- Target: ES2015 for broad browser support
-- Format: IIFE (Immediately Invoked Function Expression)
-- Source maps: Development only
-- Minification: Production only
+1. **Always destructure config** - Be explicit about what configuration you need
+2. **Provide defaults** - Handle missing configuration gracefully
+3. **Don't access globals directly** - Use the provided config
+4. **Keep modules focused** - Each module should have a single responsibility
+5. **Document config usage** - Make it clear what configuration each module expects

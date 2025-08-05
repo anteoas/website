@@ -1,66 +1,84 @@
 const glob = require('glob');
-const { readFileSync, writeFileSync } = require('fs-extra');
+const { readFileSync, writeFileSync, outputFileSync } = require('fs-extra');
 
 /**
- * Apply base path to all URLs in HTML files
- * This is a pure post-processing step that only modifies HTML files
+ * Apply deployment configuration to all HTML files
+ * This includes both config injection and URL transformation
  * 
- * @param {string} basePath - The base path to prepend to URLs (e.g., '/website')
+ * @param {Object} config - Deployment configuration
+ * @param {string} config.basePath - Base path for URLs (e.g., '/website')
+ * @param {string} config.customDomain - Custom domain if set
+ * @param {string} config.environment - Build environment
+ * @param {boolean} config.gitHubActions - Whether running in GitHub Actions
  */
-function applyBasePath(basePath) {
-  if (!basePath) return;
+function applyDeploymentConfig(config) {
+  const { basePath = '', customDomain = null } = config;
   
-  console.log(`\nApplying base path: ${basePath}`);
+  console.log(`\nApplying deployment configuration...`);
+  if (basePath) {
+    console.log(`- Base path: ${basePath}`);
+  }
+  if (customDomain) {
+    console.log(`- Custom domain: ${customDomain}`);
+  }
   
   const htmlFiles = glob.sync('dist/**/*.html');
   
   htmlFiles.forEach(file => {
     let content = readFileSync(file, 'utf8');
     
-    // Replace URLs in src and href attributes that start with /
-    content = content
-      // Handle src="/..." and href="/..."
-      .replace(/(src|href)="\/([^"]+)"/g, `$1="${basePath}/$2"`)
-      // Handle root href="/" specifically
-      .replace(/href="\/"/g, `href="${basePath}/"`);
+    // Extract page metadata from HTML
+    const langMatch = content.match(/lang="([^"]+)"/);
+    const lang = langMatch ? langMatch[1] : 'no';
+    const isDefaultLang = lang === 'no';
+    const langPrefix = isDefaultLang ? '' : `/${lang}`;
+    
+    // Create page-specific config merged with deployment config
+    const pageConfig = {
+      ...config,
+      langPrefix: langPrefix,
+      currentLang: lang,
+      defaultLang: 'no',
+      pageUrl: file.replace('dist/', '').replace('.html', '')
+    };
+    
+    // Inject configuration
+    const configScript = `
+<script>
+  window.ANTEO_CONFIG = ${JSON.stringify(pageConfig, null, 2)};
+</script>
+`;
+    content = content.replace('</head>', `${configScript}</head>`);
+    
+    // Apply base path to URLs if needed
+    if (basePath) {
+      content = content
+        .replace(/(src|href)="\/([^"]+)"/g, `$1="${basePath}/$2"`)
+        .replace(/href="\/"/g, `href="${basePath}/"`);
+    }
     
     writeFileSync(file, content);
   });
   
-  console.log(`✓ Base path applied to ${htmlFiles.length} HTML files`);
-}
-
-/**
- * Determine the base path based on environment
- * 
- * @returns {string} The base path to use (empty string if none)
- */
-function determineBasePath() {
-  const isGitHubActions = process.env.GITHUB_ACTIONS === 'true';
-  const repoName = process.env.GITHUB_REPOSITORY?.split('/')[1] || '';
-  
-  // Use CUSTOM_DOMAIN env var to determine if we're deploying to custom domain
-  const basePath = process.env.CUSTOM_DOMAIN ? '' : (isGitHubActions && repoName ? `/${repoName}` : '');
-  
-  console.log(`Base path will be: "${basePath}" (applied at end)`);
-  
-  return basePath;
+  console.log(`✓ Deployment config applied to ${htmlFiles.length} HTML files`);
 }
 
 /**
  * Create deployment-specific files
+ * 
+ * @param {Object} config - Deployment configuration
  */
-function createDeploymentFiles() {
-  const { outputFileSync } = require('fs-extra');
+function createDeploymentFiles(config) {
+  const { customDomain } = config;
   
   // Create CNAME if custom domain is set
-  if (process.env.CUSTOM_DOMAIN) {
-    outputFileSync('dist/CNAME', process.env.CUSTOM_DOMAIN);
+  if (customDomain) {
+    outputFileSync('dist/CNAME', customDomain);
+    console.log(`✓ Created CNAME file for ${customDomain}`);
   }
 }
 
 module.exports = {
-  applyBasePath,
-  determineBasePath,
+  applyDeploymentConfig,
   createDeploymentFiles
 };
