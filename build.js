@@ -26,14 +26,12 @@ const navData = JSON.parse(readFileSync('content/data/navigation.json', 'utf8'))
 function build() {
   console.log('Building site...');
   
-  // Check if we're in GitHub Actions
+  // Check if we're in GitHub Actions and determine base path
   const isGitHubActions = process.env.GITHUB_ACTIONS === 'true';
   const repoName = process.env.GITHUB_REPOSITORY?.split('/')[1] || '';
   
-  // Determine base path for URLs
-  const basePath = isGitHubActions && repoName && !process.env.CUSTOM_DOMAIN 
-    ? `/${repoName}` 
-    : '';
+  // Use CUSTOM_DOMAIN env var to determine if we're deploying to custom domain
+  const basePath = process.env.CUSTOM_DOMAIN ? '' : (isGitHubActions && repoName ? `/${repoName}` : '');
   
   console.log(`Base path: "${basePath}"`);
   
@@ -42,8 +40,10 @@ function build() {
   
   // Create GitHub Pages files
   outputFileSync('public/.nojekyll', '');
-  // Don't create CNAME until ready to deploy to anteo.no
-  // outputFileSync('public/CNAME', 'anteo.no');
+  // Create CNAME if custom domain is set
+  if (process.env.CUSTOM_DOMAIN) {
+    outputFileSync('public/CNAME', process.env.CUSTOM_DOMAIN);
+  }
   
   // Assets are already in public/assets, no copy needed
   
@@ -53,7 +53,13 @@ function build() {
   // Process all markdown files
   glob.sync('content/**/*.md').forEach(file => {
     const { data, content } = matter(readFileSync(file, 'utf8'));
-    const html = marked.parse(content);
+    
+    // Replace absolute links in markdown content with basePath
+    const processedContent = basePath ? 
+      content.replace(/\]\(\//g, `](${basePath}/`) : 
+      content;
+    
+    const html = marked.parse(processedContent);
     
     // Determine template based on path
     let template = 'page';
