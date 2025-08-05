@@ -149,6 +149,7 @@ async function buildSite() {
   
   // Copy assets
   console.log('Copying assets...');
+  ensureDirSync('dist/assets/images');
   copySync('src/assets/images', 'dist/assets/images', { overwrite: true });
   
   // Collect all content for AI endpoint
@@ -204,7 +205,8 @@ async function buildSite() {
       let fullPage = Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/layouts/base.html'), 'utf8'))({
         ...pageData,
         body: pageContent,
-        currentPath: pageData.currentPath
+        currentPath: pageData.currentPath,
+        isDevelopment: process.env.NODE_ENV === 'development'
       });
       
       // Extract image requirements from the final HTML

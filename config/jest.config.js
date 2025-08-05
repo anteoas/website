@@ -12,5 +12,7 @@ module.exports = {
   ],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1'
-  }
+  },
+  // Run tests sequentially to avoid conflicts with build output
+  maxWorkers: 1
 };
