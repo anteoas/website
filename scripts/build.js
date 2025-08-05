@@ -1,3 +1,14 @@
+/**
+ * Main build orchestrator
+ * 
+ * This file coordinates the build process by:
+ * 1. Running the site build (which knows nothing about deployment)
+ * 2. Applying deployment-specific transforms (like base paths)
+ * 
+ * This separation ensures that build logic and deployment concerns
+ * remain isolated, making the system more maintainable and testable.
+ */
+
 const { buildSite } = require('./build-site');
 const { applyBasePath, determineBasePath, createDeploymentFiles } = require('./deployment-transform');
 
