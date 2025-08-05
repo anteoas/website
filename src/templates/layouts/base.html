@@ -12,7 +12,7 @@
         <nav>
             <div class="container">
                 <a href="{{basePath}}{{langPrefix}}/" class="logo">
-                    <img src="{{basePath}}/assets/images/anteo-logo.png" alt="Anteo" height="80">
+                    <img src="{{basePath}}/assets/images/anteo-logo.png?size=160x80&format=png" alt="Anteo" height="80">
                 </a>
                 <ul class="nav-menu">
                     {{#each navigation.main}}
@@ -59,7 +59,10 @@
             </div>
         </div>
     </footer>
-    <script src="{{basePath}}/assets/js/main.js"></script>
-    <script src="{{basePath}}/assets/js/language-detector.js"></script>
+    {{#if isDevelopment}}
+    <script src="{{basePath}}/assets/js/bundle.js"></script>
+    {{else}}
+    <script src="{{basePath}}/assets/js/bundle.min.js"></script>
+    {{/if}}
 </body>
 </html>

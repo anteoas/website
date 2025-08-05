@@ -1,5 +1,5 @@
 // Language detection and redirect logic
-(function() {
+export function initLanguageDetector() {
   // Only run on the homepage
   if (window.location.pathname !== '/' && 
       window.location.pathname !== '/index.html' &&
@@ -27,10 +27,10 @@
     // Set preference to prevent future redirects
     localStorage.setItem('languagePreference', browserLang.toLowerCase().startsWith('en') ? 'en' : 'no');
   }
-})();
+}
 
 // Update language preference when user clicks language switcher
-document.addEventListener('DOMContentLoaded', function() {
+export function initLanguageSwitcher() {
   const langSwitches = document.querySelectorAll('.lang-switch');
   
   langSwitches.forEach(link => {
@@ -40,4 +40,4 @@ document.addEventListener('DOMContentLoaded', function() {
       localStorage.setItem('languagePreference', switchingToEnglish ? 'en' : 'no');
     });
   });
-});
+}

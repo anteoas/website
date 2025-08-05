@@ -4,26 +4,55 @@ const { readFileSync, outputFileSync, copySync, ensureDirSync } = require('fs-ex
 const matter = require('gray-matter');
 const marked = require('marked');
 const Handlebars = require('handlebars');
+const esbuild = require('esbuild');
+const buildConfig = require('../config/build.config');
+const siteConfig = require('../config/site.config');
+const ImageProcessor = require('./utils/image-processor');
 
 // Supported languages
-const languages = ['no', 'en'];
-const defaultLang = 'no';
+const languages = buildConfig.languages;
+const defaultLang = buildConfig.defaultLanguage;
 
 // Load templates
 const templates = {
-  page: Handlebars.compile(readFileSync('templates/page.html', 'utf8')),
-  product: Handlebars.compile(readFileSync('templates/product.html', 'utf8')),
-  news: Handlebars.compile(readFileSync('templates/news.html', 'utf8'))
+  page: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/page.html'), 'utf8')),
+  product: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/product.html'), 'utf8')),
+  news: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/news.html'), 'utf8'))
 };
 
 // Helper to wrap content in base template
 function wrapInBase(content, data) {
-  const baseTemplate = readFileSync('templates/base.html', 'utf8');
+  const baseTemplate = readFileSync(path.join(__dirname, '../src/templates/layouts/base.html'), 'utf8');
   return baseTemplate.replace('{{{body}}}', content);
 }
 
+// Bundle JavaScript with esbuild
+async function bundleJavaScript() {
+  const isDev = process.env.NODE_ENV === 'development';
+  
+  console.log(`\nBundling JavaScript (${isDev ? 'development' : 'production'})...`);
+  
+  try {
+    const result = await esbuild.build({
+      entryPoints: ['src/assets/js/index.js'],
+      bundle: true,
+      outfile: isDev ? 'dist/assets/js/bundle.js' : 'dist/assets/js/bundle.min.js',
+      minify: !isDev,
+      sourcemap: isDev,
+      target: ['es2015'],
+      format: 'iife',
+      logLevel: 'info'
+    });
+    
+    console.log(`✓ JavaScript bundled successfully`);
+  } catch (error) {
+    console.error('❌ JavaScript bundling failed:', error);
+    throw error;
+  }
+}
+
 // Build function
-function build() {
+async function build() {
   console.log('Building multilingual site...');
   
   // Check if we're in GitHub Actions and determine base path
@@ -35,25 +64,30 @@ function build() {
   
   console.log(`Base path: "${basePath}"`);
   
+  // Initialize image processor
+  const imageProcessor = new ImageProcessor();
+  
   // Ensure output directory exists
-  ensureDirSync('public');
+  ensureDirSync(buildConfig.outputPath);
   
   // Clean up old directories if they exist
-  if (require('fs').existsSync('public/pages')) {
+  if (require('fs').existsSync('dist/pages')) {
     console.log('Cleaning up old pages directory...');
-    require('fs-extra').removeSync('public/pages');
+    require('fs-extra').removeSync('dist/pages');
   }
   
   // Create GitHub Pages files
-  outputFileSync('public/.nojekyll', '');
+  outputFileSync('dist/.nojekyll', '');
   // Create CNAME if custom domain is set
   if (process.env.CUSTOM_DOMAIN) {
-    outputFileSync('public/CNAME', process.env.CUSTOM_DOMAIN);
+    outputFileSync('dist/CNAME', process.env.CUSTOM_DOMAIN);
   }
   
-  // Copy assets from src to public
+  // Copy assets from src to public (excluding JS source files)
   console.log('Copying assets...');
-  copySync('src/assets', 'public/assets', { overwrite: true });
+  copySync('src/assets/css', 'dist/assets/css', { overwrite: true });
+  copySync('src/assets/images', 'dist/assets/images', { overwrite: true });
+  // JS will be bundled separately, not copied
   
   // Collect all content for AI endpoint
   const contentIndex = [];
@@ -101,11 +135,13 @@ function build() {
       if (file.includes('/news/')) template = 'news';
       
       // Collect team members for the team index
-      if (file.includes('/team/') && !file.endsWith('index.md')) {
+      if (file.includes('/team/members/') && file.endsWith('.md')) {
         teamMembers.push({
           ...data,
           slug: path.basename(file, '.md')
         });
+        // Skip building individual team member pages
+        return;
       }
       
       // Prepare data
@@ -118,7 +154,7 @@ function build() {
         currentLang: lang,
         langPrefix: lang === defaultLang ? '' : `/${lang}`,
         isDefaultLang: lang === defaultLang,
-        currentPath: file.replace(`content/${lang}/`, '').replace('.md', '.html').replace('/pages/', '/'),
+        currentPath: file.replace(`content/${lang}/`, '').replace('pages/', '').replace('.md', '.html'),
         languages: languages,
         defaultLang: defaultLang
       };
@@ -131,7 +167,7 @@ function build() {
         // Generate team grid HTML
         const teamGrid = sortedTeam.map(member => `
           <div class="team-member">
-            <img src="${basePath}${member.photo}" alt="${member.name}" class="team-photo">
+            <img src="${basePath}${member.photo}?size=300x300&format=jpg" alt="${member.name}" class="team-photo">
             <h3>${member.name}</h3>
             <p class="position">${member.position}</p>
             ${member.email ? `<p class="contact"><a href="mailto:${member.email}">${member.email}</a></p>` : ''}
@@ -146,18 +182,48 @@ function build() {
         );
       }
       
+      // Special handling for about page to include team members
+      if (file.endsWith('pages/about.md')) {
+        // Sort team members by order
+        const sortedTeam = teamMembers.sort((a, b) => (a.order || 999) - (b.order || 999));
+        
+        // Generate team grid HTML
+        const teamGrid = sortedTeam.map(member => `
+          <div class="team-member">
+            <img src="${basePath}${member.photo}?size=300x300&format=jpg" alt="${member.name}" class="team-photo">
+            <h3>${member.name}</h3>
+            <p class="position">${member.position}</p>
+            ${member.email ? `<p class="contact"><a href="mailto:${member.email}">${member.email}</a></p>` : ''}
+            ${member.phone ? `<p class="contact"><a href="tel:${member.phone}">${member.phone}</a></p>` : ''}
+          </div>
+        `).join('');
+        
+        // Replace placeholder in content
+        pageData.content = pageData.content.replace(
+          '<!-- Team members will be automatically inserted here by the build script -->', 
+          `<div class="team-grid">${teamGrid}</div>`
+        );
+      }
+      
       // Generate HTML
       const pageContent = templates[template](pageData);
       
       // Wrap in base template
-      const fullPage = Handlebars.compile(readFileSync('templates/base.html', 'utf8'))({
+      let fullPage = Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/layouts/base.html'), 'utf8'))({
         ...pageData,
-        body: pageContent
+        body: pageContent,
+        isDevelopment: process.env.NODE_ENV === 'development'
       });
+      
+      // Extract image requirements from the final HTML
+      imageProcessor.extractFromHtml(fullPage, file);
+      
+      // Replace image URLs with processed versions
+      fullPage = imageProcessor.replaceUrlsInHtml(fullPage, basePath);
       
       // Write file
       let outPath = file
-        .replace('content/', 'public/')
+        .replace('content/', 'dist/')
         .replace(`/${lang}/`, lang === defaultLang ? '/' : `/${lang}/`)
         .replace('.md', '.html');
       
@@ -172,7 +238,7 @@ function build() {
       // Add to content index for AI
       contentIndex.push({
         path: file.replace('content/', ''),
-        url: outPath.replace('public/', '/').replace('index.html', ''),
+        url: outPath.replace('dist/', '/').replace('index.html', ''),
         type: template,
         lang: lang,
         ...data
@@ -183,12 +249,28 @@ function build() {
   });
   
   // Write AI-friendly content index
-  ensureDirSync('public/api');
-  outputFileSync('public/api/content.json', JSON.stringify(contentIndex, null, 2));
+  ensureDirSync('dist/api');
+  outputFileSync('dist/api/content.json', JSON.stringify(contentIndex, null, 2));
   console.log('\n✓ Generated AI content index');
+  
+  // Process all collected images
+  await imageProcessor.processAll();
+  
+  // Copy processed images to public
+  if (require('fs').existsSync('.temp/images')) {
+    console.log('\nCopying processed images...');
+    copySync('.temp/images', 'dist/assets/images', { overwrite: true });
+    console.log('✓ Copied processed images');
+  }
+  
+  // Bundle JavaScript
+  await bundleJavaScript();
   
   console.log('\nBuild complete!');
 }
 
 // Run build
-build();
+build().catch(err => {
+  console.error('Build failed:', err);
+  process.exit(1);
+});

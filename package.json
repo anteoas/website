@@ -3,21 +3,26 @@
   "version": "1.0.0",
   "description": "Anteo AS website - Simple markdown-based site",
   "scripts": {
-    "build": "node build.js",
-    "serve": "npx serve public",
-    "dev": "node dev-server.js",
-    "dev-simple": "nodemon & npm run serve"
+    "build": "NODE_ENV=production node scripts/build.js",
+    "build:dev": "NODE_ENV=development node scripts/build.js",
+    "serve": "npx serve dist",
+    "dev": "NODE_ENV=development node scripts/dev-server.js",
+    "check-links": "node scripts/link-checker.js",
+    "clean": "rm -rf dist .temp"
   },
   "dependencies": {
-    "marked": "^11.1.0",
+    "cheerio": "^1.1.2",
+    "fs-extra": "^11.2.0",
+    "glob": "^10.3.10",
     "gray-matter": "^4.0.3",
     "handlebars": "^4.7.8",
-    "fs-extra": "^11.2.0",
-    "glob": "^10.3.10"
+    "marked": "^11.1.0",
+    "sharp": "^0.34.3"
   },
   "devDependencies": {
+    "browser-sync": "^3.0.2",
+    "esbuild": "^0.25.8",
     "nodemon": "^3.0.2",
-    "serve": "^14.2.1",
-    "browser-sync": "^3.0.2"
+    "serve": "^14.2.1"
   }
 }

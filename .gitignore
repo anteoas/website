@@ -4,3 +4,8 @@ public/
 *.log
 .nrepl-port
 .cpcache/
+out/
+
+/.temp
+/.clojure-mcp/
+/dist/

@@ -1,0 +1,6 @@
+{
+  "watch": ["content", "src/templates", "scripts/build.js"],
+  "ext": "js,json,md,html",
+  "ignore": ["dist/*", ".temp/*", "node_modules/*"],
+  "exec": "node scripts/build.js"
+}

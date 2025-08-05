@@ -3,7 +3,7 @@ const { spawn } = require('child_process');
 
 // Start browser-sync
 browserSync.init({
-    server: './public',
+    server: './dist',
     port: 3000,
     ui: false,
     open: false,
@@ -11,14 +11,14 @@ browserSync.init({
 });
 
 // Watch for changes in public directory
-browserSync.watch('public/**/*').on('change', browserSync.reload);
+browserSync.watch('dist/**/*').on('change', browserSync.reload);
 
 // Run build on start
 console.log('Initial build...');
-const build = spawn('node', ['build.js'], { stdio: 'inherit' });
+const build = spawn('node', ['scripts/build.js'], { stdio: 'inherit' });
 
 // Start nodemon to watch source files and rebuild
-const nodemon = spawn('npx', ['nodemon'], { stdio: 'inherit' });
+const nodemon = spawn('npx', ['nodemon', '--config', 'config/nodemon.json'], { stdio: 'inherit' });
 
 // Handle exit
 process.on('SIGINT', () => {
