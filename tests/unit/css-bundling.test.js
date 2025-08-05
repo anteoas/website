@@ -34,14 +34,23 @@ describe('CSS Bundling', () => {
       execSync('npm run build', { cwd: projectRoot });
       
       const bundledCss = fs.readFileSync(path.join(distCssPath, 'style.css'), 'utf8');
+      const variablesCss = fs.readFileSync(path.join(srcCssPath, 'variables.css'), 'utf8');
       
       // Check that the import statement is gone
       expect(bundledCss).not.toContain("@import url('./variables.css')");
       
       // Check that variables content is included
       expect(bundledCss).toContain(':root {');
-      expect(bundledCss).toContain('--primary-color: #30b499');
-      expect(bundledCss).toContain('--secondary-color: #1d3343');
+      
+      // Extract CSS custom properties from variables.css
+      const variableMatches = variablesCss.match(/--[\w-]+:\s*[^;]+/g);
+      
+      // Verify each variable from source appears in bundled output
+      if (variableMatches) {
+        variableMatches.forEach(variable => {
+          expect(bundledCss).toContain(variable);
+        });
+      }
     });
 
     it('should preserve external CSS imports', () => {
