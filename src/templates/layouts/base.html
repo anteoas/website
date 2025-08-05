@@ -5,27 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{title}} - {{name}}</title>
     <meta name="description" content="{{description}}">
-    <link rel="stylesheet" href="{{basePath}}/assets/css/style.css">
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32x32.png">
+    <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
     <header>
         <nav>
             <div class="container">
-                <a href="{{basePath}}{{langPrefix}}/" class="logo">
-                    <img src="{{basePath}}/assets/images/anteo-logo.png?size=160x80&format=png" alt="Anteo" height="80">
+                <a href="{{langPrefix}}/" class="logo">
+                    <img src="/assets/images/anteo-logo.png?size=160x80&format=png" alt="Anteo" height="80">
                 </a>
                 <ul class="nav-menu">
                     {{#each navigation.main}}
-                    <li><a href="{{../basePath}}{{../langPrefix}}{{this.url}}">{{this.label}}</a></li>
+                    <li><a href="{{../langPrefix}}{{this.url}}">{{this.label}}</a></li>
                     {{/each}}
                     <li class="language-switcher">
                         {{#if isDefaultLang}}
-                        <a href="{{basePath}}/en/{{currentPath}}" class="lang-switch" title="English">
-                            <img src="{{basePath}}/assets/images/flags/uk-flag.svg" alt="English" width="24" height="18">
+                        <a href="/en/{{currentPath}}" class="lang-switch" title="English">
+                            <img src="/assets/images/flags/uk-flag.svg" alt="English" width="24" height="18">
                         </a>
                         {{else}}
-                        <a href="{{basePath}}/{{currentPath}}" class="lang-switch" title="Norsk">
-                            <img src="{{basePath}}/assets/images/flags/norway-flag.svg" alt="Norsk" width="24" height="18">
+                        <a href="/{{currentPath}}" class="lang-switch" title="Norsk">
+                            <img src="/assets/images/flags/norway-flag.svg" alt="Norsk" width="24" height="18">
                         </a>
                         {{/if}}
                     </li>
@@ -60,9 +61,9 @@
         </div>
     </footer>
     {{#if isDevelopment}}
-    <script src="{{basePath}}/assets/js/bundle.js"></script>
+    <script src="/assets/js/bundle.js"></script>
     {{else}}
-    <script src="{{basePath}}/assets/js/bundle.min.js"></script>
+    <script src="/assets/js/bundle.min.js"></script>
     {{/if}}
 </body>
 </html>

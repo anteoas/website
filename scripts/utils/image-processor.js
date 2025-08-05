@@ -283,7 +283,7 @@ class ImageProcessor {
   }
 
   // Get the processed image path for HTML replacement
-  getProcessedUrl(originalUrl, basePath = '') {
+  getProcessedUrl(originalUrl) {
     const [cleanPath, queryString] = originalUrl.split('?');
     const params = new URLSearchParams(queryString);
     const size = params.get('size');
@@ -302,15 +302,17 @@ class ImageProcessor {
     const name = path.basename(imagePath, path.extname(imagePath));
     const dir = path.dirname(imagePath);
     
-    const processedPath = path.join(dir, `${name}-${width}x${height}${ext}`);
+    const processedPath = dir === '.' 
+      ? `${name}-${width}x${height}${ext}`
+      : path.join(dir, `${name}-${width}x${height}${ext}`);
     
-    return `${basePath}/assets/images/${processedPath}`;
+    return `/assets/images/${processedPath}`;
   }
 
   // Replace image URLs in HTML with processed versions
-  replaceUrlsInHtml(html, basePath = '') {
+  replaceUrlsInHtml(html) {
     return html.replace(/src="([^"]+\.(jpg|jpeg|png|gif|webp|svg)\?[^"]*)"/gi, (match, url) => {
-      const processedUrl = this.getProcessedUrl(url, basePath);
+      const processedUrl = this.getProcessedUrl(url);
       return `src="${processedUrl}"`;
     });
   }

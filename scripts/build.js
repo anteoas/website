@@ -1,6 +1,6 @@
 const glob = require('glob');
 const path = require('path');
-const { readFileSync, outputFileSync, copySync, ensureDirSync } = require('fs-extra');
+const { readFileSync, outputFileSync, copySync, ensureDirSync, writeFileSync } = require('fs-extra');
 const matter = require('gray-matter');
 const marked = require('marked');
 const Handlebars = require('handlebars');
@@ -51,6 +51,30 @@ async function bundleJavaScript() {
   }
 }
 
+// Apply base path to all URLs in HTML files
+function applyBasePath(basePath) {
+  if (!basePath) return;
+  
+  console.log(`\nApplying base path: ${basePath}`);
+  
+  const htmlFiles = glob.sync('dist/**/*.html');
+  
+  htmlFiles.forEach(file => {
+    let content = readFileSync(file, 'utf8');
+    
+    // Replace URLs in src and href attributes that start with /
+    content = content
+      // Handle src="/..." and href="/..."
+      .replace(/(src|href)="\/([^"]+)"/g, `$1="${basePath}/$2"`)
+      // Handle root href="/" specifically
+      .replace(/href="\/"/g, `href="${basePath}/"`);
+    
+    writeFileSync(file, content);
+  });
+  
+  console.log(`✓ Base path applied to ${htmlFiles.length} HTML files`);
+}
+
 // Build function
 async function build() {
   console.log('Building multilingual site...');
@@ -62,7 +86,7 @@ async function build() {
   // Use CUSTOM_DOMAIN env var to determine if we're deploying to custom domain
   const basePath = process.env.CUSTOM_DOMAIN ? '' : (isGitHubActions && repoName ? `/${repoName}` : '');
   
-  console.log(`Base path: "${basePath}"`);
+  console.log(`Base path will be: "${basePath}" (applied at end)`);
   
   // Initialize image processor
   const imageProcessor = new ImageProcessor();
@@ -111,7 +135,7 @@ async function build() {
     // Dynamically set copyright year
     const currentYear = new Date().getFullYear();
     if (siteData.copyright) {
-      siteData.copyright = siteData.copyright.replace(/© \d{4}/, `© ${currentYear}`);
+      siteData.copyright = siteData.copyright.replace(/\d{4}/, currentYear);
     }
     
     // Process all markdown files for this language
@@ -123,9 +147,9 @@ async function build() {
       // Add language to frontmatter data
       data.lang = lang;
       
-      // Replace absolute links in markdown content with basePath and language prefix
+      // Replace absolute links in markdown content (no basePath needed during build)
       const langPrefix = lang === defaultLang ? '' : `/${lang}`;
-      const processedContent = content.replace(/\]\(\//g, `](${basePath}${langPrefix}/`);
+      const processedContent = content.replace(/\]\(\//g, `](${langPrefix}/`);
       
       const html = marked.parse(processedContent);
       
@@ -144,13 +168,12 @@ async function build() {
         return;
       }
       
-      // Prepare data
+      // Prepare data (no basePath!)
       const pageData = {
         ...siteData,
         ...data,
         content: html,
         navigation: navData,
-        basePath: basePath,
         currentLang: lang,
         langPrefix: lang === defaultLang ? '' : `/${lang}`,
         isDefaultLang: lang === defaultLang,
@@ -167,7 +190,7 @@ async function build() {
         // Generate team grid HTML
         const teamGrid = sortedTeam.map(member => `
           <div class="team-member">
-            <img src="${basePath}${member.photo}?size=300x300&format=jpg" alt="${member.name}" class="team-photo">
+            <img src="${member.photo}?size=300x300&format=jpg" alt="${member.name}" class="team-photo">
             <h3>${member.name}</h3>
             <p class="position">${member.position}</p>
             ${member.email ? `<p class="contact"><a href="mailto:${member.email}">${member.email}</a></p>` : ''}
@@ -190,7 +213,7 @@ async function build() {
         // Generate team grid HTML
         const teamGrid = sortedTeam.map(member => `
           <div class="team-member">
-            <img src="${basePath}${member.photo}?size=300x300&format=jpg" alt="${member.name}" class="team-photo">
+            <img src="${member.photo}?size=300x300&format=jpg" alt="${member.name}" class="team-photo">
             <h3>${member.name}</h3>
             <p class="position">${member.position}</p>
             ${member.email ? `<p class="contact"><a href="mailto:${member.email}">${member.email}</a></p>` : ''}
@@ -218,8 +241,8 @@ async function build() {
       // Extract image requirements from the final HTML
       imageProcessor.extractFromHtml(fullPage, file);
       
-      // Replace image URLs with processed versions
-      fullPage = imageProcessor.replaceUrlsInHtml(fullPage, basePath);
+      // Replace image URLs with processed versions (no basePath yet!)
+      fullPage = imageProcessor.replaceUrlsInHtml(fullPage);
       
       // Write file
       let outPath = file
@@ -238,7 +261,7 @@ async function build() {
       // Add to content index for AI
       contentIndex.push({
         path: file.replace('content/', ''),
-        url: outPath.replace('dist/', '/').replace('index.html', ''),
+        url: outPath.replace('public/', '/').replace('index.html', ''),
         type: template,
         lang: lang,
         ...data
@@ -265,6 +288,11 @@ async function build() {
   
   // Bundle JavaScript
   await bundleJavaScript();
+  
+  // Apply base path to all URLs if needed
+  if (basePath) {
+    applyBasePath(basePath);
+  }
   
   console.log('\nBuild complete!');
 }

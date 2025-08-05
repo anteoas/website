@@ -43,7 +43,12 @@ For each language (no, en):
 - Development: `bundle.js` with source maps
 - Production: `bundle.min.js` minified
 
-### 6. Final Output
+### 6. Post-Processing
+- Apply base path to all URLs if deploying to GitHub Pages
+- Transform root-relative URLs to include base path
+- Single-pass modification of all HTML files
+
+### 7. Final Output
 - Generate API content index at `/api/content.json`
 - Create `.nojekyll` for GitHub Pages
 - Create CNAME file if custom domain set
