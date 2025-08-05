@@ -51,6 +51,10 @@ function build() {
     outputFileSync('public/CNAME', process.env.CUSTOM_DOMAIN);
   }
   
+  // Copy assets from src to public
+  console.log('Copying assets...');
+  copySync('src/assets', 'public/assets', { overwrite: true });
+  
   // Assets are already in public/assets, no copy needed
   
   // Collect all content for AI endpoint

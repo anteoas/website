@@ -26,9 +26,10 @@ anteo-website/
 │   ├── products/     # Product pages
 │   ├── news/         # News articles
 │   └── data/         # JSON data (navigation, site info)
+├── src/              # Source assets
+│   └── assets/       # CSS, JS, images (copied to public)
 ├── templates/        # Handlebars HTML templates
 ├── public/           # Generated site (git-ignored)
-│   └── assets/       # CSS, JS, images
 ├── build.js          # Build script
 └── package.json      # Dependencies
 ```
@@ -135,9 +136,10 @@ description: "Article summary"
 ### Quick Start for Modifications
 1. **Add new page**: Create markdown in `content/pages/`
 2. **Update navigation**: Edit `content/data/navigation.json`
-3. **Change styles**: Edit `public/assets/css/style.css`
-4. **Modify templates**: Edit files in `templates/`
-5. **Test locally**: Run `npm run dev`
+3. **Change styles**: Edit `src/assets/css/style.css`
+4. **Add images**: Place in `src/assets/images/`
+5. **Modify templates**: Edit files in `templates/`
+6. **Test locally**: Run `npm run dev`
 
 ### Important Patterns
 - All URLs use `{{basePath}}` prefix in templates
