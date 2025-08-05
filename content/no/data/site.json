@@ -20,5 +20,12 @@
   "social": {
     "linkedin": "https://linkedin.com/company/anteo-as"
   },
-  "copyright": "© 2025 Anteo AS. Alle rettigheter forbeholdt."
+  "copyright": "© 2025 Anteo AS. Alle rettigheter forbeholdt.",
+  "strings": {
+    "newsSection": {
+      "title": "Aktuelt",
+      "heading": "Nyheter & Oppdateringer",
+      "seeMore": "Se flere artikler"
+    }
+  }
 }

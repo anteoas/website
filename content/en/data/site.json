@@ -10,5 +10,12 @@
   },
   "social": {
     "linkedin": "https://linkedin.com/company/anteo-as"
+  },
+  "strings": {
+    "newsSection": {
+      "title": "News",
+      "heading": "News & Updates",
+      "seeMore": "See more articles"
+    }
   }
 }

@@ -60,7 +60,8 @@
 <section class="news-section">
     <div class="container">
         <div class="section-header">
-            <h2>Siste nytt</h2>
+            <p class="title">{{strings.newsSection.title}}</p>
+            <h2>{{strings.newsSection.heading}}</h2>
         </div>
         <div class="news-grid">
             {{#each latestNews}}
@@ -74,6 +75,9 @@
                 </div>
             </div>
             {{/each}}
+        </div>
+        <div class="news-more">
+            <a href="{{langPrefix}}/news.html" class="btn btn-primary">{{strings.newsSection.seeMore}}</a>
         </div>
     </div>
 </section>

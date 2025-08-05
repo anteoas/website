@@ -1,5 +1,5 @@
 ---
-title: "FishJrnl - Fiskehelseverktøy"
+title: "FishJrnl"
 description: "Digital journalføring og registrering av fiskevelferd"
 category: "fish-health"
 features:

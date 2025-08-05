@@ -13,6 +13,21 @@ const ImageProcessor = require('./utils/image-processor');
 const languages = buildConfig.languages;
 const defaultLang = buildConfig.defaultLanguage;
 
+// Register Handlebars helpers
+Handlebars.registerHelper('eq', function(a, b) {
+  return a === b;
+});
+
+Handlebars.registerHelper('lookup', function(obj, key, prop) {
+  if (arguments.length === 3) {
+    // Two argument version: lookup obj key
+    return obj && obj[key];
+  } else {
+    // Three argument version: lookup obj key prop
+    return obj && obj[key] && obj[key][prop];
+  }
+});
+
 // Helper to get language prefix
 const getLangPrefix = (lang) => lang === defaultLang ? '' : `/${lang}`;
 
@@ -210,9 +225,11 @@ function processMarkdownFile(file, lang, siteData, navData, teamMembers, product
     isDefaultLang: lang === defaultLang,
     currentPath: file.replace(`content/${lang}/`, '').replace('pages/', '').replace('.md', '.html'),
     languages: languages,
+    languageConfig: buildConfig.languageConfig,
     defaultLang: defaultLang,
     siteConfig: loadSiteConfig(),
-    products: products // Add products for footer
+    products: products, // Add products for footer
+    currentYear: new Date().getFullYear()
   };
   
   // Special handling for landing page
