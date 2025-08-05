@@ -17,7 +17,8 @@ const defaultLang = buildConfig.defaultLanguage;
 const templates = {
   page: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/page.html'), 'utf8')),
   product: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/product.html'), 'utf8')),
-  news: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/news.html'), 'utf8'))
+  news: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/news.html'), 'utf8')),
+  landing: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/landing.html'), 'utf8'))
 };
 
 // Bundle JavaScript with esbuild
@@ -85,10 +86,14 @@ function processMarkdownFile(file, lang, siteData, navData, teamMembers) {
   
   const html = marked.parse(processedContent);
   
-  // Determine template based on path
+  // Determine template based on path or layout
   let template = 'page';
-  if (file.includes('/products/')) template = 'product';
-  if (file.includes('/news/')) template = 'news';
+  if (data.layout) {
+    template = data.layout;
+  } else {
+    if (file.includes('/products/')) template = 'product';
+    if (file.includes('/news/')) template = 'news';
+  }
   
   // Prepare page data
   const pageData = {

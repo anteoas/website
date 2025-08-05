@@ -1,0 +1,79 @@
+<!-- Hero Section 1 - Headline -->
+<section class="hero-headline">
+    <div class="container">
+        <h1>{{landing.hero1}}</h1>
+    </div>
+</section>
+
+<!-- Hero Section 2 - Main -->
+<section class="hero-main">
+    <div class="container">
+        <div class="column-wrap">
+            <div class="content-block-left">
+                <div class="content-wrap">
+                    <p class="title">Anteo</p>
+                    <h2 class="heading-primary">{{landing.aboutTeaser.title}}</h2>
+                    <p class="paragraph blue">{{landing.aboutTeaser.text}}</p>
+                    <a href="{{langPrefix}}{{landing.aboutTeaser.link}}" class="btn btn-primary">{{landing.aboutTeaser.linkText}}</a>
+                </div>
+            </div>
+            <div class="image-block">
+                <img src="{{landing.aboutTeaser.image}}" alt="Anteo havbruk">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Product Section 1 - Anteo Logistikk -->
+<section class="product-section">
+    <div class="container">
+        <div class="product-wrap">
+            <div class="product-content">
+                <h2>{{productGroups.logistikk.title}}</h2>
+                <p>{{productGroups.logistikk.landingDescription}}</p>
+                <a href="{{langPrefix}}{{productGroups.logistikk.link}}" class="btn btn-primary">{{productGroups.logistikk.linkText}}</a>
+            </div>
+            <div class="product-image">
+                <img src="{{productGroups.logistikk.image}}" alt="{{productGroups.logistikk.title}}">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Product Section 2 - Anteo Fiskehelse -->
+<section class="product-section">
+    <div class="container">
+        <div class="product-wrap reversed">
+            <div class="product-image">
+                <img src="{{productGroups.fiskehelse.image}}" alt="{{productGroups.fiskehelse.title}}">
+            </div>
+            <div class="product-content">
+                <h2>{{productGroups.fiskehelse.title}}</h2>
+                <p>{{productGroups.fiskehelse.landingDescription}}</p>
+                <a href="{{langPrefix}}{{productGroups.fiskehelse.link}}" class="btn btn-primary">{{productGroups.fiskehelse.linkText}}</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- News Section -->
+<section class="news-section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Siste nytt</h2>
+        </div>
+        <div class="news-grid">
+            {{#each latestNews}}
+            <div class="news-card">
+                <a href="{{../langPrefix}}/aktuelt/{{this.slug}}" class="news-image" style="background-image: url('{{this.image}}')"></a>
+                <div class="news-content">
+                    <div class="news-category">Nyheter</div>
+                    <h3>{{this.title}}</h3>
+                    <p>{{this.excerpt}}</p>
+                    <a href="{{../langPrefix}}/aktuelt/{{this.slug}}" class="button-outline">Les mer</a>
+                </div>
+            </div>
+            {{/each}}
+        </div>
+    </div>
+</section>

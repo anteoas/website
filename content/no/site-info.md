@@ -1,0 +1,26 @@
+---
+company: "Anteo AS"
+orgNumber: "999 168 817"
+email: "post@anteo.no"
+phone: "+47 952 84 007"
+addresses:
+  - street: "Vågsallmenningen 6"
+    postalCode: "5040"
+    city: "Bergen"
+  - street: "Industrivegen 12"
+    postalCode: "7900"
+    city: "Rørvik"
+  - street: "Krambugata 2 (Digs)"
+    postalCode: "7011"
+    city: "Trondheim"
+  - street: "Fugleskjærgata 16"
+    postalCode: "6905"
+    city: "Florø"
+social:
+  - name: "Facebook"
+    url: "https://www.facebook.com/anteoas"
+    icon: "/assets/images/facebook-icon.svg"
+  - name: "Instagram"
+    url: "https://www.instagram.com/anteo_softwaresolutions/"
+    icon: "/assets/images/instagram-icon.svg"
+---
