@@ -5,7 +5,7 @@ author: "Anteo Team"
 category: "company"
 description: "Anteo har mottatt prestisjetung miljøpris for vårt arbeid med bærekraftige løsninger for havbruksnæringen"
 excerpt: "Anteo har mottatt prestisjetung miljøpris for vårt arbeid med bærekraftige løsninger for havbruksnæringen."
-image: "/assets/images/news/award.jpg"
+image: "/assets/images/news/2024-01-20-miljoepris.png"
 ---
 
 # Anteo vinner miljøpris for bærekraftig teknologi

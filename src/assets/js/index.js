@@ -18,6 +18,57 @@ document.addEventListener('DOMContentLoaded', () => {
   initLanguageDetector(config);
   initNavigation(config);
   
+  // Initialize mobile menu
+  const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+  const navMenu = document.querySelector('.nav-menu');
+  const body = document.body;
+  
+  if (mobileMenuToggle && navMenu) {
+    mobileMenuToggle.addEventListener('click', () => {
+      const isActive = navMenu.classList.contains('active');
+      
+      // Toggle menu
+      navMenu.classList.toggle('active');
+      mobileMenuToggle.classList.toggle('active');
+      mobileMenuToggle.setAttribute('aria-expanded', !isActive);
+      
+      // Prevent body scroll when menu is open
+      body.style.overflow = isActive ? '' : 'hidden';
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (navMenu.classList.contains('active') && 
+          !navMenu.contains(e.target) && 
+          !mobileMenuToggle.contains(e.target)) {
+        navMenu.classList.remove('active');
+        mobileMenuToggle.classList.remove('active');
+        mobileMenuToggle.setAttribute('aria-expanded', 'false');
+        body.style.overflow = '';
+      }
+    });
+    
+    // Close menu on escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && navMenu.classList.contains('active')) {
+        navMenu.classList.remove('active');
+        mobileMenuToggle.classList.remove('active');
+        mobileMenuToggle.setAttribute('aria-expanded', 'false');
+        body.style.overflow = '';
+      }
+    });
+    
+    // Close menu when clicking on a link (for same-page navigation)
+    navMenu.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        navMenu.classList.remove('active');
+        mobileMenuToggle.classList.remove('active');
+        mobileMenuToggle.setAttribute('aria-expanded', 'false');
+        body.style.overflow = '';
+      });
+    });
+  }
+  
   // Initialize language dropdown
   const languageToggle = document.querySelector('.language-toggle');
   const languageDropdown = document.querySelector('.language-dropdown');

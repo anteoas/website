@@ -57,13 +57,6 @@ nav .container {
     gap: 2rem;
 }
 
-@media (max-width: 768px) {
-    nav .container {
-        flex-direction: column;
-        gap: 1rem;
-    }
-}
-
 /* Logo */
 .logo {
     display: flex;
@@ -88,14 +81,9 @@ nav .container {
     margin-top: 0;
 }
 
-@media (max-width: 768px) {
-    .nav-menu {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
-        margin-left: 0;
-        margin-right: 0;
-    }
+/* Mobile menu toggle (hidden by default) */
+.mobile-menu-toggle {
+    display: none;
 }
 
 .nav-menu li {
@@ -219,17 +207,6 @@ nav .container {
     border-radius: 2px;
 }
 
-@media (max-width: 768px) {
-    .language-switcher {
-        margin-left: 0;
-        padding-left: 0;
-        border-left: none;
-        border-top: 1px solid rgba(255, 255, 255, 0.3);
-        padding-top: 1rem;
-        margin-top: 0.5rem;
-    }
-}
-
 /* ========================================
    MAIN CONTENT
    ======================================== */
@@ -265,11 +242,6 @@ h2 {
 h3 { 
     font-size: 1.5rem; 
     color: var(--secondary-color);
-}
-
-@media (max-width: 768px) {
-    h1 { font-size: 2rem; }
-    h2 { font-size: 1.5rem; }
 }
 
 /* Gradient text for special headings */
@@ -378,13 +350,6 @@ p {
     margin: var(--space-xl) 0;
 }
 
-@media (max-width: 768px) {
-    .team-grid {
-        grid-template-columns: 1fr;
-        gap: var(--space-md);
-    }
-}
-
 .team-member {
     text-align: center;
     background: var(--gray-light);
@@ -449,7 +414,7 @@ p {
     display: inline-block;
     padding: 0.625rem 2rem;
     text-decoration: none;
-    border-radius: 45px;
+    border-radius: 4px;
     transition: all 0.3s ease;
     margin-top: var(--space-md);
     font-size: 1rem;
@@ -558,18 +523,6 @@ footer {
 .footer-social img {
     width: 40px;
     height: 40px;
-}
-
-@media (max-width: 768px) {
-    .footer-content {
-        flex-direction: column;
-        gap: 2rem;
-    }
-    
-    .footer-right {
-        flex-direction: column;
-        gap: 2rem;
-    }
 }
 
 .footer-section h3,
@@ -861,29 +814,455 @@ footer {
     color: white;
 }
 
+/* ========================================
+   NEWS ARTICLE STYLES
+   ======================================== */
+.news-wrapper {
+    padding-top: 40px;
+}
+
+.news-article {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.article-hero {
+    margin: 0 -5% 2rem;
+    width: calc(100% + 10%);
+    height: 400px;
+    overflow: hidden;
+}
+
+.article-hero img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.article-header {
+    margin-bottom: 2rem;
+}
+
+.article-meta {
+    color: var(--primary-color);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.article-meta .separator {
+    margin: 0 0.5rem;
+    opacity: 0.5;
+}
+
+.article-header h1 {
+    margin-bottom: 1rem;
+}
+
+.article-header .lead {
+    font-size: 1.25rem;
+    line-height: 1.6;
+    color: var(--text-color);
+    opacity: 0.8;
+}
+
+.article-body {
+    font-size: 1.1rem;
+    line-height: 1.7;
+}
+
+.article-body h2 {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+.article-body p {
+    margin-bottom: 1.5rem;
+}
+
+.article-footer {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.back-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
 /* Landing Page Responsive */
 @media (max-width: 768px) {
+    /* Navigation Mobile Improvements */
+    header {
+        height: 60px; /* Reduced from 80px */
+    }
+    
+    body {
+        padding-top: 60px; /* Match new header height */
+    }
+    
+    nav {
+        padding: 0 1rem;
+    }
+    
+    nav .container {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        height: 60px;
+        gap: 0;
+    }
+    
+    .logo img {
+        height: 40px; /* Smaller logo on mobile */
+    }
+    
+    /* Hamburger Menu */
+    .mobile-menu-toggle {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+        width: 30px;
+        height: 24px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        z-index: 1002;
+    }
+    
+    .hamburger-line {
+        width: 100%;
+        height: 3px;
+        background: white;
+        transition: all 0.3s ease;
+        border-radius: 2px;
+    }
+    
+    /* Hamburger animation */
+    .mobile-menu-toggle.active .hamburger-line:nth-child(1) {
+        transform: rotate(45deg) translate(6px, 6px);
+    }
+    
+    .mobile-menu-toggle.active .hamburger-line:nth-child(2) {
+        opacity: 0;
+    }
+    
+    .mobile-menu-toggle.active .hamburger-line:nth-child(3) {
+        transform: rotate(-45deg) translate(6px, -6px);
+    }
+    
+    /* Mobile Menu */
+    .nav-menu {
+        position: fixed;
+        top: 60px;
+        right: -100%;
+        width: 80%;
+        max-width: 300px;
+        height: calc(100vh - 60px);
+        background: #112a38;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+        padding: 2rem;
+        transition: right 0.3s ease;
+        box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+        overflow-y: auto;
+        margin: 0;
+        gap: 1.5rem;
+    }
+    
+    .nav-menu.active {
+        right: 0;
+    }
+    
+    .nav-menu li {
+        width: 100%;
+    }
+    
+    .nav-menu a {
+        display: block;
+        padding: 0.75rem 0;
+        font-size: 1.1rem;
+    }
+    
+    .language-switcher {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        border-left: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        padding-top: 1.5rem;
+        margin-top: 1.5rem;
+    }
+    
+    /* Hero Sections */
     .hero-headline {
-        height: 70vh;
-        min-height: 500px;
+        height: 60vh;
+        min-height: 400px;
+        margin-top: -60px; /* Match new header height */
+        padding-top: 60px;
+        background-position: 30% center; /* Better mobile focal point */
+    }
+    
+    .hero-headline .container {
+        padding: 0 1.5rem;
     }
     
     .hero-headline h1 {
-        font-size: 1.75rem;
+        font-size: 2rem; /* Slightly larger for better hierarchy */
+        line-height: 1.2;
     }
     
-    .column-wrap,
-    .product-wrap {
+    /* Fix hero-main image/text order on mobile */
+    .hero-main {
+        padding: 60px 0; /* Reduced from 120px */
+    }
+    
+    .column-wrap {
         grid-template-columns: 1fr;
         gap: 2rem;
     }
     
+    .column-wrap .image-block {
+        order: -1; /* Image comes first on mobile */
+    }
+    
+    /* Product Sections */
+    .product-section {
+        padding: 60px 0; /* Reduced from 120px */
+    }
+    
+    .product-section + .product-section {
+        padding-top: 60px; /* Add back padding between sections */
+    }
+    
+    .product-wrap {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        direction: ltr; /* Reset direction */
+    }
+    
+    .product-wrap.reversed {
+        direction: ltr; /* Keep normal direction */
+    }
+    
+    .product-wrap .product-image {
+        order: -1; /* Always show image first on mobile */
+    }
+    
+    .product-content h2 {
+        font-size: 1.75rem;
+    }
+    
+    /* News Section Mobile */
+    .news-section {
+        padding: 60px 0 40px; /* Reduced padding */
+    }
+    
     .news-grid {
         grid-template-columns: 1fr;
+        gap: 1.5rem; /* Reduced from 2rem */
+    }
+    
+    /* Simplified news cards for mobile */
+    .news-card {
+        box-shadow: none;
+        border: none;
+        border-radius: 0;
+        overflow: visible;
+    }
+    
+    .news-card:hover {
+        transform: none; /* Disable hover effects on mobile */
+        box-shadow: none;
+    }
+    
+    .news-card .news-image {
+        height: 180px; /* Reduced from 220px */
+        margin: 0 -1rem; /* Extend image to full width */
+        width: calc(100% + 2rem);
+        border-radius: 0;
+    }
+    
+    .news-card .news-content {
+        padding: 1rem; /* Reduced from 1.5rem */
+    }
+    
+    /* Add separator between news items */
+    .news-card:not(:last-child) {
+        padding-bottom: 2rem;
+        margin-bottom: 2rem;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .news-card h3 {
+        font-size: 1.1rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .news-card p {
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* Make buttons more touch-friendly */
+    .btn, .button-outline {
+        min-height: 44px;
+        padding: 0.75rem 1.5rem;
+        text-align: center;
+        border-radius: 4px; /* Match the outline button radius */
+    }
+    
+    /* Make all buttons look the same on mobile */
+    .button-outline {
+        background: var(--button-color);
+        color: white;
+        border: none;
+    }
+    
+    .button-outline:hover {
+        background: var(--secondary-color);
+    }
+    
+    /* Footer Mobile Improvements */
+    .footer-content {
+        flex-direction: column;
+        gap: 2rem;
+        padding: 2rem 0;
+    }
+    
+    .footer-left,
+    .footer-right {
+        width: 100%;
+    }
+    
+    .footer-box {
+        padding: 0;
+    }
+    
+    .footer-right {
+        display: block;
+    }
+    
+    .sitemap-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+    
+    .footer-section:last-child {
+        grid-column: 1 / -1; /* Full width for last section */
+    }
+    
+    .footer-section h4 {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+    
+    .footer-section a {
+        display: block;
+        padding: 0.25rem 0;
+        font-size: 0.9rem;
+        margin-bottom: 0;
+    }
+    
+    .footer-social {
+        justify-content: center;
+        margin-top: 1.5rem;
+        gap: 1.5rem; /* More space between icons */
+    }
+    
+    .footer-social a {
+        margin: 0;
+    }
+    
+    .footer-bottom {
+        padding: 1rem;
+        margin-top: 1.5rem; /* Reduced from default 50px */
+        font-size: 0.85rem;
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+    
+    .footer-bottom p {
+        margin: 0;
+    }
+    
+    .footer-links {
+        margin: 0;
+    }
+    
+    /* General Mobile Improvements */
+    .container {
+        padding: 0 1rem; /* Better edge spacing */
+    }
+    
+    main {
+        padding: 80px 0 60px;
+    }
+    
+    body.landing-page main {
+        padding-top: 0;
+    }
+    
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.75rem; }
+    h3 { font-size: 1.25rem; }
+    
+    /* Fix line heights */
+    p, .paragraph {
+        line-height: 1.6;
+    }
+    
+    /* Prevent horizontal scroll */
+    body {
+        overflow-x: hidden;
     }
     
     .heading-primary,
     .section-header h2 {
         font-size: 1.75rem;
+    }
+    
+    /* News article mobile styles */
+    .article-hero {
+        margin: 0 -1rem 1.5rem;
+        width: calc(100% + 2rem);
+        height: 250px;
+    }
+    
+    .news-wrapper {
+        padding-top: 20px;
+    }
+}
+
+/* Small phone improvements */
+@media (max-width: 480px) {
+    .hero-headline h1 {
+        font-size: 1.5rem;
+    }
+    
+    .sitemap-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .footer-section:last-child {
+        grid-column: auto;
+    }
+}
+
+/* Hide mobile menu toggle on desktop */
+@media (min-width: 769px) {
+    .mobile-menu-toggle {
+        display: none;
     }
 }

@@ -1,6 +1,11 @@
 <div class="news-wrapper">
     <div class="container">
         <article class="news-article">
+            {{#if image}}
+            <div class="article-hero">
+                <img src="{{image}}?size=1200x600&format=jpg" alt="{{title}}">
+            </div>
+            {{/if}}
             <header class="article-header">
                 {{#if date}}
                 <div class="article-meta">
