@@ -43,42 +43,42 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-left">
-                    <img src="/assets/images/anteo-logo.png?size=130x65&format=png" alt="Anteo" style="filter: brightness(0) invert(1);">
+                    <img src="/assets/images/anteo-logo-white.svg" alt="Anteo" width="130">
                     <p>
-                        {{#each siteInfo.addresses}}
+                        {{#each siteConfig.addresses}}
                         {{this.street}}, {{this.postalCode}} {{this.city}}<br>
                         {{/each}}
                     </p>
-                    <p style="color: var(--light-blue);">{{siteInfo.orgNumber}}</p>
-                    <p><a href="mailto:{{siteInfo.email}}">{{siteInfo.email}}</a></p>
-                    <p><a href="tel:{{siteInfo.phone}}">{{siteInfo.phone}}</a></p>
+                    <p style="color: var(--light-blue);">Org. nr. {{siteConfig.orgNumber}}</p>
+                    <p><a href="mailto:{{siteConfig.email}}">{{siteConfig.email}}</a></p>
+                    <p><a href="tel:{{siteConfig.phone}}">{{siteConfig.phone}}</a></p>
                 </div>
                 
                 <div class="footer-right">
                     <div class="footer-section">
                         <h4>Anteo Logistikk</h4>
-                        {{#each products.logistikk}}
-                        <a href="{{../../langPrefix}}/produkter/logistikk/{{this.slug}}">{{this.title}}</a><br>
+                        {{#each products.logistics}}
+                        <a href="{{../../langPrefix}}/products/logistics/{{this.slug}}.html">{{this.title}}</a><br>
                         {{/each}}
                     </div>
                     
                     <div class="footer-section">
                         <h4>Anteo Fiskehelse</h4>
-                        {{#each products.fiskehelse}}
-                        <a href="{{../../langPrefix}}/produkter/fiskehelse/{{this.slug}}">{{this.title}}</a><br>
+                        {{#each products.fish-health}}
+                        <a href="{{../../langPrefix}}/products/fish-health/{{this.slug}}.html">{{this.title}}</a><br>
                         {{/each}}
                     </div>
                     
                     <div class="footer-section">
                         <h4>Anteo AS</h4>
                         {{#each navigation.main}}
-                        <a href="{{../langPrefix}}{{this.url}}">{{this.label}}</a><br>
+                        <a href="{{this.url}}">{{this.label}}</a><br>
                         {{/each}}
                         
                         <div class="footer-social">
-                            {{#each siteInfo.social}}
+                            {{#each siteConfig.social}}
                             <a href="{{this.url}}" target="_blank">
-                                <img src="{{this.icon}}" width="30" alt="{{this.name}}">
+                                <img src="{{this.icon}}" width="30" alt="{{this.platform}}">
                             </a>
                             {{/each}}
                         </div>
@@ -86,7 +86,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>Anteo © {{currentYear}} | <a href="{{langPrefix}}/personvern" style="color: rgba(255, 255, 255, 0.8);">Personvern</a> | <a href="{{langPrefix}}/brukervilkar" style="color: rgba(255, 255, 255, 0.8);">Brukervilkår</a></p>
+                <p>{{copyright}} | <a href="{{langPrefix}}/personvern" style="color: rgba(255, 255, 255, 0.8);">Personvern</a> | <a href="{{langPrefix}}/brukervilkar" style="color: rgba(255, 255, 255, 0.8);">Brukervilkår</a></p>
             </div>
         </div>
     </footer>

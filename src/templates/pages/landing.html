@@ -14,7 +14,7 @@
                     <p class="title">Anteo</p>
                     <h2 class="heading-primary">{{landing.aboutTeaser.title}}</h2>
                     <p class="paragraph blue">{{landing.aboutTeaser.text}}</p>
-                    <a href="{{langPrefix}}{{landing.aboutTeaser.link}}" class="btn btn-primary">{{landing.aboutTeaser.linkText}}</a>
+                    <a href="{{langPrefix}}/about.html" class="btn btn-primary">{{landing.aboutTeaser.linkText}}</a>
                 </div>
             </div>
             <div class="image-block">
@@ -28,13 +28,13 @@
 <section class="product-section">
     <div class="container">
         <div class="product-wrap">
-            <div class="product-content">
-                <h2>{{productGroups.logistikk.title}}</h2>
-                <p>{{productGroups.logistikk.landingDescription}}</p>
-                <a href="{{langPrefix}}{{productGroups.logistikk.link}}" class="btn btn-primary">{{productGroups.logistikk.linkText}}</a>
-            </div>
             <div class="product-image">
-                <img src="{{productGroups.logistikk.image}}" alt="{{productGroups.logistikk.title}}">
+                <img src="{{productGroups.logistics.image}}" alt="{{productGroups.logistics.title}}">
+            </div>
+            <div class="product-content">
+                <h2>{{productGroups.logistics.title}}</h2>
+                <p>{{productGroups.logistics.landingDescription}}</p>
+                <a href="{{langPrefix}}{{productGroups.logistics.link}}" class="btn btn-primary">{{productGroups.logistics.linkText}}</a>
             </div>
         </div>
     </div>
@@ -45,12 +45,12 @@
     <div class="container">
         <div class="product-wrap reversed">
             <div class="product-image">
-                <img src="{{productGroups.fiskehelse.image}}" alt="{{productGroups.fiskehelse.title}}">
+                <img src="{{productGroups.fishHealth.image}}" alt="{{productGroups.fishHealth.title}}">
             </div>
             <div class="product-content">
-                <h2>{{productGroups.fiskehelse.title}}</h2>
-                <p>{{productGroups.fiskehelse.landingDescription}}</p>
-                <a href="{{langPrefix}}{{productGroups.fiskehelse.link}}" class="btn btn-primary">{{productGroups.fiskehelse.linkText}}</a>
+                <h2>{{productGroups.fishHealth.title}}</h2>
+                <p>{{productGroups.fishHealth.landingDescription}}</p>
+                <a href="{{langPrefix}}{{productGroups.fishHealth.link}}" class="btn btn-primary">{{productGroups.fishHealth.linkText}}</a>
             </div>
         </div>
     </div>
@@ -65,12 +65,12 @@
         <div class="news-grid">
             {{#each latestNews}}
             <div class="news-card">
-                <a href="{{../langPrefix}}/aktuelt/{{this.slug}}" class="news-image" style="background-image: url('{{this.image}}')"></a>
+                <a href="{{this.url}}" class="news-image" style="background-image: url('{{this.image}}')"></a>
                 <div class="news-content">
                     <div class="news-category">Nyheter</div>
                     <h3>{{this.title}}</h3>
                     <p>{{this.excerpt}}</p>
-                    <a href="{{../langPrefix}}/aktuelt/{{this.slug}}" class="button-outline">Les mer</a>
+                    <a href="{{this.url}}" class="button-outline">Les mer</a>
                 </div>
             </div>
             {{/each}}

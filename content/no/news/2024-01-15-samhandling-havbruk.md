@@ -4,6 +4,8 @@ date: "2024-01-15"
 author: "Anteo Team"
 category: "industry"
 description: "Havbruksnæringen består av mange aktører som må koordinere og kommunisere effektivt"
+excerpt: "Havbruksnæringen består av mange aktører som må koordinere og kommunisere med hverandre for å drive fiskeoppdrett."
+image: "/assets/images/news/collaboration.jpg"
 ---
 
 # Hvorfor er samhandling i havbruksnæringen viktig?

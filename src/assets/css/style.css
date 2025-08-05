@@ -33,7 +33,7 @@ body {
    HEADER & NAVIGATION
    ======================================== */
 header {
-    background: var(--secondary-color);
+    background: var(--midnight-blue);
     color: white;
     position: sticky;
     top: 0;
@@ -361,29 +361,32 @@ p {
 /* Buttons */
 .btn {
     display: inline-block;
-    padding: 0.75rem var(--space-lg);
+    padding: 0.625rem 2rem;
     text-decoration: none;
-    border-radius: 4px;
-    transition: var(--transition);
+    border-radius: 45px;
+    transition: all 0.3s ease;
     margin-top: var(--space-md);
+    font-size: 1rem;
+    font-weight: 400;
+    letter-spacing: 0.5px;
 }
 
 .btn-primary {
-    background: var(--primary-color);
+    background: var(--button-color);
     color: white;
 }
 
 .btn-primary:hover {
-    background: #28a085;
+    background: var(--secondary-color);
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(48, 180, 153, 0.3);
+    box-shadow: 0 6px 20px rgba(0, 81, 126, 0.3);
 }
 
 /* ========================================
    FOOTER
    ======================================== */
 footer {
-    background: var(--secondary-color);
+    background: var(--midnight-blue);
     color: white;
     padding: var(--space-xl) 0 var(--space-md);
     margin-top: 5rem;
@@ -405,8 +408,19 @@ footer {
 }
 
 .footer-left p {
-    line-height: 1.8;
-    margin-bottom: 1rem;
+    line-height: 1.4;
+    margin-bottom: 0.3rem;
+    font-size: 1rem;
+}
+
+.footer-left p:first-of-type {
+    margin-bottom: 1.5rem;  /* More space after addresses */
+}
+
+.footer-left p[style*="color: var(--light-blue)"] {
+    color: var(--light-blue) !important;
+    margin-bottom: 0.3rem;
+    font-size: 1rem;
 }
 
 .footer-left a {
@@ -520,9 +534,12 @@ footer {
 
 .heading-primary {
     font-size: 2.5rem;
-    color: var(--secondary-color);
+    color: var(--secondary-color);  /* This is now #00517e - the lighter blue */
     margin-bottom: 1.5rem;
-    font-weight: 500;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.5px;
+    font-family: Ubuntu, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
 }
 
 .paragraph.blue {
@@ -530,12 +547,14 @@ footer {
     font-size: 1.125rem;
     line-height: 1.7;
     margin-bottom: 2rem;
+    font-family: Ubuntu, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    font-weight: 300;
 }
 
 /* Product Sections */
 .product-section {
     padding: 4rem 0;
-    background: var(--secondary-color);
+    background: var(--midnight-blue);
     color: white;
 }
 

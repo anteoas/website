@@ -1,10 +1,10 @@
 ---
-title: "Våre produkter"
+title: "Produkter"
 description: "Oversikt over Anteos løsninger for havbruksnæringen"
 layout: page
 ---
 
-# Våre produkter
+# Produkter
 
 Vi tilbyr komplette løsninger for en mer bærekraftig og effektiv havbruksnæring.
 

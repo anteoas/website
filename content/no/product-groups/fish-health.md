@@ -1,7 +1,7 @@
 ---
 title: "Anteo Fiskehelse"
 landingDescription: "Våre verktøy for fiskehelse sørger for rask og presis registrering av fiskevelferdsindikatorer samt myndighetspålagt lusetelling og en enkel, presis og sikker journalføring av fiskehelsedata."
-link: "/produkter/fiskehelse"
+link: "/products/fish-health"
 linkText: "Les mer"
 image: "/assets/images/fiskehelse-hero.jpg"
 ---

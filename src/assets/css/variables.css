@@ -1,9 +1,11 @@
 /* CSS Variables / Custom Properties */
 :root {
-  /* Brand Colors */
-  --primary-color: #30b499;    /* Anteo green */
-  --secondary-color: #1d3343;  /* Anteo dark blue */
-  --light-blue: #3caeef;       /* Anteo light blue */
+  /* Brand Colors - Updated to match old site */
+  --primary-color: #3fb498;    /* Light sea green (was #30b499) */
+  --secondary-color: #00517e;  /* Text color blue (was #1d3343) */
+  --light-blue: #3caeef;       /* Deep sky blue (same) */
+  --midnight-blue: #001632;    /* Dark blue for backgrounds */
+  --button-color: #3eb397;     /* Button green */
   
   /* Base Colors */
   --text-color: #333;

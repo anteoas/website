@@ -13,6 +13,110 @@ const ImageProcessor = require('./utils/image-processor');
 const languages = buildConfig.languages;
 const defaultLang = buildConfig.defaultLanguage;
 
+// Helper to get language prefix
+const getLangPrefix = (lang) => lang === defaultLang ? '' : `/${lang}`;
+
+// Load site configuration from src/
+function loadSiteConfig() {
+  const configPath = path.join(__dirname, '../src/site-config.json');
+  if (existsSync(configPath)) {
+    return JSON.parse(readFileSync(configPath, 'utf8'));
+  }
+  return {};
+}
+
+// Load and resolve navigation
+function loadNavigation(lang) {
+  const navPath = path.join(__dirname, '../src/navigation.json');
+  if (!existsSync(navPath)) {
+    return { main: [] };
+  }
+  
+  const navStructure = JSON.parse(readFileSync(navPath, 'utf8'));
+  const langPrefix = getLangPrefix(lang);
+  
+  // Resolve labels from content files
+  const resolved = {
+    main: navStructure.main.map(item => {
+      const contentFile = path.join(__dirname, `../content/${lang}/${item.contentPath}.md`);
+      if (existsSync(contentFile)) {
+        const { data } = matter(readFileSync(contentFile, 'utf8'));
+        const url = item.contentPath.replace('pages/', '');
+        return {
+          label: data.title || 'Untitled',
+          url: `${langPrefix}/${url}.html`
+        };
+      }
+      return null;
+    }).filter(Boolean)
+  };
+  
+  return resolved;
+}
+
+// Load product group data
+function loadProductGroup(groupName, lang) {
+  const filePath = path.join(__dirname, `../content/${lang}/product-groups/${groupName}.md`);
+  if (existsSync(filePath)) {
+    const { data } = matter(readFileSync(filePath, 'utf8'));
+    const langPrefix = getLangPrefix(lang);
+    return {
+      ...data,
+      link: data.link ? `${langPrefix}${data.link}` : '#'
+    };
+  }
+  return null;
+}
+
+// Get latest news articles
+function getLatestNews(lang, count = 3) {
+  const newsDir = path.join(__dirname, `../content/${lang}/news`);
+  if (!existsSync(newsDir)) {
+    return [];
+  }
+  
+  const newsFiles = glob.sync(`${newsDir}/*.md`)
+    .filter(file => !file.endsWith('index.md'))
+    .map(file => {
+      const { data } = matter(readFileSync(file, 'utf8'));
+      const filename = path.basename(file, '.md');
+      const langPrefix = getLangPrefix(lang);
+      
+      return {
+        ...data,
+        slug: filename,
+        url: `${langPrefix}/news/${filename}.html`,
+        date: data.date || filename.substring(0, 10) // Extract date from filename if not in frontmatter
+      };
+    })
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, count);
+    
+  return newsFiles;
+}
+
+// Load product data for footer
+function loadProducts(lang) {
+  const productsDir = path.join(__dirname, `../content/${lang}/products`);
+  const products = {};
+  
+  ['logistics', 'fish-health'].forEach(category => {
+    const categoryDir = path.join(productsDir, category);
+    if (!existsSync(categoryDir)) {
+      products[category] = [];
+      return;
+    }
+    
+    products[category] = glob.sync(`${categoryDir}/*.md`).map(file => {
+      const { data } = matter(readFileSync(file, 'utf8'));
+      const slug = path.basename(file, '.md');
+      return { title: data.title, slug };
+    });
+  });
+  
+  return products;
+}
+
 // Load templates
 const templates = {
   page: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/page.html'), 'utf8')),
@@ -74,14 +178,14 @@ function bundleCSS() {
 }
 
 // Process a single markdown file
-function processMarkdownFile(file, lang, siteData, navData, teamMembers) {
+function processMarkdownFile(file, lang, siteData, navData, teamMembers, products) {
   const { data, content } = matter(readFileSync(file, 'utf8'));
   
   // Add language to frontmatter data
   data.lang = lang;
   
   // Replace absolute links in markdown content
-  const langPrefix = lang === defaultLang ? '' : `/${lang}`;
+  const langPrefix = getLangPrefix(lang);
   const processedContent = content.replace(/\]\(\//g, `](${langPrefix}/`);
   
   const html = marked.parse(processedContent);
@@ -102,12 +206,32 @@ function processMarkdownFile(file, lang, siteData, navData, teamMembers) {
     content: html,
     navigation: navData,
     currentLang: lang,
-    langPrefix: lang === defaultLang ? '' : `/${lang}`,
+    langPrefix: langPrefix,
     isDefaultLang: lang === defaultLang,
     currentPath: file.replace(`content/${lang}/`, '').replace('pages/', '').replace('.md', '.html'),
     languages: languages,
-    defaultLang: defaultLang
+    defaultLang: defaultLang,
+    siteConfig: loadSiteConfig(),
+    products: products // Add products for footer
   };
+  
+  // Special handling for landing page
+  if (template === 'landing') {
+    // Move frontmatter data to nested structure
+    pageData.landing = {
+      hero1: data.hero1,
+      aboutTeaser: data.aboutTeaser
+    };
+    
+    // Load product groups
+    pageData.productGroups = {
+      logistics: loadProductGroup('logistics', lang),
+      fishHealth: loadProductGroup('fish-health', lang)
+    };
+    
+    // Get latest news
+    pageData.latestNews = getLatestNews(lang, 3);
+  }
   
   // Special handling for team and about pages
   if (file.endsWith('team/index.md') || file.endsWith('pages/about.md')) {
@@ -166,7 +290,6 @@ async function buildSite() {
     
     // Load language-specific site data
     const siteDataPath = `content/${lang}/data/site.json`;
-    const navDataPath = `content/${lang}/data/navigation.json`;
     
     if (!require('fs').existsSync(siteDataPath)) {
       console.log(`Warning: No site data for ${lang}, skipping...`);
@@ -174,7 +297,8 @@ async function buildSite() {
     }
     
     const siteData = JSON.parse(readFileSync(siteDataPath, 'utf8'));
-    const navData = JSON.parse(readFileSync(navDataPath, 'utf8'));
+    const navData = loadNavigation(lang);  // Use the new function instead of loading JSON
+    const products = loadProducts(lang);  // Load products for footer
     
     // Dynamically set copyright year
     const currentYear = new Date().getFullYear();
@@ -201,7 +325,7 @@ async function buildSite() {
         return;
       }
       
-      const { pageData, template } = processMarkdownFile(file, lang, siteData, navData, teamMembers);
+      const { pageData, template } = processMarkdownFile(file, lang, siteData, navData, teamMembers, products);
       
       // Generate HTML
       const pageContent = templates[template](pageData);
