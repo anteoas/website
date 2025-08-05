@@ -54,7 +54,9 @@ function applyDeploymentConfig(config) {
     if (basePath) {
       content = content
         .replace(/(src|href)="\/([^"]+)"/g, `$1="${basePath}/$2"`)
-        .replace(/href="\/"/g, `href="${basePath}/"`);
+        .replace(/href="\/"/g, `href="${basePath}/"`)
+        // Also handle background-image URLs in style attributes
+        .replace(/background-image:\s*url\('\/([^']+)'\)/g, `background-image: url('${basePath}/$1')`);
     }
     
     writeFileSync(file, content);
