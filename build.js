@@ -6,15 +6,17 @@ const marked = require('marked');
 const Handlebars = require('handlebars');
 
 // Load templates
-const baseTemplate = readFileSync('templates/base.html', 'utf8');
 const templates = {
   page: Handlebars.compile(readFileSync('templates/page.html', 'utf8')),
   product: Handlebars.compile(readFileSync('templates/product.html', 'utf8')),
   news: Handlebars.compile(readFileSync('templates/news.html', 'utf8'))
 };
 
-// Register base template as partial
-Handlebars.registerPartial('base', baseTemplate);
+// Helper to wrap content in base template
+function wrapInBase(content, data) {
+  const baseTemplate = readFileSync('templates/base.html', 'utf8');
+  return baseTemplate.replace('{{{body}}}', content);
+}
 
 // Load site data
 const siteData = JSON.parse(readFileSync('content/data/site.json', 'utf8'));
@@ -24,11 +26,26 @@ const navData = JSON.parse(readFileSync('content/data/navigation.json', 'utf8'))
 function build() {
   console.log('Building site...');
   
+  // Check if we're in GitHub Actions
+  const isGitHubActions = process.env.GITHUB_ACTIONS === 'true';
+  const repoName = process.env.GITHUB_REPOSITORY?.split('/')[1] || '';
+  
+  // Determine base path for URLs
+  const basePath = isGitHubActions && repoName && !process.env.CUSTOM_DOMAIN 
+    ? `/${repoName}` 
+    : '';
+  
+  console.log(`Base path: "${basePath}"`);
+  
   // Ensure output directory exists
   ensureDirSync('public');
   
-  // Copy assets
-  copySync('public/assets', 'public/assets');
+  // Create GitHub Pages files
+  outputFileSync('public/.nojekyll', '');
+  // Don't create CNAME until ready to deploy to anteo.no
+  // outputFileSync('public/CNAME', 'anteo.no');
+  
+  // Assets are already in public/assets, no copy needed
   
   // Collect all content for AI endpoint
   const contentIndex = [];
@@ -48,19 +65,35 @@ function build() {
       ...siteData,
       ...data,
       content: html,
-      navigation: navData
+      navigation: navData,
+      basePath: basePath  // Add base path for templates
     };
     
     // Generate HTML
-    const output = templates[template](pageData);
+    const pageContent = templates[template](pageData);
+    
+    // Wrap in base template
+    const fullPage = Handlebars.compile(readFileSync('templates/base.html', 'utf8'))({
+      ...pageData,
+      body: pageContent
+    });
     
     // Write file
-    const outPath = file
+    let outPath = file
       .replace('content/', 'public/')
       .replace('.md', '.html');
     
+    // Special handling for index page
+    if (file === 'content/pages/index.md') {
+      // Also create a copy at root
+      const rootIndex = 'public/index.html';
+      ensureDirSync(path.dirname(rootIndex));
+      outputFileSync(rootIndex, fullPage);
+      console.log(`✓ Created root index: ${rootIndex}`);
+    }
+    
     ensureDirSync(path.dirname(outPath));
-    outputFileSync(outPath, output);
+    outputFileSync(outPath, fullPage);
     
     // Add to content index for AI
     contentIndex.push({
