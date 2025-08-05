@@ -1,6 +1,6 @@
 const glob = require('glob');
 const path = require('path');
-const { readFileSync, outputFileSync, copySync, ensureDirSync, writeFileSync } = require('fs-extra');
+const { readFileSync, outputFileSync, copySync, ensureDirSync, writeFileSync, existsSync } = require('fs-extra');
 const matter = require('gray-matter');
 const marked = require('marked');
 const Handlebars = require('handlebars');
@@ -49,6 +49,33 @@ async function bundleJavaScript() {
     console.error('❌ JavaScript bundling failed:', error);
     throw error;
   }
+}
+
+// Bundle CSS files
+function bundleCSS() {
+  console.log('Bundling CSS...');
+  
+  // Read the main CSS file
+  const mainCSS = readFileSync('src/assets/css/style.css', 'utf8');
+  
+  // Replace @import statements with actual file contents
+  const bundled = mainCSS.replace(
+    /@import url\(['"]\.\/([^'"]+)['"]\);/g,
+    (match, filename) => {
+      const importPath = path.join('src/assets/css', filename);
+      if (existsSync(importPath)) {
+        return readFileSync(importPath, 'utf8') + '\n';
+      }
+      return match; // Keep original if file not found
+    }
+  );
+  
+  // Ensure output directory exists
+  ensureDirSync('dist/assets/css');
+  
+  // Write bundled CSS
+  writeFileSync('dist/assets/css/style.css', bundled);
+  console.log('✓ CSS bundled');
 }
 
 // Apply base path to all URLs in HTML files
@@ -109,7 +136,7 @@ async function build() {
   
   // Copy assets from src to public (excluding JS source files)
   console.log('Copying assets...');
-  copySync('src/assets/css', 'dist/assets/css', { overwrite: true });
+  // CSS will be bundled, not copied
   copySync('src/assets/images', 'dist/assets/images', { overwrite: true });
   // JS will be bundled separately, not copied
   
@@ -288,6 +315,9 @@ async function build() {
   
   // Bundle JavaScript
   await bundleJavaScript();
+  
+  // Bundle CSS
+  bundleCSS();
   
   // Apply base path to all URLs if needed
   if (basePath) {
