@@ -175,6 +175,40 @@ order: 1        # Optional, for sorting
   - Product groups from separate files
   - Latest news from news directory
 
+### Language Configuration
+Languages are configured in `build.config.js`:
+```javascript
+languages: ['no', 'en'],
+defaultLanguage: 'no',
+languageConfig: {
+  'no': { name: 'Norsk', flag: '/assets/images/flags/norway-flag.svg' },
+  'en': { name: 'English', flag: '/assets/images/flags/uk-flag.svg' }
+}
+```
+
+### Translatable Strings
+UI strings are stored in `content/[lang]/data/site.json`:
+```json
+"strings": {
+  "newsSection": {
+    "title": "Aktuelt",
+    "heading": "Nyheter & Oppdateringer"
+  }
+}
+```
+Access in templates: `{{strings.newsSection.title}}`
+
+### Handlebars Helpers
+Custom helpers registered in `build-site.js`:
+- `eq`: Equality comparison `{{#if (eq a b)}}`
+- `lookup`: Object property access `{{lookup obj key}}`
+
+### Special Page Classes
+The landing page gets a special body class to handle unique styling:
+```handlebars
+<body{{#if (eq layout "landing")}} class="landing-page"{{/if}}>
+```
+
 ## Common Modifications
 
 ### Adding a New Page Template
