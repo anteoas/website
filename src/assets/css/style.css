@@ -895,6 +895,43 @@ footer {
     text-decoration: underline;
 }
 
+/* ========================================
+   CUSTOM CONTAINERS
+   ======================================== */
+.value-block {
+    display: flex;
+    align-items: flex-start;
+    gap: 2rem;
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+}
+
+.value-block img {
+    flex-shrink: 0;
+    width: 295px;
+    height: 295px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.value-content {
+    flex: 1;
+    padding-top: 2rem;
+}
+
+.value-content h3 {
+    color: var(--secondary-color);
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.value-content p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--text-color);
+}
+
 /* Landing Page Responsive */
 @media (max-width: 768px) {
     /* Navigation Mobile Improvements */
@@ -1242,6 +1279,23 @@ footer {
     
     .news-wrapper {
         padding-top: 20px;
+    }
+    
+    /* Value blocks mobile */
+    .value-block {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .value-block img {
+        margin: 0 auto;
+        width: 200px;
+        height: 200px;
+    }
+    
+    .value-content {
+        padding-top: 0;
     }
 }
 

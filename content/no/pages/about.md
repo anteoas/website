@@ -23,6 +23,33 @@ Målet vårt er ikke å være størst, men å være til hjelp – med løsninger
 
 Vi hjelper havbruksnæringen å jobbe smartere – med digitale verktøy som gir bedre kontroll, mindre manuelt arbeid og full oversikt fra merdkant til logistikk. Vi forenkler planlegging, samhandling og dokumentasjon – så du kan bruke tiden der den trengs mest.
 
+## Verdier
+
+::: value-block
+![Samarbeids sirkel](/assets/images/values-collaboration.png?size=295x295)
+
+*SAMARBEID*
+
+Vi tror de beste løsningene skapes i lag. Gjennom tett dialog med brukerne våre utvikler vi systemer som gir mening i hverdagen.
+:::
+
+::: value-block
+![Teknologi sirkel](/assets/images/values-technology.png?size=295x295)
+
+*TEKNOLOGI*
+
+Vi brenner for å gjøre teknologi nyttig. Praktiske, smarte verktøy som løser ekte behov.
+:::
+
+::: value-block
+![Bærekfraft sirkel](/assets/images/values-sustainability.png?size=295x295)
+
+*BÆREKRAFT*
+
+Vi tror på fremtiden til havbruket. Derfor ønsker vi å bidra til bedre beslutninger, redusert fotavtrykk og ansvarlig drift.
+:::
+
+
 ## Teamet vårt
 
 Møt folkene som jobber hver dag for å gjøre havbruksnæringen mer effektiv og bærekraftig.

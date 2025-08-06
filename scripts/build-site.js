@@ -201,9 +201,41 @@ function processMarkdownFile(file, lang, siteData, navData, teamMembers, product
   
   // Replace absolute links in markdown content
   const langPrefix = getLangPrefix(lang);
-  const processedContent = content.replace(/\]\(\//g, `](${langPrefix}/`);
+  let processedContent = content.replace(/\]\(\//g, `](${langPrefix}/`);
   
-  const html = marked.parse(processedContent);
+  // Process custom container syntax (:::) - must be done BEFORE marked.parse
+  processedContent = processedContent.replace(
+    /:::\s*value-block\n([\s\S]*?)\n:::/gm,
+    (match, innerContent) => {
+      // First, temporarily replace the content with a placeholder to prevent marked from parsing it
+      const placeholder = `<!--VALUE_BLOCK_START-->${innerContent}<!--VALUE_BLOCK_END-->`;
+      return placeholder;
+    }
+  );
+  
+  // Parse markdown
+  let html = marked.parse(processedContent);
+  
+  // Now process the value block placeholders
+  html = html.replace(
+    /<!--VALUE_BLOCK_START-->([\s\S]*?)<!--VALUE_BLOCK_END-->/g,
+    (match, innerContent) => {
+      // Parse the inner content as markdown
+      const innerHtml = marked.parse(innerContent.trim());
+      
+      // Extract image and content
+      const imgMatch = innerHtml.match(/<img[^>]+>/);
+      const imgTag = imgMatch ? imgMatch[0] : '';
+      const contentHtml = imgMatch ? innerHtml.replace(imgMatch[0], '').trim() : innerHtml;
+      
+      return `<div class="value-block">
+${imgTag}
+<div class="value-content">
+${contentHtml}
+</div>
+</div>`;
+    }
+  );
   
   // Determine template based on path or layout
   let template = 'page';
