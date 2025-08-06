@@ -8,5 +8,3 @@ order: 8
 ---
 
 Torstein har flere års erfaring med applikasjonsdrift. I Anteo jobber han både med frontend og backend og er veldig interessert i funksjonell programmering.
-
-**Utdannelse:** Dataingeniør, bachelor - Høgskolen på Vestlandet

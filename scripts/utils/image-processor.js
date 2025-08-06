@@ -37,7 +37,8 @@ class ImageProcessor {
     // Match images with query parameters in src attributes
     const srcRegex = /src="([^"]+\.(jpg|jpeg|png|gif|webp|svg)\?[^"]*)"/gi;
     // Match images with query parameters in background-image styles
-    const bgRegex = /background-image:\s*url\(['"]?([^'"]+\.(jpg|jpeg|png|gif|webp|svg)\?[^'")]+)['"]?\)/gi;
+    // Updated to handle compound background-image values (e.g., with gradients)
+    const bgRegex = /url\(['"]?([^'"]+\.(jpg|jpeg|png|gif|webp|svg)\?[^'")]+)['"]?\)/gi;
     
     const patterns = [srcRegex, bgRegex];
     
@@ -324,10 +325,15 @@ class ImageProcessor {
     });
     
     // Replace background-image in style attributes
-    html = html.replace(/background-image:\s*url\(['"]?([^'"]+\.(jpg|jpeg|png|gif|webp|svg)\?[^'")]+)['"]?\)/gi, (match, url) => {
-      const processedUrl = this.getProcessedUrl(url);
-      console.log(`Replacing background-image: ${url} -> ${processedUrl}`);
-      return `background-image: url('${processedUrl}')`;
+    // Updated to handle compound background-image values (e.g., with gradients)
+    html = html.replace(/url\(['"]?([^'"]+\.(jpg|jpeg|png|gif|webp|svg)\?[^'")]+)['"]?\)/gi, (match, url) => {
+      // Only process if it has query parameters
+      if (url.includes('?')) {
+        const processedUrl = this.getProcessedUrl(url);
+        console.log(`Replacing background-image: ${url} -> ${processedUrl}`);
+        return `url('${processedUrl}')`;
+      }
+      return match;
     });
     
     return html;

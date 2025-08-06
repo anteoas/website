@@ -204,6 +204,41 @@ function processMarkdownFile(file, lang, siteData, navData, teamMembers, product
   let processedContent = content.replace(/\]\(\//g, `](${langPrefix}/`);
   
   // Process custom container syntax (:::) - must be done BEFORE marked.parse
+  // Process hero blocks first
+  processedContent = processedContent.replace(
+    /:::\s*hero\s+([^\s]+)(?:\s+(.+))?\n([\s\S]*?)\n:::/gm,
+    (match, imagePath, cssString, content) => {
+      const heroText = content.trim();
+      let styles = '';
+      
+      if (cssString) {
+        // Parse CSS properties
+        styles = cssString.trim();
+        
+        // If no background-image URL is in the CSS, add the image path
+        if (!styles.includes('url(')) {
+          // Add the image to the end of any gradient
+          if (styles.includes('background-image:')) {
+            styles = styles.replace(
+              /background-image:([^;]+)/,
+              `background-image:$1, url('${imagePath}')`
+            );
+          } else {
+            // No background-image property, add it
+            styles = `background-image: url('${imagePath}'); ${styles}`;
+          }
+        }
+      } else {
+        // No CSS provided, just use the image
+        styles = `background-image: url('${imagePath}')`;
+      }
+      
+      // Create a placeholder to prevent marked from parsing it
+      return `<!--HERO_BLOCK_START-->${styles}|${heroText}<!--HERO_BLOCK_END-->`;
+    }
+  );
+  
+  // Process value blocks
   processedContent = processedContent.replace(
     /:::\s*value-block\n([\s\S]*?)\n:::/gm,
     (match, innerContent) => {
@@ -215,6 +250,20 @@ function processMarkdownFile(file, lang, siteData, navData, teamMembers, product
   
   // Parse markdown
   let html = marked.parse(processedContent);
+  
+  // Process hero block placeholders
+  html = html.replace(
+    /<!--HERO_BLOCK_START-->([^|]+)\|([^<]+)<!--HERO_BLOCK_END-->/g,
+    (match, styles, heroText) => {
+      return `<section class="hero-headline page-hero" style="${styles}">
+  <div class="container">
+    <div class="hero-content">
+      <h1>${heroText}</h1>
+    </div>
+  </div>
+</section>`;
+    }
+  );
   
   // Now process the value block placeholders
   html = html.replace(
@@ -288,27 +337,85 @@ ${contentHtml}
     
     const teamGrid = sortedTeam.map(member => `
       <div class="team-member">
-        <img src="${member.photo}?size=300x300&format=jpg" alt="${member.name}" class="team-photo">
-        <h3>${member.name}</h3>
-        <p class="position">${member.position}</p>
-        ${member.email ? `<p class="contact"><a href="mailto:${member.email}">${member.email}</a></p>` : ''}
-        ${file.endsWith('about.md') && member.phone ? `<p class="contact"><a href="tel:${member.phone}">${member.phone}</a></p>` : ''}
-        ${file.endsWith('team/index.md') && member.linkedin ? `<p class="social"><a href="${member.linkedin}" target="_blank">LinkedIn</a></p>` : ''}
+        <div class="team-card">
+          <div class="team-image" style="background-image: url('${member.photo}?size=400x600&format=jpg')"></div>
+          <div class="team-content">
+            <h3>${member.name}</h3>
+            <p class="position">${member.position}</p>
+            ${member.bio ? `<p class="bio">${member.bio}</p>` : ''}
+            <div class="contact-info">
+              ${member.email ? `<p><strong>E-post:</strong> <a href="mailto:${member.email}">${member.email}</a></p>` : ''}
+              ${member.phone ? `<p><strong>Tel:</strong> <a href="tel:${member.phone}">${member.phone}</a></p>` : ''}
+              ${file.endsWith('team/index.md') && member.linkedin ? `<p><a href="${member.linkedin}" target="_blank">LinkedIn</a></p>` : ''}
+            </div>
+          </div>
+        </div>
       </div>
     `).join('');
     
     pageData.content = pageData.content.replace(
       '<!-- Team members will be automatically inserted here by the build script -->', 
-      `<div class="team-grid">${teamGrid}</div>`
+      `<div class="team-section"><div class="team-section-inner"><div class="team-grid">${teamGrid}</div></div></div>`
     );
   }
   
   return { pageData, template };
 }
 
+// Extract theme colors from CSS
+function extractThemeColors() {
+  const cssPath = path.join(__dirname, '../src/assets/css/style.css');
+  const cssContent = readFileSync(cssPath, 'utf8');
+  
+  const colors = {};
+  
+  // Extract CSS variables if defined
+  const rootVarsMatch = cssContent.match(/:root\s*\{([^}]*)\}/);
+  if (rootVarsMatch) {
+    const varMatches = rootVarsMatch[1].matchAll(/--([^:]+):\s*([^;]+);/g);
+    for (const [, name, value] of varMatches) {
+      colors[name.trim()] = value.trim();
+    }
+  }
+  
+  // Extract header background (handles various CSS formats)
+  const headerMatch = cssContent.match(
+    /header\s*\{[^}]*background(?:-color)?:\s*([^;]+);/
+  );
+  
+  if (headerMatch) {
+    let bgColor = headerMatch[1].trim();
+    
+    // If it's a CSS variable reference, resolve it
+    if (bgColor.startsWith('var(--')) {
+      const varName = bgColor.match(/var\(--([^)]+)\)/)?.[1];
+      bgColor = colors[varName] || bgColor;
+    }
+    
+    colors.headerBackground = bgColor;
+  }
+  
+  // Fallback to hardcoded value if not found
+  colors.headerBackground = colors.headerBackground || '#112a38';
+  
+  console.log('✓ Extracted theme colors:', colors.headerBackground);
+  
+  return colors;
+}
+
 // Main build function - knows nothing about base paths
 async function buildSite() {
   console.log('Building multilingual site...');
+  
+  // Extract theme colors from CSS
+  const themeColors = extractThemeColors();
+  
+  // Create global template data
+  const globalTemplateData = {
+    themeColors: themeColors,
+    siteConfig: loadSiteConfig(),
+    currentYear: new Date().getFullYear()
+  };
   
   // Initialize image processor
   const imageProcessor = new ImageProcessor();
@@ -360,9 +467,10 @@ async function buildSite() {
     
     // First pass: collect team members
     glob.sync(`content/${lang}/team/members/*.md`).forEach(file => {
-      const { data } = matter(readFileSync(file, 'utf8'));
+      const { data, content } = matter(readFileSync(file, 'utf8'));
       teamMembers.push({
         ...data,
+        bio: content.trim(), // Add the content as bio
         slug: path.basename(file, '.md')
       });
     });
@@ -381,7 +489,8 @@ async function buildSite() {
       
       // Wrap in base template
       let fullPage = Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/layouts/base.html'), 'utf8'))({
-        ...pageData,
+        ...globalTemplateData,  // Global data first
+        ...pageData,           // Page-specific data (can override if needed)
         body: pageContent,
         currentPath: pageData.currentPath,
         isDevelopment: process.env.NODE_ENV === 'development'

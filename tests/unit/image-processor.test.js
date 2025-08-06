@@ -40,6 +40,28 @@ describe('ImageProcessor', () => {
       expect(imageProcessor.requirements.has('local.png@200x100')).toBe(true);
     });
 
+    it('should extract images from background-image styles', () => {
+      const html = `
+        <div style="background-image: url('/assets/images/hero.jpg?size=1920x1080&format=jpg')"></div>
+      `;
+      
+      imageProcessor.extractFromHtml(html);
+      
+      expect(imageProcessor.requirements.size).toBe(1);
+      expect(imageProcessor.requirements.has('hero.jpg@1920x1080.jpg')).toBe(true);
+    });
+
+    it('should extract images from compound background-image with gradients', () => {
+      const html = `
+        <section style="background-image: linear-gradient(130deg, #003f7e4d, #3fb4984d), url('/assets/images/hero-about2.png?size=1920x1080&format=jpg&quality=85')"></section>
+      `;
+      
+      imageProcessor.extractFromHtml(html);
+      
+      expect(imageProcessor.requirements.size).toBe(1);
+      expect(imageProcessor.requirements.has('hero-about2.png@1920x1080.jpg')).toBe(true);
+    });
+
     it('should ignore images without query parameters', () => {
       const html = `
         <img src="/assets/images/logo.png" alt="Logo">
@@ -97,6 +119,29 @@ describe('ImageProcessor', () => {
 
     it('should not modify URLs without query parameters', () => {
       const html = '<img src="/assets/images/logo.png" alt="Logo">';
+      const result = imageProcessor.replaceUrlsInHtml(html);
+      
+      expect(result).toBe(html);
+    });
+
+    it('should replace URLs in background-image styles', () => {
+      const html = `<div style="background-image: url('/assets/images/hero.jpg?size=1920x1080')"></div>`;
+      const result = imageProcessor.replaceUrlsInHtml(html);
+      
+      expect(result).toContain("url('/assets/images/hero-1920x1080.jpg')");
+    });
+
+    it('should replace URLs in compound background-image with gradients', () => {
+      const html = `<section style="background-image: linear-gradient(130deg, #003f7e4d, #3fb4984d), url('/assets/images/hero-about2.png?size=1920x1080&format=jpg&quality=85'); text-align: right"></section>`;
+      const result = imageProcessor.replaceUrlsInHtml(html);
+      
+      expect(result).toContain("linear-gradient(130deg, #003f7e4d, #3fb4984d)");
+      expect(result).toContain("url('/assets/images/hero-about2-1920x1080.jpg')");
+      expect(result).toContain("text-align: right");
+    });
+
+    it('should not replace URLs without query parameters in background-image', () => {
+      const html = `<div style="background-image: url('/assets/images/pattern.svg')"></div>`;
       const result = imageProcessor.replaceUrlsInHtml(html);
       
       expect(result).toBe(html);

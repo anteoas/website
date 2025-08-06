@@ -7,7 +7,9 @@ translations:
   en: "/about.html"
 ---
 
-# Om Anteo
+::: hero /assets/images/hero-about2.png?size=1920x1080&format=jpg&quality=85 background-image: linear-gradient(130deg, #003f7e4d, #3fb4984d); text-align: right
+Om Anteo
+:::
 
 ## Hvem er vi?
 

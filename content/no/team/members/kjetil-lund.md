@@ -8,5 +8,3 @@ order: 9
 ---
 
 I Anteo arbeider Kjetil med programmering, både backend og frontend, med ulike teknologier som er mest populære i dagens systemer. Hovedansvarlig for kartverktøyet og logistikk systemene Anteo i dag leverer til våre kunder.
-
-**Utdannelse:** Mastergrad i informatikk

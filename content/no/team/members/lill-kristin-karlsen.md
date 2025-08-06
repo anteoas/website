@@ -3,7 +3,7 @@ name: "Lill-Kristin Karlsen"
 position: "Systemutvikler"
 email: ""
 phone: ""
-photo: "/assets/images/team/lill-kristin-karlsen.png"
+photo: "/assets/images/team/lill-kristin-karlsen.jpg"
 order: 10
 ---
 
