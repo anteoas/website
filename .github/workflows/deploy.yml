@@ -1,9 +1,10 @@
 name: Build and Deploy
 
 on:
-  push:
-    branches: [main]
-  pull_request:
+  # Only trigger after test workflow completes
+  workflow_run:
+    workflows: ["Test"]
+    types: [completed]
     branches: [main]
   # Allow manual trigger
   workflow_dispatch:
@@ -21,6 +22,8 @@ concurrency:
 
 jobs:
   build:
+    # Only run if tests passed (or manual trigger)
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     
     steps:
