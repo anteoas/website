@@ -1,0 +1,38 @@
+<div class="page-wrapper">
+    <div class="container">
+        <article class="page-content">
+            {{{content}}}
+            <!-- Team grid -->
+            <div class="team-section">
+                <div class="team-section-inner">
+                    <div class="team-grid">
+                        {{#each teamMembers}}
+                        <div class="team-member">
+                            <div class="team-card">
+                                <div class="team-image" style="background-image: url('{{photo}}?size=400x600&format=jpg')"></div>
+                                <div class="team-content">
+                                    <h3>{{name}}</h3>
+                                    <p class="position">{{position}}</p>
+                                    {{#if bio}}<p class="bio">{{bio}}</p>{{/if}}
+                                    <div class="contact-info">
+                                        {{#if email}}<p><strong>{{t 'strings.team.email'}}:</strong> <a href="mailto:{{email}}">{{email}}</a></p>{{/if}}
+                                        {{#if phone}}<p><strong>{{t 'strings.team.phone'}}:</strong> <a href="tel:{{phone}}">{{phone}}</a></p>{{/if}}
+                                        {{#if linkedin}}<p><a href="{{linkedin}}" target="_blank">LinkedIn</a></p>{{/if}}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {{/each}}
+                    </div>
+                </div>
+            </div>
+        </article>
+        {{#if parentSection}}
+        <footer class="page-footer">
+            <a href="{{parentSection.url}}" class="back-link">
+                ← {{t 'strings.navigation.backTo'}} {{parentSection.label}}
+            </a>
+        </footer>
+        {{/if}}
+    </div>
+</div>

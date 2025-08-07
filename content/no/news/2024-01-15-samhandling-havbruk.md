@@ -1,4 +1,5 @@
 ---
+layout: news
 title: "Hvorfor er samhandling i havbruksnæringen viktig?"
 date: "2024-01-15"
 author: "Anteo Team"
@@ -7,7 +8,6 @@ description: "Havbruksnæringen består av mange aktører som må koordinere og 
 excerpt: "Havbruksnæringen består av mange aktører som må koordinere og kommunisere med hverandre for å drive fiskeoppdrett."
 image: "/assets/images/news/2024-01-15-samhandling-havbruk.png"
 ---
-
 # Hvorfor er samhandling i havbruksnæringen viktig?
 
 Havbruksnæringen består av mange aktører som må koordinere og kommunisere med hverandre for å drive fiskeoppdrett. Derfor blir samarbeid på tvers av virksomheter viktig.

@@ -202,7 +202,8 @@ const templates = {
   product: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/product.html'), 'utf8')),
   news: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/news.html'), 'utf8')),
   landing: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/landing.html'), 'utf8')),
-  newsListing: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/news-listing.html'), 'utf8'))
+  newsListing: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/news-listing.html'), 'utf8')),
+  team: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/team.html'), 'utf8'))
 };
 
 // Bundle JavaScript with esbuild
@@ -255,6 +256,34 @@ function bundleCSS() {
   // Write bundled CSS
   writeFileSync('dist/assets/css/style.css', bundled);
   console.log('✓ CSS bundled');
+}
+
+// Get parent section for back links
+function getParentSection(file, lang, langPrefix) {
+  // Skip if it's a top-level page
+  if (file.includes('/pages/')) return null;
+  
+  // For content in subdirectories, find the corresponding page
+  // e.g., 'content/no/news/article.md' → look for 'content/no/pages/news.md'
+  
+  // Extract the section name
+  const match = file.match(/content\/[^\/]+\/([^\/]+)\//);
+  if (!match) return null;
+  
+  const section = match[1]; // 'news', 'products', etc.
+  const parentPagePath = `content/${lang}/pages/${section}.md`;
+  
+  // Check if parent page exists
+  if (existsSync(parentPagePath)) {
+    const { data } = matter(readFileSync(parentPagePath, 'utf8'));
+    
+    return {
+      url: `${langPrefix}/${section}.html`,
+      label: data.title
+    };
+  }
+  
+  return null;
 }
 
 // Process a single markdown file
@@ -376,14 +405,27 @@ ${contentHtml}
     }
   );
   
-  // Determine template based on path or layout
-  let template = 'page';
-  if (frontmatter.layout) {
-    // Convert kebab-case to camelCase for template lookup
-    template = frontmatter.layout.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
-  } else {
-    if (file.includes('/products/')) template = 'product';
-    if (file.includes('/news/')) template = 'news';
+  // Determine template based on layout (required)
+  if (!frontmatter.layout) {
+    console.error(`\n❌ ERROR: Missing required 'layout' field in ${file}`);
+    console.error(`   Available layouts: ${Object.keys(templates).join(', ')}\n`);
+    // Skip team member data files
+    if (!file.includes('/team/members/')) {
+      throw new Error(`Missing layout in ${file}`);
+    }
+    return { pageData: null, template: null }; // Skip data files
+  }
+  
+  // Convert kebab-case to camelCase for template lookup
+  const template = frontmatter.layout.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+  
+  // Validate template exists
+  const availableTemplates = Object.keys(templates);
+  if (!templates[template]) {
+    console.error(`\n❌ ERROR: Unknown layout '${frontmatter.layout || template}' in ${file}`);
+    console.error(`   Available layouts: ${availableTemplates.join(', ')}`);
+    console.error(`   Falling back to 'page' layout\n`);
+    template = 'page';
   }
   
   // Prepare page data
@@ -402,7 +444,8 @@ ${contentHtml}
     siteConfig: loadSiteConfig(),
     products: products, // Add products for footer
     currentYear: new Date().getFullYear(),
-    isDevelopment: process.env.NODE_ENV === 'development'
+    isDevelopment: process.env.NODE_ENV === 'development',
+    parentSection: getParentSection(file, lang, langPrefix) // Add parent section for back links
   };
   
   // Special handling for landing page
@@ -428,32 +471,10 @@ ${contentHtml}
     pageData.allNews = getNews(lang); // No limit - get all news
   }
   
-  // Special handling for team and about pages
-  if (file.endsWith('team/index.md') || file.endsWith('pages/about.md')) {
+  // Special handling for team template
+  if (template === 'team') {
     const sortedTeam = teamMembers.sort((a, b) => (a.order || 999) - (b.order || 999));
-    
-    const teamGrid = sortedTeam.map(member => `
-      <div class="team-member">
-        <div class="team-card">
-          <div class="team-image" style="background-image: url('${member.photo}?size=400x600&format=jpg')"></div>
-          <div class="team-content">
-            <h3>${member.name}</h3>
-            <p class="position">${member.position}</p>
-            ${member.bio ? `<p class="bio">${member.bio}</p>` : ''}
-            <div class="contact-info">
-              ${member.email ? `<p><strong>E-post:</strong> <a href="mailto:${member.email}">${member.email}</a></p>` : ''}
-              ${member.phone ? `<p><strong>Tel:</strong> <a href="tel:${member.phone}">${member.phone}</a></p>` : ''}
-              ${file.endsWith('team/index.md') && member.linkedin ? `<p><a href="${member.linkedin}" target="_blank">LinkedIn</a></p>` : ''}
-            </div>
-          </div>
-        </div>
-      </div>
-    `).join('');
-    
-    pageData.content = pageData.content.replace(
-      '<!-- Team members will be automatically inserted here by the build script -->', 
-      `<div class="team-section"><div class="team-section-inner"><div class="team-grid">${teamGrid}</div></div></div>`
-    );
+    pageData.teamMembers = sortedTeam;
   }
   
   return { pageData, template };
@@ -579,7 +600,14 @@ async function buildSite() {
         return;
       }
       
-      const { pageData, template } = processMarkdownFile(file, lang, data, navData, teamMembers, products);
+      const result = processMarkdownFile(file, lang, data, navData, teamMembers, products);
+      
+      // Skip if no result (data files)
+      if (!result.pageData || !result.template) {
+        return;
+      }
+      
+      const { pageData, template } = result;
       
       // Generate HTML
       const pageContent = templates[template](pageData);

@@ -1,4 +1,5 @@
 ---
+layout: news
 title: "FishJrnl - Bærekraftig løsning utviklet med næringen"
 date: "2024-01-10"
 author: "Anteo Team"  
@@ -7,7 +8,6 @@ description: "Les mer om hvordan FishJrnl ble utviklet i samarbeid med havbruksa
 excerpt: "FishJrnl er utviklet i tett samarbeid med havbruksaktører for å sikre en bærekraftig løsning som løser reelle problemer."
 image: "/assets/images/news/2024-01-10-fishjrnl-lansering.jpeg"
 ---
-
 # FishJrnl - Bærekraftig løsning utviklet med næringen
 
 En av Anteo sine kjerneverdier er bærekraft, både innad i bedriften og knyttet til løsningene vi utvikler. Derfor har vi utviklet løsningen FishJrnl sammen med aktører i havbruksnæringen.

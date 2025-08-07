@@ -1,4 +1,5 @@
 ---
+layout: news
 title: "Anteo vinner miljøpris for bærekraftig teknologi"
 date: "2024-01-20"
 author: "Anteo Team"
@@ -7,7 +8,6 @@ description: "Anteo har mottatt prestisjetung miljøpris for vårt arbeid med b�
 excerpt: "Anteo har mottatt prestisjetung miljøpris for vårt arbeid med bærekraftige løsninger for havbruksnæringen."
 image: "/assets/images/news/2024-01-20-miljoepris.png"
 ---
-
 # Anteo vinner miljøpris for bærekraftig teknologi
 
 Vi er stolte og ydmyke over å motta Norsk Havbrukssenter sin miljøpris for 2024. Prisen anerkjenner vårt arbeid med å utvikle teknologi som bidrar til en mer bærekraftig havbruksnæring.

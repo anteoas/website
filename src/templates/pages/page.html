@@ -3,5 +3,12 @@
         <article class="page-content">
             {{{content}}}
         </article>
+        {{#if parentSection}}
+        <footer class="page-footer">
+            <a href="{{parentSection.url}}" class="back-link">
+                ← {{t 'strings.navigation.backTo'}} {{parentSection.label}}
+            </a>
+        </footer>
+        {{/if}}
     </div>
 </div>

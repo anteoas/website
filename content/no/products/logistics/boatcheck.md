@@ -2,8 +2,8 @@
 title: "Boatcheck"
 description: "Digital sjekkliste og inspeksjonssystem for fartøy"
 category: "logistics"
+layout: product
 ---
-
 # Boatcheck
 
 Digitalt system for sjekklister og inspeksjoner av fartøy.

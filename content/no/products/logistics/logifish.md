@@ -1,9 +1,9 @@
 ---
+layout: product
 title: "Logifish"
 description: "Transportdokumentasjon og sporbarhet for biologisk materiale"
 category: "logistics"
 ---
-
 # Logifish
 
 Komplett system for dokumentasjon av transport av biologisk materiale.

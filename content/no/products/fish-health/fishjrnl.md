@@ -8,8 +8,8 @@ features:
   - "Behandlingshistorikk"
   - "Myndighetsgodkjent dokumentasjon"
   - "Offline-støtte"
+layout: product
 ---
-
 # FishJrnl - Digital fiskehelse
 
 FishJrnl sørger for rask og presis registrering av fiskevelferdsindikatorer samt myndighetspålagt lusetelling.

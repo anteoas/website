@@ -1,4 +1,5 @@
 ---
+layout: news
 title: "Anteo inngår partnerskap med ledende utstyrsleverandør"
 date: "2024-04-15"
 author: "Anteo Team"
@@ -6,7 +7,6 @@ description: "Strategisk samarbeid sikrer bedre integrasjon mellom systemer"
 excerpt: "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur."
 image: "/assets/images/news/2024-01-10-fishjrnl-lansering.png"
 ---
-
 # Anteo inngår partnerskap med ledende utstyrsleverandør
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.

@@ -2,8 +2,8 @@
 title: "Kartverktøy"
 description: "Avansert kartløsning for planlegging og overvåking i havbruk"
 category: "logistics"
+layout: product
 ---
-
 # Kartverktøy
 
 Anteos kartverktøy gir deg full oversikt over alle marine aktiviteter i sanntid.

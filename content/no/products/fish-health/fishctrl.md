@@ -2,8 +2,8 @@
 title: "FishCtrl"
 description: "Digital velferdsregistrering og analyse for fiskehelse"
 category: "fish-health"
+layout: product
 ---
-
 # FishCtrl
 
 Komplett system for registrering og analyse av fiskevelferd.

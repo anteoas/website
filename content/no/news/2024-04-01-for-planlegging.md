@@ -1,4 +1,5 @@
 ---
+layout: news
 title: "Vellykket pilot med automatisk fôrplanlegging"
 date: "2024-04-01"
 author: "Anteo Team"
@@ -6,7 +7,6 @@ description: "Maskinlæring optimaliserer fôrforbruk og reduserer svinn"
 excerpt: "Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates."
 image: "/assets/images/news/2024-01-20-miljoepris.png"
 ---
-
 # Vellykket pilot med automatisk fôrplanlegging
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.

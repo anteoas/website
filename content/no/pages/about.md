@@ -47,10 +47,3 @@ Vi brenner for å gjøre teknologi nyttig. Praktiske, smarte verktøy som løser
 
 Vi tror på fremtiden til havbruket. Derfor ønsker vi å bidra til bedre beslutninger, redusert fotavtrykk og ansvarlig drift.
 :::
-
-
-## Teamet vårt
-
-Møt folkene som jobber hver dag for å gjøre havbruksnæringen mer effektiv og bærekraftig.
-
-<!-- Team members will be automatically inserted here by the build script -->

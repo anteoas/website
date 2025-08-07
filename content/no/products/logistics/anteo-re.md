@@ -2,8 +2,8 @@
 title: "Anteo RE"
 description: "Rapportering og analyse for havbruksnæringen"
 category: "logistics"
+layout: product
 ---
-
 # Anteo RE
 
 Avansert rapporterings- og analyseverktøy for havbruk.
