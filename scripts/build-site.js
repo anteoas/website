@@ -338,18 +338,12 @@ function renderItem(item, contentStore, siteData, langPrefix, imageProcessor) {
       if (page.collection === 'logistics') {
         pageData.productGroups.logistics = {
           ...page,
-          link: buildConfig.renders.page.generateUrl(page, langPrefix),
-          linkText: 'Les mer →',
-          image: '/assets/images/logistics-placeholder.jpg',
-          landingDescription: page.description || 'Komplett løsning for fartøyovervåkning og logistikk.'
+          link: buildConfig.renders.page.generateUrl(page, langPrefix)
         };
       } else if (page.collection === 'fish-health') {
         pageData.productGroups.fishHealth = {
           ...page,
-          link: buildConfig.renders.page.generateUrl(page, langPrefix),
-          linkText: 'Les mer →',
-          image: '/assets/images/fish-health-placeholder.jpg',
-          landingDescription: page.description || 'Digital journalføring og registrering av fiskevelferd.'
+          link: buildConfig.renders.page.generateUrl(page, langPrefix)
         };
       }
     });
