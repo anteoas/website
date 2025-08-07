@@ -1,7 +1,6 @@
 ---
 title: Våre ansatte
 description: Møt teamet bak Anteo
-layout: team
 type: page
 template: team
 ---

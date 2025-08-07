@@ -1,5 +1,4 @@
 ---
-layout: landing
 title: Anteo - Bærekraftige løsninger for havbruk
 description: Beslutningsstøttesystemer for en bærekraftig havbruksnæring
 hero1: 'Internettbasert sanntidssystemer for planlegging, overvåking og varsling'

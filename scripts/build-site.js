@@ -301,7 +301,7 @@ function renderItem(item, contentStore, siteData, langPrefix, imageProcessor) {
     contentStore, // Pass entire content store
     langPrefix,
     currentPath: url,
-    layout: templateName, // For body class
+    template: templateName, // For body class
     // Add language config for language switcher
     languageConfig: buildConfig.languageConfig,
     currentLang: item.lang,
