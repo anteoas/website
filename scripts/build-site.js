@@ -14,7 +14,6 @@ const marked = require('marked');
 const matter = require('gray-matter');
 
 const buildConfig = require('../config/build.config');
-const siteConfig = require('../config/site.config');
 const ImageProcessor = require('./utils/image-processor');
 const { bundleCSS } = require('./css-bundler');
 const { bundleJS } = require('./js-bundler');
@@ -28,9 +27,9 @@ marked.setOptions({
 // Register Handlebars helpers
 Handlebars.registerHelper('eq', (a, b) => a === b);
 Handlebars.registerHelper('contains', (arr, val) => arr && arr.includes(val));
-Handlebars.registerHelper('t', function(key) {
+Handlebars.registerHelper('t', function(key, options) {
   const keys = key.split('.');
-  let value = this;
+  let value = options.data.root || this;
   for (const k of keys) {
     value = value?.[k];
   }
@@ -274,7 +273,7 @@ function extractThemeColors() {
  */
 function renderItem(item, contentStore, siteData, langPrefix, imageProcessor) {
   const { type, content } = item;
-  const renderConfig = siteConfig.renders[type];
+  const renderConfig = buildConfig.renders[type];
   
   if (!renderConfig) {
     console.error(`No render config for type: ${type}`);
@@ -302,7 +301,11 @@ function renderItem(item, contentStore, siteData, langPrefix, imageProcessor) {
     contentStore, // Pass entire content store
     langPrefix,
     currentPath: url,
-    layout: templateName // For body class
+    layout: templateName, // For body class
+    // Add language config for language switcher
+    languageConfig: buildConfig.languageConfig,
+    currentLang: item.lang,
+    defaultLang: buildConfig.defaultLanguage
   };
   
   // Add back link if configured
@@ -322,17 +325,34 @@ function renderItem(item, contentStore, siteData, langPrefix, imageProcessor) {
       .slice(0, 3)
       .map(article => ({
         ...article,
-        url: siteConfig.renders.article.generateUrl(article, langPrefix)
+        url: buildConfig.renders.article.generateUrl(article, langPrefix)
       }));
     
     // Add product groups
     const pages = contentStore.page || [];
-    pageData.productGroups = pages
-      .filter(p => p.template === 'product-collection')
-      .map(page => ({
-        ...page,
-        url: siteConfig.renders.page.generateUrl(page, langPrefix)
-      }));
+    const productCollections = pages.filter(p => p.template === 'product-collection');
+    
+    // Create productGroups object for landing page
+    pageData.productGroups = {};
+    productCollections.forEach(page => {
+      if (page.collection === 'logistics') {
+        pageData.productGroups.logistics = {
+          ...page,
+          link: buildConfig.renders.page.generateUrl(page, langPrefix),
+          linkText: 'Les mer →',
+          image: '/assets/images/logistics-placeholder.jpg',
+          landingDescription: page.description || 'Komplett løsning for fartøyovervåkning og logistikk.'
+        };
+      } else if (page.collection === 'fish-health') {
+        pageData.productGroups.fishHealth = {
+          ...page,
+          link: buildConfig.renders.page.generateUrl(page, langPrefix),
+          linkText: 'Les mer →',
+          image: '/assets/images/fish-health-placeholder.jpg',
+          landingDescription: page.description || 'Digital journalføring og registrering av fiskevelferd.'
+        };
+      }
+    });
   }
   
   if (templateName === 'team') {
@@ -350,7 +370,7 @@ function renderItem(item, contentStore, siteData, langPrefix, imageProcessor) {
       .sort((a, b) => new Date(b.date) - new Date(a.date))
       .map(article => ({
         ...article,
-        url: siteConfig.renders.article.generateUrl(article, langPrefix)
+        url: buildConfig.renders.article.generateUrl(article, langPrefix)
       }));
   }
   
@@ -362,7 +382,7 @@ function renderItem(item, contentStore, siteData, langPrefix, imageProcessor) {
       .filter(p => p.category === collection)
       .map(product => ({
         ...product,
-        url: siteConfig.renders.product.generateUrl(product, langPrefix)
+        url: buildConfig.renders.product.generateUrl(product, langPrefix)
       }));
   }
   
@@ -438,7 +458,7 @@ async function buildSite() {
       // Render each content type that has a render definition
       let totalRendered = 0;
       
-      for (const [type, renderConfig] of Object.entries(siteConfig.renders)) {
+      for (const [type, renderConfig] of Object.entries(buildConfig.renders)) {
         const items = contentStore[type] || [];
         if (items.length === 0) continue;
         
@@ -477,6 +497,13 @@ async function buildSite() {
   // Process images
   console.log('\nProcessing images...');
   await imageProcessor.processAll();
+  
+  // Copy processed images from temp to dist
+  if (existsSync('.temp/images')) {
+    console.log('\nCopying processed images...');
+    copySync('.temp/images', 'dist/assets/images', { overwrite: true });
+    console.log('✓ Copied processed images');
+  }
   
   console.log('\n✨ Build complete!');
 }

@@ -11,20 +11,32 @@
     "overvåkning"
   ],
   "copyright": "© 2025 Anteo AS. Alle rettigheter forbeholdt.",
-  "orgNumber": "995 469 863",
+  "orgNumber": "999 168 817",
   "contact": {
     "email": "post@anteo.no",
-    "phone": "+47 XXX XX XXX",
-    "addresses": {
-      "trondheim": {
-        "city": "Trondheim",
-        "postal": "7000"
+    "phone": "+47 952 84 007",
+    "addresses": [
+      {
+        "street": "Vågsallmenningen 6",
+        "postalCode": "5040",
+        "city": "Bergen"
       },
-      "bergen": {
-        "city": "Bergen",
-        "postal": "5000"
+      {
+        "street": "Industrivegen 12",
+        "postalCode": "7900",
+        "city": "Rørvik"
+      },
+      {
+        "street": "Krambugata 2 (Digs)",
+        "postalCode": "7011",
+        "city": "Trondheim"
+      },
+      {
+        "street": "Fugleskjærgata 16",
+        "postalCode": "6905",
+        "city": "Florø"
       }
-    }
+    ]
   },
   "social": {
     "linkedin": "https://linkedin.com/company/anteo-as"

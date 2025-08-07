@@ -63,13 +63,13 @@
                 <img src="/assets/images/anteo-logo-white.svg" alt="Anteo" width="180">
                 <div class="footer-box">
                     <p>
-                        {{#each siteConfig.addresses}}
+                        {{#each contact.addresses}}
                         {{this.street}}, {{this.postalCode}} {{this.city}}<br>
                         {{/each}}
                     </p>
-                    <p style="color: var(--light-blue);">Org. nr. {{siteConfig.orgNumber}}</p>
-                    <p><a href="mailto:{{siteConfig.email}}">{{siteConfig.email}}</a></p>
-                    <p><a href="tel:{{siteConfig.phone}}">{{siteConfig.phone}}</a></p>
+                    <p style="color: var(--light-blue);">Org. nr. {{orgNumber}}</p>
+                    <p><a href="mailto:{{contact.email}}">{{contact.email}}</a></p>
+                    <p><a href="tel:{{contact.phone}}">{{contact.phone}}</a></p>
                 </div>
             </div>
                 
@@ -77,15 +77,15 @@
                     <div class="sitemap-container">
                         <div class="footer-section">
                             <h4>Anteo Logistikk</h4>
-                            {{#each products.logistics}}
-                            <a href="{{../../langPrefix}}/products/logistics/{{this.slug}}.html">{{this.title}}</a>
+                            {{#each (filterBy (getContent 'product') 'category' 'logistics')}}
+                            <a href="{{../langPrefix}}/products/logistics/{{this.slug}}.html">{{this.title}}</a>
                             {{/each}}
                         </div>
                         
                         <div class="footer-section">
                             <h4>Anteo Fiskehelse</h4>
-                            {{#each products.fish-health}}
-                            <a href="{{../../langPrefix}}/products/fish-health/{{this.slug}}.html">{{this.title}}</a>
+                            {{#each (filterBy (getContent 'product') 'category' 'fish-health')}}
+                            <a href="{{../langPrefix}}/products/fish-health/{{this.slug}}.html">{{this.title}}</a>
                             {{/each}}
                         </div>
                         

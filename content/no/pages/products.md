@@ -11,12 +11,12 @@ Vi tilbyr komplette løsninger for en mer bærekraftig og effektiv havbruksnæri
 ## Logistikkverktøy
 Komplett løsning for fartøyovervåkning og logistikk. Få full oversikt over flåten din med sanntidssporing, sensorintegrasjon og automatisk rapportering.
 
-[Les mer om logistikkverktøy →](/products/logistics-tools.html)
+[Les mer om logistikkverktøy →](/products-logistics.html)
 
 ## FishJrnl - Fiskehelse
 Digital journalføring og registrering av fiskevelferd. Forenkle dokumentasjon av velferdsindikatorer og lusetelling med vårt brukervennlige system.
 
-[Les mer om FishJrnl →](/products/fish-health.html)
+[Les mer om FishJrnl →](/products-fish-health.html)
 
 ## Overvåkning og varsling
 Sanntidsovervåkning for biosikkerhet. Få automatiske varsler om aktiviteter som kan true biosikkerheten i dine områder.
