@@ -1,0 +1,41 @@
+{
+  "site": {
+    "name": "Anteo AS",
+    "tagline": "Digital tools for modern aquaculture",
+    "description": "Anteo develops innovative digital solutions for the aquaculture industry",
+    "copyright": "© 2025 Anteo AS. All rights reserved."
+  },
+  "contact": {
+    "email": "contact@anteo.no",
+    "phone": "+47 123 45 678",
+    "address": "Bergen, Norway"
+  },
+  "social": {
+    "linkedin": "https://linkedin.com/company/anteo-as"
+  },
+  "strings": {
+    "newsSection": {
+      "title": "News",
+      "heading": "News & Updates",
+      "seeMore": "See more articles"
+    },
+    "navigation": {
+      "backTo": "Back to",
+      "backToNews": "Back to news"
+    },
+    "ui": {
+      "readMore": "Read more",
+      "newsFallback": "News"
+    },
+    "footer": {
+      "privacy": "Privacy",
+      "terms": "Terms",
+      "orgNumber": "Org. no."
+    },
+    "team": {
+      "position": "Position",
+      "email": "Email",
+      "phone": "Phone"
+    }
+  }
+}

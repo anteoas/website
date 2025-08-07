@@ -1,0 +1,23 @@
+<div class="news-listing-wrapper">
+  <!-- Hero Section -->
+  <div class="hero-headline page-hero" style="background-color: #fff; background-image: linear-gradient(130deg, #003f7e4d, #3fb49833), url('/assets/images/hero-news.png?size=1920x800&format=jpg&quality=85'); background-position: 0 0, 0 0; background-repeat: repeat, repeat; background-size: auto, cover; text-align: right;">
+    <div class="container">
+      <div class="hero-content">
+        <h1>{{title}}</h1>
+      </div>
+    </div>
+  </div>
+
+  <!-- News Grid -->
+  <div class="container">
+    <div class="section-header">
+      <p class="title">{{strings.newsSection.title}}</p>
+      <h2 class="heading-primary">{{strings.newsSection.heading}}</h2>
+    </div>
+    <div class="news-grid">
+      {{#each allNews}}
+        {{> news-card}}
+      {{/each}}
+    </div>
+  </div>
+</div>

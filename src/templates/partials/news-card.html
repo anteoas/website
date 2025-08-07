@@ -1,0 +1,19 @@
+<article class="news-card">
+  {{#if image}}
+  <div class="news-card-image">
+    <a href="{{url}}">
+      <img src="{{image}}?size=600x400&format=jpg" alt="{{title}}">
+    </a>
+  </div>
+  {{/if}}
+  <div class="news-card-content">
+    {{#if date}}
+    <time class="news-date">{{date}}</time>
+    {{else}}
+    <div class="news-category">{{t 'strings.ui.newsFallback'}}</div>
+    {{/if}}
+    <h3><a href="{{url}}">{{title}}</a></h3>
+    <p class="news-excerpt">{{excerpt}}</p>
+    <a href="{{url}}" class="read-more">{{t 'strings.ui.readMore'}} →</a>
+  </div>
+</article>
