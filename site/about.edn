@@ -1,0 +1,111 @@
+[[:div.page-wrapper
+  [:div.container
+   [:article.page-content
+    [:section.hero-headline.page-hero {:style "background-image: linear-gradient(130deg, #003f7e4d, #3fb4984d), url('/assets/images/hero-about.jpg'); text-align: right"}
+     [:div.container
+      [:div.hero-content
+       [:h1 "Om Anteo"]]]]
+
+    [:h2 "Hvem er vi?"]
+    [:p "Anteo er et norsk teknologiselskap som siden 2012 har jobbet for én ting: å gjøre hverdagen i havbruksnæringen enklere, smartere – og bedre for både folk og fisk. Vi utvikler digitale verktøy for logistikk, samhandling og fiskehelse, i tett dialog med næringen selv."]
+    [:p "Målet vårt er ikke å være størst, men å være til hjelp – med løsninger som faktisk fungerer i praksis. Vi tror at god teknologi starter med å forstå virkeligheten. Derfor samarbeider vi med aktører på tvers av verdikjeden for å løse konkrete utfordringer knyttet til effektiv drift, fiskevelferd og miljøansvar."]
+
+    [:h2 "Vår visjon"]
+    [:p "Å bidra til en moderne havbruksnæring – der effektiv samhandling gir bedre beslutninger og mer bærekraftig produksjon."]
+
+    [:h2 "Misjon"]
+    [:p "Vi hjelper havbruksnæringen å jobbe smartere – med digitale verktøy som gir bedre kontroll, mindre manuelt arbeid og full oversikt fra merdkant til logistikk. Vi forenkler planlegging, samhandling og dokumentasjon – så du kan bruke tiden der den trengs mest."]
+
+    [:h2 "Verdier"]
+    [:div.value-block
+     [:img {:src "/assets/images/values-collaboration.png" :alt "Samarbeids sirkel"}]
+     [:div.value-content
+      [:p]
+      [:p [:em "SAMARBEID"]]
+      [:p "Vi tror de beste løsningene skapes i lag. Gjennom tett dialog med brukerne våre utvikler vi systemer som gir mening i hverdagen."]]]
+
+    [:div.value-block
+     [:img {:src "/assets/images/values-technology.png" :alt "Teknologi sirkel"}]
+     [:div.value-content
+      [:p]
+      [:p [:em "TEKNOLOGI"]]
+      [:p "Vi brenner for å gjøre teknologi nyttig. Praktiske, smarte verktøy som løser ekte behov."]]]
+
+    [:div.value-block
+     [:img {:src "/assets/images/values-sustainability.png" :alt "Bærekfraft sirkel"}]
+     [:div.value-content
+      [:p]
+      [:p [:em "BÆREKRAFT"]]
+      [:p "Vi tror på fremtiden til havbruket. Derfor ønsker vi å bidra til bedre beslutninger, redusert fotavtrykk og ansvarlig drift."]]]
+
+    [:h2 "Teamet vårt"]
+    [:p "Møt folkene som jobber hver dag for å gjøre havbruksnæringen mer effektiv og bærekraftig."]
+
+    [:div.team-section
+     [:div.team-section-inner
+      [:div.team-grid
+       [:div.team-member
+        [:div.team-card
+         [:div.team-image {:style "background-image: url('/assets/images/team/svein-vegard-volden.jpg')"}]
+         [:div.team-content
+          [:h3 "Svein Vegard Volden"]
+          [:p.position "Forretningsutvikler"]
+          [:p.bio "Svein Vegard er gründer i Anteo AS og stiftet selskapet sammen med Terje Sæternes i 2013. Før dette arbeidet han ca 10 år i politiet, samt 3 år med kvalitetssikring i brønnbåtrederiet Norsk Fisketransport. Svein Vegard startet fulltid hos Anteo AS i slutten av 2015."]
+          [:div.contact-info
+           [:p [:strong "E-post:"] " " [:a {:href "mailto:svein.vegard@anteo.no"} "svein.vegard@anteo.no"]]
+           [:p [:strong "Tel:"] " " [:a {:href "tel:+47 47921721"} "+47 47921721"]]]]]]
+
+       [:div.team-member
+        [:div.team-card
+         [:div.team-image {:style "background-image: url('/assets/images/team/christine-nordal-sunde.jpg')"}]
+         [:div.team-content
+          [:h3 "Christine Nordal Sunde"]
+          [:p.position "CCO"]
+          [:p.bio "Christine kommer fra Florø og har 10 års erfaring innen logistikk. Har arbeidet hos Mowi i 5 år, inkludert prosjektleder for Anteo. 2 år som Supply Chain Manager hos Elkem. Ble plukket ut til ledertreningssprogram Women in Tech."]
+          [:div.contact-info
+           [:p [:strong "E-post:"] " " [:a {:href "mailto:christine@anteo.no"} "christine@anteo.no"]]
+           [:p [:strong "Tel:"] " " [:a {:href "tel:+47 95956722"} "+47 95956722"]]]]]]
+
+       [:div.team-member
+        [:div.team-card
+         [:div.team-image {:style "background-image: url('/assets/images/team/peder-refsnes.jpg')"}]
+         [:div.team-content
+          [:h3 "Peder Refsnes"]
+          [:p.position "CTO"]
+          [:p.bio "Peder er en programvareutvikler med over 10 års erfaring. Lidenskapelig opptatt av faget. Tidligere drev han et IT konsulentselskap som spesialiserte seg på å dekke behovene til oppstartsselskap."]
+          [:div.contact-info
+           [:p [:strong "E-post:"] " " [:a {:href "mailto:peder@anteo.no"} "peder@anteo.no"]]
+           [:p [:strong "Tel:"] " " [:a {:href "tel:+47 97670550"} "+47 97670550"]]]]]]
+
+       [:div.team-member
+        [:div.team-card
+         [:div.team-image {:style "background-image: url('/assets/images/team/sverre-marvik.png')"}]
+         [:div.team-content
+          [:h3 "Sverre Marvik"]
+          [:p.position "CEO"]
+          [:p.bio "25 års erfaring med teknologi, utvikling og ledelse innen bransjer som bank og finans, mobil, media og akvakultur. Siste 15 år som gründer, teknolog, leder og investor i egne og andre bedrifter."]
+          [:div.contact-info
+           [:p [:strong "E-post:"] " " [:a {:href "mailto:sverre@anteo.no"} "sverre@anteo.no"]]
+           [:p [:strong "Tel:"] " " [:a {:href "tel:+47 95284007"} "+47 95284007"]]]]]]
+
+       [:div.team-member
+        [:div.team-card
+         [:div.team-image {:style "background-image: url('/assets/images/team/christian-erichsen.jpg')"}]
+         [:div.team-content
+          [:h3 "Christian Erichsen"]
+          [:p.position "Forretningsutvikler og Styremedlem"]
+          [:p.bio "Christian er en lidenskapelig gründer, leder og forretningsutvikler med mer enn 25 års erfaring fra ledelse, prosjektledelse, forretningsutvikling, salg og strategi. Bakgrunn fra Sjøkrigsskolen, Master of Management og Design Thinking."]
+          [:div.contact-info
+           [:p [:strong "E-post:"] " " [:a {:href "mailto:christian@anteo.no"} "christian@anteo.no"]]
+           [:p [:strong "Tel:"] " " [:a {:href "tel:+47 90041590"} "+47 90041590"]]]]]]
+
+       [:div.team-member
+        [:div.team-card
+         [:div.team-image {:style "background-image: url('/assets/images/team/tor-anders-aas.png')"}]
+         [:div.team-content
+          [:h3 "Tor Anders Aas"]
+          [:p.position "Senior systemarkitekt"]
+          [:p.bio "Tor Anders har jobbet med systemutvikling i diverse selskap. Fra 2018 har han vært ansatt som Senior Systemarkitekt hos oss hvor han jobber med programmering i adminmodulen og App-programmering med ansvar for FishCtrl og FishJrnl."]
+          [:div.contact-info
+           [:p [:strong "E-post:"] " " [:a {:href "mailto:tor.anders@anteo.no"} "tor.anders@anteo.no"]]
+           [:p [:strong "Tel:"] " " [:a {:href "tel:+47 90728054"} "+47 90728054"]]]]]]]]]]]]]
