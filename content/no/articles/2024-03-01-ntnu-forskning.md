@@ -1,11 +1,14 @@
 ---
-layout: news
-title: "Samarbeid med NTNU gir nye forskningsresultater"
-date: "2024-03-01"
-author: "Anteo Team"
-description: "Felles forskningsprosjekt utvikler AI-løsninger for fiskevelferd"
-excerpt: "Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur."
-image: "/assets/images/news/2024-01-10-fishjrnl-lansering.png"
+title: Samarbeid med NTNU gir nye forskningsresultater
+date: '2024-03-01'
+author: Anteo Team
+description: Felles forskningsprosjekt utvikler AI-løsninger for fiskevelferd
+excerpt: >-
+  Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam
+  nihil molestiae consequatur.
+image: /assets/images/news/2024-01-10-fishjrnl-lansering.png
+type: article
+template: news
 ---
 # Samarbeid med NTNU gir nye forskningsresultater
 

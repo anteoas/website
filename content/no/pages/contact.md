@@ -1,7 +1,7 @@
 ---
-title: "Kontakt oss"
-description: "Ta kontakt med Anteo for mer informasjon om våre løsninger"
-layout: page
+title: Kontakt oss
+description: Ta kontakt med Anteo for mer informasjon om våre løsninger
+type: page
 ---
 
 # Kontakt oss

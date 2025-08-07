@@ -1,7 +1,7 @@
 ---
-title: "Brukervilkår"
-description: "Brukervilkår for Anteo SaaS Platform"
-layout: "page"
+title: Brukervilkår
+description: Brukervilkår for Anteo SaaS Platform
+type: page
 ---
 
 # Brukervilkår

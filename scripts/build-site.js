@@ -1,700 +1,493 @@
-const glob = require('glob');
+/**
+ * Simplified content-type based site builder
+ * 
+ * 1. Load all content once
+ * 2. Check which types should render
+ * 3. Render each item, passing the full content store
+ */
+
+const { ensureDirSync, readFileSync, outputFileSync, copySync, existsSync } = require('fs-extra');
 const path = require('path');
-const { readFileSync, outputFileSync, copySync, ensureDirSync, writeFileSync, existsSync } = require('fs-extra');
-const matter = require('gray-matter');
-const marked = require('marked');
+const glob = require('glob');
 const Handlebars = require('handlebars');
-const esbuild = require('esbuild');
+const marked = require('marked');
+const matter = require('gray-matter');
+
 const buildConfig = require('../config/build.config');
 const siteConfig = require('../config/site.config');
 const ImageProcessor = require('./utils/image-processor');
+const { bundleCSS } = require('./css-bundler');
+const { bundleJS } = require('./js-bundler');
 
-// Supported languages
-const languages = buildConfig.languages;
-const defaultLang = buildConfig.defaultLanguage;
-
-// Track missing translations
-const missingTranslations = {};
-languages.forEach(lang => missingTranslations[lang] = new Set());
+// Configure marked
+marked.setOptions({
+  breaks: true,
+  gfm: true
+});
 
 // Register Handlebars helpers
-Handlebars.registerHelper('eq', function(a, b) {
-  return a === b;
-});
-
-Handlebars.registerHelper('lookup', function(obj, key, prop) {
-  if (arguments.length === 3) {
-    // Two argument version: lookup obj key
-    return obj && obj[key];
-  } else {
-    // Three argument version: lookup obj key prop
-    return obj && obj[key] && obj[key][prop];
-  }
-});
-
-// Translation helper with ### fallback
-Handlebars.registerHelper('t', function(key, options) {
+Handlebars.registerHelper('eq', (a, b) => a === b);
+Handlebars.registerHelper('contains', (arr, val) => arr && arr.includes(val));
+Handlebars.registerHelper('t', function(key) {
   const keys = key.split('.');
-  
-  // Helper function to get value from nested object
-  function getValue(obj, keyPath) {
-    let value = obj;
-    for (const k of keyPath) {
-      value = value?.[k];
-    }
-    return value;
+  let value = this;
+  for (const k of keys) {
+    value = value?.[k];
   }
-  
-  // Try current context first
-  let value = getValue(this, keys);
-  
-  // If not found and we have root context, try root
-  if (!value && options?.data?.root) {
-    value = getValue(options.data.root, keys);
-  }
-  
-  if (!value || typeof value !== 'string') {
-    // Determine language for tracking
-    const lang = this.currentLang || this.lang || 
-                 options?.data?.root?.currentLang || 
-                 options?.data?.root?.lang || 
-                 'unknown';
-    
-    if (missingTranslations[lang]) {
-      missingTranslations[lang].add(key);
-    }
-    
-    const fallback = `### ${key} ###`;
-    
-    // Add data attribute for dev mode highlighting
-    const isDev = this.isDevelopment || options?.data?.root?.isDevelopment;
-    if (isDev) {
-      return new Handlebars.SafeString(
-        `<span data-missing-translation="${key}">${fallback}</span>`
-      );
-    }
-    return fallback;
-  }
-  
-  return value;
+  return value || key;
 });
 
-// Register partials
-Handlebars.registerPartial('news-card', readFileSync(path.join(__dirname, '../src/templates/partials/news-card.html'), 'utf8'));
+// Helper to get content by type
+Handlebars.registerHelper('getContent', function(type) {
+  return this.contentStore?.[type] || [];
+});
 
-// Helper to get language prefix
-const getLangPrefix = (lang) => lang === defaultLang ? '' : `/${lang}`;
+// Helper to sort content
+Handlebars.registerHelper('sortBy', function(array, key) {
+  if (!Array.isArray(array)) return [];
+  return array.sort((a, b) => {
+    const aVal = a[key] || 999;
+    const bVal = b[key] || 999;
+    return aVal - bVal;
+  });
+});
 
-// Load site configuration from src/
-function loadSiteConfig() {
-  const configPath = path.join(__dirname, '../src/site-config.json');
-  if (existsSync(configPath)) {
-    return JSON.parse(readFileSync(configPath, 'utf8'));
-  }
-  return {};
+// Helper to filter content
+Handlebars.registerHelper('filterBy', function(array, key, value) {
+  if (!Array.isArray(array)) return [];
+  return array.filter(item => {
+    const val = item[key];
+    return val === value;
+  });
+});
+
+// Template cache
+const templates = {};
+
+/**
+ * Load all templates
+ */
+function loadTemplates() {
+  // Load layouts
+  const layoutFiles = glob.sync('src/templates/layouts/*.html');
+  layoutFiles.forEach(file => {
+    const name = path.basename(file, '.html');
+    const content = readFileSync(file, 'utf8');
+    templates[`layout-${name}`] = Handlebars.compile(content);
+  });
+  
+  // Load page templates
+  const pageFiles = glob.sync('src/templates/pages/*.html');
+  pageFiles.forEach(file => {
+    const name = path.basename(file, '.html');
+    const content = readFileSync(file, 'utf8');
+    templates[name] = Handlebars.compile(content);
+  });
+  
+  // Load and register partials
+  const partialFiles = glob.sync('src/templates/partials/*.html');
+  partialFiles.forEach(file => {
+    const name = path.basename(file, '.html');
+    const content = readFileSync(file, 'utf8');
+    Handlebars.registerPartial(name, content);
+  });
+  
+  console.log(`Loaded ${Object.keys(templates).length} templates`);
 }
 
-// Load and resolve navigation
-function loadNavigation(lang) {
-  const navPath = path.join(__dirname, '../src/navigation.json');
-  if (!existsSync(navPath)) {
-    return { main: [] };
-  }
+/**
+ * Load all markdown content for a language
+ */
+function loadAllContent(lang) {
+  const content = {};
+  const files = glob.sync(`content/${lang}/**/*.md`);
   
-  const navStructure = JSON.parse(readFileSync(navPath, 'utf8'));
-  const langPrefix = getLangPrefix(lang);
-  
-  // Resolve labels from content files
-  const resolved = {
-    main: navStructure.main.map(item => {
-      const contentFile = path.join(__dirname, `../content/${lang}/${item.contentPath}.md`);
-      if (existsSync(contentFile)) {
-        const { data } = matter(readFileSync(contentFile, 'utf8'));
-        const url = item.contentPath.replace('pages/', '');
-        return {
-          label: data.title || 'Untitled',
-          url: `${langPrefix}/${url}.html`
-        };
-      }
-      return null;
-    }).filter(Boolean)
-  };
-  
-  return resolved;
-}
-
-// Load product group data
-function loadProductGroup(groupName, lang) {
-  const filePath = path.join(__dirname, `../content/${lang}/product-groups/${groupName}.md`);
-  if (existsSync(filePath)) {
-    const { data } = matter(readFileSync(filePath, 'utf8'));
-    const langPrefix = getLangPrefix(lang);
-    return {
-      ...data,
-      link: data.link ? `${langPrefix}${data.link}` : '#'
-    };
-  }
-  return null;
-}
-
-// Get news articles
-function getNews(lang, options = {}) {
-  const { limit = null, sortOrder = 'desc' } = options;
-  const newsDir = path.join(__dirname, `../content/${lang}/news`);
-  if (!existsSync(newsDir)) {
-    return [];
-  }
-  
-  let newsFiles = glob.sync(`${newsDir}/*.md`)
-    .filter(file => !file.endsWith('index.md'))
-    .map(file => {
-      const { data } = matter(readFileSync(file, 'utf8'));
-      const filename = path.basename(file, '.md');
-      const langPrefix = getLangPrefix(lang);
+  files.forEach(file => {
+    try {
+      const { data: frontmatter, content: body } = matter(readFileSync(file, 'utf8'));
       
-      return {
-        ...data,
-        slug: filename,
-        url: `${langPrefix}/news/${filename}.html`,
-        date: data.date || filename.substring(0, 10) // Extract date from filename if not in frontmatter
-      };
-    });
-    
-  // Sort by date
-  newsFiles.sort((a, b) => {
-    const comparison = new Date(b.date) - new Date(a.date);
-    return sortOrder === 'desc' ? comparison : -comparison;
-  });
-  
-  // Apply limit if specified
-  if (limit) {
-    newsFiles = newsFiles.slice(0, limit);
-  }
-  
-  return newsFiles;
-}
-
-// Load product data for footer
-function loadProducts(lang) {
-  const productsDir = path.join(__dirname, `../content/${lang}/products`);
-  const products = {};
-  
-  ['logistics', 'fish-health'].forEach(category => {
-    const categoryDir = path.join(productsDir, category);
-    if (!existsSync(categoryDir)) {
-      products[category] = [];
-      return;
-    }
-    
-    products[category] = glob.sync(`${categoryDir}/*.md`).map(file => {
-      const { data } = matter(readFileSync(file, 'utf8'));
-      const slug = path.basename(file, '.md');
-      return { title: data.title, slug };
-    });
-  });
-  
-  return products;
-}
-
-// Load templates
-const templates = {
-  page: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/page.html'), 'utf8')),
-  product: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/product.html'), 'utf8')),
-  news: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/news.html'), 'utf8')),
-  landing: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/landing.html'), 'utf8')),
-  newsListing: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/news-listing.html'), 'utf8')),
-  team: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/team.html'), 'utf8'))
-};
-
-// Bundle JavaScript with esbuild
-async function bundleJavaScript() {
-  const isDev = process.env.NODE_ENV === 'development';
-  
-  console.log(`\nBundling JavaScript (${isDev ? 'development' : 'production'})...`);
-  
-  try {
-    const result = await esbuild.build({
-      entryPoints: ['src/assets/js/index.js'],
-      bundle: true,
-      outfile: isDev ? 'dist/assets/js/bundle.js' : 'dist/assets/js/bundle.min.js',
-      minify: !isDev,
-      sourcemap: isDev,
-      target: ['es2015'],
-      format: 'iife',
-      logLevel: 'info'
-    });
-    
-    console.log('✓ JavaScript bundled successfully');
-  } catch (error) {
-    console.error('✗ JavaScript bundling failed:', error);
-    throw error;
-  }
-}
-
-// Bundle CSS files
-function bundleCSS() {
-  console.log('Bundling CSS...');
-  
-  // Read the main CSS file
-  const mainCSS = readFileSync('src/assets/css/style.css', 'utf8');
-  
-  // Replace @import statements with actual file contents
-  const bundled = mainCSS.replace(
-    /@import url\(['"]\.\/([^'"]+)['"]\);/g,
-    (match, filename) => {
-      const importPath = path.join('src/assets/css', filename);
-      if (existsSync(importPath)) {
-        return readFileSync(importPath, 'utf8') + '\n';
+      if (!frontmatter.type) {
+        console.warn(`No type specified in ${file}`);
+        return;
       }
-      return match; // Keep original if file not found
+      
+      const item = {
+        file,
+        type: frontmatter.type,
+        slug: path.basename(file, '.md'),
+        ...frontmatter,  // Spread frontmatter fields at top level
+        content: body,   // Markdown content
+        lang
+      };
+      
+      // Group by type
+      if (!content[item.type]) {
+        content[item.type] = [];
+      }
+      content[item.type].push(item);
+      
+    } catch (err) {
+      console.error(`Error loading ${file}:`, err);
     }
-  );
+  });
   
-  // Ensure output directory exists
-  ensureDirSync('dist/assets/css');
+  // Log what we loaded
+  console.log(`Loaded ${files.length} files:`);
+  Object.entries(content).forEach(([type, items]) => {
+    console.log(`  - ${type}: ${items.length} items`);
+  });
   
-  // Write bundled CSS
-  writeFileSync('dist/assets/css/style.css', bundled);
-  console.log('✓ CSS bundled');
+  return content;
 }
 
-// Get parent section for back links
-function getParentSection(file, lang, langPrefix) {
-  // Skip if it's a top-level page
-  if (file.includes('/pages/')) return null;
-  
-  // For content in subdirectories, find the corresponding page
-  // e.g., 'content/no/news/article.md' → look for 'content/no/pages/news.md'
-  
-  // Extract the section name
-  const match = file.match(/content\/[^\/]+\/([^\/]+)\//);
-  if (!match) return null;
-  
-  const section = match[1]; // 'news', 'products', etc.
-  const parentPagePath = `content/${lang}/pages/${section}.md`;
-  
-  // Check if parent page exists
-  if (existsSync(parentPagePath)) {
-    const { data } = matter(readFileSync(parentPagePath, 'utf8'));
-    
-    return {
-      url: `${langPrefix}/${section}.html`,
-      label: data.title
-    };
+/**
+ * Load site data for a language
+ */
+function loadSiteData(lang) {
+  const sitePath = path.join('content', lang, 'site.json');
+  if (!existsSync(sitePath)) {
+    throw new Error(`Site data not found: ${sitePath}`);
   }
   
-  return null;
+  const siteData = JSON.parse(readFileSync(sitePath, 'utf8'));
+  const langPrefix = lang === 'no' ? '' : `/${lang}`;
+  
+  // Resolve navigation if needed
+  if (siteData.navigation?.main) {
+    siteData.navigation.main = siteData.navigation.main.map(item => {
+      if (item.contentPath) {
+        const contentFile = path.join('content', lang, `${item.contentPath}.md`);
+        if (existsSync(contentFile)) {
+          const { data } = matter(readFileSync(contentFile, 'utf8'));
+          const url = item.contentPath.replace('pages/', '');
+          return {
+            label: data.title || 'Untitled',
+            url: `${langPrefix}/${url}.html`
+          };
+        }
+      }
+      return item;
+    }).filter(Boolean);
+  }
+  
+  // Add current year for copyright
+  siteData.currentYear = new Date().getFullYear();
+  if (siteData.copyright) {
+    siteData.copyright = siteData.copyright.replace(/\d{4}/, siteData.currentYear);
+  }
+  
+  return siteData;
 }
 
-// Process a single markdown file
-function processMarkdownFile(file, lang, data, navData, teamMembers, products) {
-  const { data: frontmatter, content } = matter(readFileSync(file, 'utf8'));
+/**
+ * Process markdown with custom blocks
+ */
+function processMarkdown(content) {
+  let processedContent = content;
   
-  // Validate frontmatter properties
-  const allowedProperties = {
-    'news': ['title', 'description', 'date', 'author', 'category', 'image', 'excerpt', 'layout'],
-    'team': ['name', 'position', 'email', 'phone', 'photo', 'order', 'linkedin'],
-    'products': ['title', 'description', 'layout', 'hero', 'features', 'category'],
-    'productGroups': ['title', 'description', 'layout', 'landingDescription', 'link', 'linkText', 'image'],
-    'landing': ['title', 'description', 'layout', 'hero1', 'aboutTeaser'],
-    'default': ['title', 'description', 'layout']
-  };
-  
-  // Detect content type
-  let contentType = 'default';
-  if (file.includes('/news/')) contentType = 'news';
-  else if (file.includes('/team/members/')) contentType = 'team';
-  else if (file.includes('/products/')) contentType = 'products';
-  else if (file.includes('/product-groups/')) contentType = 'productGroups';
-  else if (file.endsWith('/index.md')) contentType = 'landing';
-  
-  const allowed = allowedProperties[contentType] || allowedProperties.default;
-  const unused = Object.keys(frontmatter).filter(key => !allowed.includes(key));
-  
-  if (unused.length > 0) {
-    console.warn(`⚠️  Unused frontmatter in ${file}: ${unused.join(', ')}`);
-  }
-  
-  // Add language to frontmatter data
-  frontmatter.lang = lang;
-  
-  // Replace absolute links in markdown content
-  const langPrefix = getLangPrefix(lang);
-  let processedContent = content.replace(/\]\(\//g, `](${langPrefix}/`);
-  
-  // Process custom container syntax (:::) - must be done BEFORE marked.parse
-  // Process hero blocks first
+  // Process hero blocks
   processedContent = processedContent.replace(
     /:::\s*hero\s+([^\s]+)(?:\s+(.+))?\n([\s\S]*?)\n:::/gm,
-    (match, imagePath, cssString, content) => {
-      const heroText = content.trim();
+    (match, imagePath, cssString, heroText) => {
+      const text = heroText.trim();
       let styles = '';
       
       if (cssString) {
-        // Parse CSS properties
         styles = cssString.trim();
-        
-        // If no background-image URL is in the CSS, add the image path
         if (!styles.includes('url(')) {
-          // Add the image to the end of any gradient
           if (styles.includes('background-image:')) {
             styles = styles.replace(
               /background-image:([^;]+)/,
               `background-image:$1, url('${imagePath}')`
             );
           } else {
-            // No background-image property, add it
             styles = `background-image: url('${imagePath}'); ${styles}`;
           }
         }
       } else {
-        // No CSS provided, just use the image
         styles = `background-image: url('${imagePath}')`;
       }
       
-      // Create a placeholder to prevent marked from parsing it
-      return `<!--HERO_BLOCK_START-->${styles}|${heroText}<!--HERO_BLOCK_END-->`;
+      return `<div class="hero" style="${styles}">
+        <div class="hero-content">
+          <div class="container">
+            <h1>${text}</h1>
+          </div>
+        </div>
+      </div>`;
     }
   );
   
   // Process value blocks
   processedContent = processedContent.replace(
     /:::\s*value-block\n([\s\S]*?)\n:::/gm,
-    (match, innerContent) => {
-      // First, temporarily replace the content with a placeholder to prevent marked from parsing it
-      const placeholder = `<!--VALUE_BLOCK_START-->${innerContent}<!--VALUE_BLOCK_END-->`;
-      return placeholder;
-    }
-  );
-  
-  // Parse markdown
-  let html = marked.parse(processedContent);
-  
-  // Process hero block placeholders
-  html = html.replace(
-    /<!--HERO_BLOCK_START-->([^|]+)\|([^<]+)<!--HERO_BLOCK_END-->/g,
-    (match, styles, heroText) => {
-      return `<section class="hero-headline page-hero" style="${styles}">
-  <div class="container">
-    <div class="hero-content">
-      <h1>${heroText}</h1>
-    </div>
-  </div>
-</section>`;
-    }
-  );
-  
-  // Now process the value block placeholders
-  html = html.replace(
-    /<!--VALUE_BLOCK_START-->([\s\S]*?)<!--VALUE_BLOCK_END-->/g,
-    (match, innerContent) => {
-      // Parse the inner content as markdown
-      const innerHtml = marked.parse(innerContent.trim());
+    (match, content) => {
+      const lines = content.trim().split('\n');
+      const items = [];
+      let currentItem = null;
       
-      // Extract image and content
-      const imgMatch = innerHtml.match(/<img[^>]+>/);
-      const imgTag = imgMatch ? imgMatch[0] : '';
-      const contentHtml = imgMatch ? innerHtml.replace(imgMatch[0], '').trim() : innerHtml;
+      lines.forEach(line => {
+        if (line.startsWith('### ')) {
+          if (currentItem) items.push(currentItem);
+          currentItem = {
+            title: line.substring(4),
+            content: []
+          };
+        } else if (currentItem && line.trim()) {
+          currentItem.content.push(line);
+        }
+      });
       
-      return `<div class="value-block">
-${imgTag}
-<div class="value-content">
-${contentHtml}
-</div>
-</div>`;
+      if (currentItem) items.push(currentItem);
+      
+      return items.map(item => 
+        `<div class="value-item">
+          <h3>${item.title}</h3>
+          <p>${item.content.join(' ')}</p>
+        </div>`
+      ).join('');
     }
   );
   
-  // Determine template based on layout (required)
-  if (!frontmatter.layout) {
-    console.error(`\n❌ ERROR: Missing required 'layout' field in ${file}`);
-    console.error(`   Available layouts: ${Object.keys(templates).join(', ')}\n`);
-    // Skip team member data files
-    if (!file.includes('/team/members/')) {
-      throw new Error(`Missing layout in ${file}`);
-    }
-    return { pageData: null, template: null }; // Skip data files
-  }
-  
-  // Convert kebab-case to camelCase for template lookup
-  const template = frontmatter.layout.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
-  
-  // Validate template exists
-  const availableTemplates = Object.keys(templates);
-  if (!templates[template]) {
-    console.error(`\n❌ ERROR: Unknown layout '${frontmatter.layout || template}' in ${file}`);
-    console.error(`   Available layouts: ${availableTemplates.join(', ')}`);
-    console.error(`   Falling back to 'page' layout\n`);
-    template = 'page';
-  }
-  
-  // Prepare page data
-  const pageData = {
-    ...data,  // All data from data.json (site, contact, strings, etc.)
-    ...frontmatter,  // Frontmatter overrides
-    content: html,
-    navigation: navData,
-    currentLang: lang,
-    langPrefix: langPrefix,
-    isDefaultLang: lang === defaultLang,
-    currentPath: file.replace(`content/${lang}/`, '').replace('pages/', '').replace('.md', '.html'),
-    languages: languages,
-    languageConfig: buildConfig.languageConfig,
-    defaultLang: defaultLang,
-    siteConfig: loadSiteConfig(),
-    products: products, // Add products for footer
-    currentYear: new Date().getFullYear(),
-    isDevelopment: process.env.NODE_ENV === 'development',
-    parentSection: getParentSection(file, lang, langPrefix) // Add parent section for back links
-  };
-  
-  // Special handling for landing page
-  if (template === 'landing') {
-    // Move frontmatter data to nested structure
-    pageData.landing = {
-      hero1: frontmatter.hero1,
-      aboutTeaser: frontmatter.aboutTeaser
-    };
-    
-    // Load product groups
-    pageData.productGroups = {
-      logistics: loadProductGroup('logistics', lang),
-      fishHealth: loadProductGroup('fish-health', lang)
-    };
-    
-    // Get latest news
-    pageData.latestNews = getNews(lang, { limit: 3 });
-  }
-  
-  // Special handling for news listing page
-  if (template === 'newsListing') {
-    pageData.allNews = getNews(lang); // No limit - get all news
-  }
-  
-  // Special handling for team template
-  if (template === 'team') {
-    const sortedTeam = teamMembers.sort((a, b) => (a.order || 999) - (b.order || 999));
-    pageData.teamMembers = sortedTeam;
-  }
-  
-  return { pageData, template };
+  // Convert to HTML
+  return marked.parse(processedContent);
 }
 
-// Extract theme colors from CSS
+/**
+ * Extract theme colors from CSS
+ */
 function extractThemeColors() {
-  const cssPath = path.join(__dirname, '../src/assets/css/style.css');
+  const cssPath = path.join('src', 'assets', 'css', 'style.css');
   const cssContent = readFileSync(cssPath, 'utf8');
   
   const colors = {};
-  
-  // Extract CSS variables if defined
-  const rootVarsMatch = cssContent.match(/:root\s*\{([^}]*)\}/);
-  if (rootVarsMatch) {
-    const varMatches = rootVarsMatch[1].matchAll(/--([^:]+):\s*([^;]+);/g);
-    for (const [, name, value] of varMatches) {
-      colors[name.trim()] = value.trim();
-    }
-  }
-  
-  // Extract header background (handles various CSS formats)
-  const headerMatch = cssContent.match(
-    /header\s*\{[^}]*background(?:-color)?:\s*([^;]+);/
-  );
-  
+  const headerMatch = cssContent.match(/header[^{]*\{[^}]*background(?:-color)?:\s*([^;]+);/);
   if (headerMatch) {
-    let bgColor = headerMatch[1].trim();
-    
-    // If it's a CSS variable reference, resolve it
-    if (bgColor.startsWith('var(--')) {
-      const varName = bgColor.match(/var\(--([^)]+)\)/)?.[1];
-      bgColor = colors[varName] || bgColor;
-    }
-    
-    colors.headerBackground = bgColor;
+    colors.headerBackground = headerMatch[1].trim();
   }
   
-  // Fallback to hardcoded value if not found
-  colors.headerBackground = colors.headerBackground || '#112a38';
-  
-  console.log('✓ Extracted theme colors:', colors.headerBackground);
-  
-  return colors;
+  return colors.headerBackground || '#00529c';
 }
 
-// Main build function - knows nothing about base paths
-async function buildSite() {
-  console.log('Building multilingual site...');
+/**
+ * Render a single content item
+ */
+function renderItem(item, contentStore, siteData, langPrefix, imageProcessor) {
+  const { type, content } = item;
+  const renderConfig = siteConfig.renders[type];
   
-  // Extract theme colors from CSS
-  const themeColors = extractThemeColors();
+  if (!renderConfig) {
+    console.error(`No render config for type: ${type}`);
+    return null;
+  }
   
-  // Create global template data
-  const globalTemplateData = {
-    themeColors: themeColors,
-    siteConfig: loadSiteConfig(),
-    currentYear: new Date().getFullYear()
+  // Get URL and template
+  const url = renderConfig.generateUrl(item, langPrefix);
+  const templateName = renderConfig.getTemplate(item);
+  const template = templates[templateName];
+  
+  if (!template) {
+    console.error(`Template not found: ${templateName}`);
+    return null;
+  }
+  
+  // Process markdown
+  const htmlContent = processMarkdown(content);
+  
+  // Build page data
+  const pageData = {
+    ...item,  // Spread all item properties (includes former frontmatter fields)
+    content: htmlContent,  // Override with processed HTML
+    ...siteData,
+    contentStore, // Pass entire content store
+    langPrefix,
+    currentPath: url,
+    layout: templateName // For body class
   };
+  
+  // Add back link if configured
+  if (renderConfig.backLink) {
+    pageData.backLink = {
+      url: `${langPrefix}${renderConfig.backLink.url}`,
+      text: siteData.strings?.[renderConfig.backLink.textKey] || 'Back'
+    };
+  }
+  
+  // Special handling for specific templates
+  if (templateName === 'landing') {
+    // Add latest news
+    const articles = contentStore.article || [];
+    pageData.latestNews = articles
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .slice(0, 3)
+      .map(article => ({
+        ...article,
+        url: siteConfig.renders.article.generateUrl(article, langPrefix)
+      }));
+    
+    // Add product groups
+    const pages = contentStore.page || [];
+    pageData.productGroups = pages
+      .filter(p => p.template === 'product-collection')
+      .map(page => ({
+        ...page,
+        url: siteConfig.renders.page.generateUrl(page, langPrefix)
+      }));
+  }
+  
+  if (templateName === 'team') {
+    // Sort team members
+    const people = contentStore.person || [];
+    pageData.teamMembers = people.sort((a, b) => 
+      (a.order || 999) - (b.order || 999)
+    );
+  }
+  
+  if (templateName === 'news-listing') {
+    // Add all articles
+    const articles = contentStore.article || [];
+    pageData.articles = articles
+      .sort((a, b) => new Date(b.date) - new Date(a.date))
+      .map(article => ({
+        ...article,
+        url: siteConfig.renders.article.generateUrl(article, langPrefix)
+      }));
+  }
+  
+  if (templateName === 'product-collection') {
+    // Get products for this collection
+    const collection = item.collection;
+    const products = contentStore.product || [];
+    pageData.products = products
+      .filter(p => p.category === collection)
+      .map(product => ({
+        ...product,
+        url: siteConfig.renders.product.generateUrl(product, langPrefix)
+      }));
+  }
+  
+  // Render page template
+  const pageHtml = template(pageData);
+  
+  // Wrap in base layout
+  const layout = templates['layout-base'];
+  if (!layout) {
+    console.error('Base layout not found');
+    return { url, html: pageHtml };
+  }
+  
+  const finalHtml = layout({
+    ...pageData,
+    body: pageHtml,
+    themeColors: { headerBackground: extractThemeColors() }
+  });
+  
+  // Extract and process images
+  imageProcessor.extractFromHtml(finalHtml, item.file);
+  const processedHtml = imageProcessor.replaceUrlsInHtml(finalHtml);
+  
+  return { url, html: processedHtml };
+}
+
+/**
+ * Main build function
+ */
+async function buildSite() {
+  console.log('Building site...\n');
+  
+  // Clean and setup
+  ensureDirSync('dist');
+  
+  // Load templates
+  loadTemplates();
   
   // Initialize image processor
   const imageProcessor = new ImageProcessor();
   
-  // Ensure output directory exists
-  ensureDirSync(buildConfig.outputPath);
+  // Bundle assets
+  console.log('\nBundling assets...');
+  bundleCSS();
+  await bundleJS();
   
-  // Clean up old directories if they exist
-  if (require('fs').existsSync('dist/pages')) {
-    console.log('Cleaning up old pages directory...');
-    require('fs-extra').removeSync('dist/pages');
+  // Copy static assets
+  console.log('Copying static assets...');
+  copySync('src/assets/images', 'dist/assets/images');
+  if (existsSync('src/assets/fonts')) {
+    copySync('src/assets/fonts', 'dist/assets/fonts');
   }
-  
-  // Create GitHub Pages files
-  outputFileSync('dist/.nojekyll', '');
-  
-  // Copy assets
-  console.log('Copying assets...');
-  ensureDirSync('dist/assets/images');
-  copySync('src/assets/images', 'dist/assets/images', { overwrite: true });
-  
-  // Collect all content for AI endpoint
-  const contentIndex = [];
   
   // Process each language
-  languages.forEach(lang => {
-    console.log(`\nProcessing ${lang} content...`);
+  for (const lang of buildConfig.languages) {
+    console.log(`\nBuilding ${lang}...`);
     
-    // Load language-specific site data
-    const dataPath = `content/${lang}/data/data.json`;
-    
-    if (!require('fs').existsSync(dataPath)) {
-      console.log(`Warning: No data.json for ${lang}, skipping...`);
-      return;
+    // Check if content exists
+    const sitePath = path.join('content', lang, 'site.json');
+    if (!existsSync(sitePath)) {
+      console.log(`  No content found for ${lang}, skipping...`);
+      continue;
     }
     
-    const data = JSON.parse(readFileSync(dataPath, 'utf8'));
-    const navData = loadNavigation(lang);  // Use the new function instead of loading JSON
-    const products = loadProducts(lang);  // Load products for footer
-    
-    // Dynamically set copyright year
-    const currentYear = new Date().getFullYear();
-    if (data.site?.copyright) {
-      data.site.copyright = data.site.copyright.replace(/\d{4}/, currentYear);
+    try {
+      // Load site data
+      const siteData = loadSiteData(lang);
+      const langPrefix = lang === 'no' ? '' : `/${lang}`;
+      
+      // Load ALL content
+      const contentStore = loadAllContent(lang);
+      
+      // Render each content type that has a render definition
+      let totalRendered = 0;
+      
+      for (const [type, renderConfig] of Object.entries(siteConfig.renders)) {
+        const items = contentStore[type] || [];
+        if (items.length === 0) continue;
+        
+        console.log(`\nRendering ${items.length} ${type} items...`);
+        
+        items.forEach(item => {
+          try {
+            const result = renderItem(item, contentStore, siteData, langPrefix, imageProcessor);
+            if (!result) {
+              console.error(`Failed to render: ${item.file}`);
+              return;
+            }
+            
+            // Write file
+            const outputPath = `dist${result.url}`;
+            const outputDir = path.dirname(outputPath);
+            ensureDirSync(outputDir);
+            outputFileSync(outputPath, result.html);
+            
+            console.log(`  ✓ ${result.url}`);
+            totalRendered++;
+            
+          } catch (err) {
+            console.error(`Error rendering ${item.file}:`, err);
+          }
+        });
+      }
+      
+      console.log(`\nRendered ${totalRendered} pages for ${lang}`);
+      
+    } catch (err) {
+      console.error(`Error building ${lang}:`, err);
     }
-    
-    // Process all markdown files for this language
-    const teamMembers = [];
-    
-    // First pass: collect team members
-    glob.sync(`content/${lang}/team/members/*.md`).forEach(file => {
-      const { data, content } = matter(readFileSync(file, 'utf8'));
-      teamMembers.push({
-        ...data,
-        bio: content.trim(), // Add the content as bio
-        slug: path.basename(file, '.md')
-      });
-    });
-    
-    // Second pass: process all other files
-    glob.sync(`content/${lang}/**/*.md`).forEach(file => {
-      // Skip team member individual pages
-      if (file.includes('/team/members/') && file.endsWith('.md')) {
-        return;
-      }
-      
-      const result = processMarkdownFile(file, lang, data, navData, teamMembers, products);
-      
-      // Skip if no result (data files)
-      if (!result.pageData || !result.template) {
-        return;
-      }
-      
-      const { pageData, template } = result;
-      
-      // Generate HTML
-      const pageContent = templates[template](pageData);
-      
-      // Wrap in base template
-      let fullPage = Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/layouts/base.html'), 'utf8'))({
-        ...globalTemplateData,  // Global data first
-        ...pageData,           // Page-specific data (can override if needed)
-        body: pageContent,
-        currentPath: pageData.currentPath,
-        layout: template,      // Pass the template name as layout
-        isDevelopment: process.env.NODE_ENV === 'development'
-      });
-      
-      // Extract image requirements from the final HTML
-      imageProcessor.extractFromHtml(fullPage, file);
-      
-      // Replace image URLs with processed versions
-      fullPage = imageProcessor.replaceUrlsInHtml(fullPage);
-      
-      // Add to content index
-      contentIndex.push({
-        title: pageData.title,
-        description: pageData.description,
-        content: pageData.content.replace(/<[^>]*>?/gm, ''), // Strip HTML
-        url: `${pageData.langPrefix}/${pageData.currentPath}`.replace(/\/+/g, '/'),
-        language: lang,
-        type: template,
-        date: pageData.date || null
-      });
-      
-      // Determine output path
-      let outputPath;
-      const relativePath = file.replace(`content/${lang}/`, '').replace('.md', '.html');
-      
-      if (file.includes('/pages/')) {
-        const pageName = relativePath.replace('pages/', '');
-        outputPath = lang === defaultLang 
-          ? `dist/${pageName}`
-          : `dist/${lang}/${pageName}`;
-      } else {
-        outputPath = lang === defaultLang
-          ? `dist/${relativePath}`
-          : `dist/${lang}/${relativePath}`;
-      }
-      
-      // Ensure directory exists
-      ensureDirSync(path.dirname(outputPath));
-      
-      // Write file
-      outputFileSync(outputPath, fullPage);
-      console.log(`✓ Built: ${file} → ${outputPath}`);
-    });
-  });
-  
-  // Generate AI content endpoint
-  ensureDirSync('dist/api');
-  outputFileSync('dist/api/content.json', JSON.stringify(contentIndex, null, 2));
-  console.log('\n✓ Generated AI content index');
+  }
   
   // Process images
+  console.log('\nProcessing images...');
   await imageProcessor.processAll();
   
-  // Copy processed images if any
-  if (require('fs').existsSync('.temp/images')) {
-    console.log('\nCopying processed images...');
-    copySync('.temp/images', 'dist/assets/images', { overwrite: true });
-    console.log('✓ Copied processed images');
-  }
-  
-  // Bundle JavaScript
-  await bundleJavaScript();
-  
-  // Bundle CSS
-  bundleCSS();
-  
-  // Report missing translations
-  const hasAnyMissing = Object.values(missingTranslations).some(set => set.size > 0);
-  if (hasAnyMissing) {
-    console.log('\n⚠️  Missing Translations:');
-    for (const [lang, keys] of Object.entries(missingTranslations)) {
-      if (keys.size > 0) {
-        console.log(`  ${lang}: ${Array.from(keys).join(', ')}`);
-      }
-    }
-  }
+  console.log('\n✨ Build complete!');
 }
 
-// Export the build function
+// Export for use in build.js
 module.exports = { buildSite };
+
+// Allow direct execution
+if (require.main === module) {
+  buildSite().catch(err => {
+    console.error('Build failed:', err);
+    process.exit(1);
+  });
+}

@@ -1,11 +1,14 @@
 ---
-layout: news
-title: "Lansering av ny modul for temperaturovervåking"
-date: "2024-03-15"
-author: "Anteo Team"
-description: "FishCtrl utvides med sanntidsovervåking av vanntemperatur"
-excerpt: "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum."
-image: "/assets/images/news/2024-01-15-samhandling-havbruk.png"
+type: article
+title: Lansering av ny modul for temperaturovervåking
+date: '2024-03-15'
+author: Anteo Team
+description: FishCtrl utvides med sanntidsovervåking av vanntemperatur
+excerpt: >-
+  At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis
+  praesentium voluptatum.
+image: /assets/images/news/2024-01-15-samhandling-havbruk.png
+template: news
 ---
 # Lansering av ny modul for temperaturovervåking
 

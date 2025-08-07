@@ -1,14 +1,15 @@
 ---
-title: "FishJrnl"
-description: "Digital journalføring og registrering av fiskevelferd"
-category: "fish-health"
+title: FishJrnl
+description: Digital journalføring og registrering av fiskevelferd
+category: fish-health
 features:
-  - "Digital velferdsregistrering"
-  - "Lusetelling"
-  - "Behandlingshistorikk"
-  - "Myndighetsgodkjent dokumentasjon"
-  - "Offline-støtte"
-layout: product
+  - Digital velferdsregistrering
+  - Lusetelling
+  - Behandlingshistorikk
+  - Myndighetsgodkjent dokumentasjon
+  - Offline-støtte
+type: product
+template: product
 ---
 # FishJrnl - Digital fiskehelse
 

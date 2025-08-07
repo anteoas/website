@@ -1,8 +1,9 @@
 ---
-title: "Boatcheck"
-description: "Digital sjekkliste og inspeksjonssystem for fartøy"
-category: "logistics"
-layout: product
+title: Boatcheck
+description: Digital sjekkliste og inspeksjonssystem for fartøy
+category: logistics
+type: product
+template: product
 ---
 # Boatcheck
 

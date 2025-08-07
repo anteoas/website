@@ -1,8 +1,9 @@
 ---
-title: "FishCtrl"
-description: "Digital velferdsregistrering og analyse for fiskehelse"
-category: "fish-health"
-layout: product
+title: FishCtrl
+description: Digital velferdsregistrering og analyse for fiskehelse
+category: fish-health
+type: product
+template: product
 ---
 # FishCtrl
 

@@ -1,7 +1,7 @@
 ---
-title: "Produkter"
-description: "Oversikt over Anteos løsninger for havbruksnæringen"
-layout: page
+title: Produkter
+description: Oversikt over Anteos løsninger for havbruksnæringen
+type: page
 ---
 
 # Produkter

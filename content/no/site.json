@@ -1,0 +1,95 @@
+{
+  "name": "Anteo AS",
+  "tagline": "Bærekraftige løsninger for havbruk",
+  "description": "Beslutningsstøttesystemer for norsk havbruksnæring",
+  "keywords": [
+    "havbruk",
+    "akvakultur",
+    "biosikkerhet",
+    "fiskehelse",
+    "logistikk",
+    "overvåkning"
+  ],
+  "copyright": "© 2025 Anteo AS. Alle rettigheter forbeholdt.",
+  "orgNumber": "995 469 863",
+  "contact": {
+    "email": "post@anteo.no",
+    "phone": "+47 XXX XX XXX",
+    "addresses": {
+      "trondheim": {
+        "city": "Trondheim",
+        "postal": "7000"
+      },
+      "bergen": {
+        "city": "Bergen",
+        "postal": "5000"
+      }
+    }
+  },
+  "social": {
+    "linkedin": "https://linkedin.com/company/anteo-as"
+  },
+  "navigation": {
+    "main": [
+      {
+        "contentPath": "pages/products"
+      },
+      {
+        "contentPath": "pages/news"
+      },
+      {
+        "contentPath": "pages/sustainability"
+      },
+      {
+        "contentPath": "pages/about"
+      },
+      {
+        "contentPath": "pages/contact"
+      }
+    ],
+    "productGroups": [
+      {
+        "contentPath": "pages/products-logistics"
+      },
+      {
+        "contentPath": "pages/products-fish-health"
+      }
+    ]
+  },
+  "strings": {
+    "newsSection": {
+      "title": "Aktuelt",
+      "heading": "Nyheter & Oppdateringer",
+      "seeMore": "Se flere artikler"
+    },
+    "navigation": {
+      "backTo": "Tilbake til",
+      "backToNews": "Tilbake til nyheter",
+      "backToProducts": "Tilbake til produkter"
+    },
+    "ui": {
+      "readMore": "Les mer",
+      "newsFallback": "Nyheter"
+    },
+    "footer": {
+      "privacy": "Personvern",
+      "terms": "Brukervilkår",
+      "orgNumber": "Org. nr."
+    },
+    "team": {
+      "position": "Stillingstittel",
+      "email": "E-post",
+      "phone": "Tel"
+    },
+    "productCategories": {
+      "logistics": {
+        "title": "Logistikk og samhandling",
+        "description": "Verktøy for effektiv samhandling i havbruksnæringen"
+      },
+      "fish-health": {
+        "title": "Fiskehelse og velferd",
+        "description": "Løsninger for overvåkning og dokumentasjon av fiskehelse"
+      }
+    }
+  }
+}

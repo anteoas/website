@@ -1,11 +1,14 @@
 ---
-layout: news
-title: "Anteo inngår partnerskap med ledende utstyrsleverandør"
-date: "2024-04-15"
-author: "Anteo Team"
-description: "Strategisk samarbeid sikrer bedre integrasjon mellom systemer"
-excerpt: "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur."
-image: "/assets/images/news/2024-01-10-fishjrnl-lansering.png"
+title: Anteo inngår partnerskap med ledende utstyrsleverandør
+date: '2024-04-15'
+author: Anteo Team
+description: Strategisk samarbeid sikrer bedre integrasjon mellom systemer
+excerpt: >-
+  Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit,
+  sed quia consequuntur.
+image: /assets/images/news/2024-01-10-fishjrnl-lansering.png
+type: article
+template: news
 ---
 # Anteo inngår partnerskap med ledende utstyrsleverandør
 

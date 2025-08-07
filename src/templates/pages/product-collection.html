@@ -1,0 +1,29 @@
+<div class="page-wrapper">
+    <div class="container">
+        <article class="page-content">
+            {{{content}}}
+            
+            {{#if products}}
+            <div class="products-grid">
+                {{#each products}}
+                <div class="product-card">
+                    <h3><a href="{{url}}">{{title}}</a></h3>
+                    <p>{{description}}</p>
+                    <a href="{{url}}" class="read-more">Les mer →</a>
+                </div>
+                {{/each}}
+            </div>
+            {{else}}
+            <p>Ingen produkter i denne kategorien ennå.</p>
+            {{/if}}
+        </article>
+        
+        {{#if backLink}}
+        <footer class="page-footer">
+            <a href="{{backLink.url}}" class="back-link">
+                ← {{backLink.text}}
+            </a>
+        </footer>
+        {{/if}}
+    </div>
+</div>

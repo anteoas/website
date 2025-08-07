@@ -1,11 +1,14 @@
 ---
-layout: news
-title: "Anteo vinner innovasjonspris for bærekraftig logistikk"
-date: "2024-02-15"
-author: "Anteo Team"
-description: "Selskapet hedres for sitt bidrag til reduserte utslipp i havbruksnæringen"
-excerpt: "Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur."
-image: "/assets/images/news/2024-01-20-miljoepris.png"
+title: Anteo vinner innovasjonspris for bærekraftig logistikk
+date: '2024-02-15'
+author: Anteo Team
+description: Selskapet hedres for sitt bidrag til reduserte utslipp i havbruksnæringen
+excerpt: >-
+  Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit
+  laboriosam, nisi ut aliquid ex ea commodi consequatur.
+image: /assets/images/news/2024-01-20-miljoepris.png
+type: article
+template: news
 ---
 # Anteo vinner innovasjonspris for bærekraftig logistikk
 

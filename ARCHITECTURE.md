@@ -12,14 +12,14 @@ The Anteo website is a multilingual static site generator built with Node.js. It
 anteo-website/
 ├── config/                 # Configuration files
 │   ├── build.config.js    # Build settings (languages, paths)
-│   └── site.config.js     # Site metadata
+│   └── site.config.js     # Site metadata and render definitions
 ├── content/               # All content (Markdown files)
 │   ├── no/               # Norwegian content
+│   │   ├── articles/     # News articles
 │   │   ├── pages/        # Static pages
+│   │   ├── people/       # Team members (data only)
 │   │   ├── products/     # Product pages
-│   │   ├── news/         # News articles
-│   │   ├── team/         # Team members
-│   │   └── data/         # JSON data files
+│   │   └── site.json     # Site data and strings
 │   └── en/               # English content (same structure)
 ├── src/                   # Source files
 │   ├── assets/           # CSS, JS, images
@@ -28,7 +28,8 @@ anteo-website/
 │   │   └── images/
 │   └── templates/        # Handlebars templates
 │       ├── layouts/      # Base layouts
-│       └── pages/        # Page templates
+│       ├── pages/        # Page templates
+│       └── partials/     # Reusable components
 ├── scripts/              # Build scripts
 │   ├── build.js          # Main build orchestrator
 │   ├── build-site.js     # Site generation logic
@@ -52,206 +53,181 @@ anteo-website/
 
 ### 3. Site Generation (`scripts/build-site.js`)
 
-#### Key Functions:
+The build follows a simple three-step process:
 
-**`buildSite()`** - Main orchestrator
-- Loads templates
-- Processes each language
-- Bundles assets
-- Generates content index
-
-**`processMarkdownFile()`** - Processes individual Markdown files
-- Parses frontmatter with gray-matter
-- Converts Markdown to HTML with marked
-- Determines template based on path or layout
-- Returns pageData and template name
-
-**Template Selection Logic:**
+#### Step 1: Load All Content
 ```javascript
-let template = 'page';
-if (data.layout) {
-  template = data.layout;  // Explicit layout in frontmatter
-} else {
-  if (file.includes('/products/')) template = 'product';
-  if (file.includes('/news/')) template = 'news';
+const contentStore = loadAllContent(lang);
+// Returns: { page: [...], article: [...], product: [...], person: [...] }
+```
+
+#### Step 2: Check Render Configuration
+```javascript
+// site.config.js defines which types generate pages
+renders: {
+  page: { generateUrl, getTemplate },
+  article: { generateUrl, getTemplate, backLink },
+  product: { generateUrl, getTemplate, backLink }
+  // Note: 'person' is not listed, so no pages generated
 }
 ```
 
-#### Data Loading:
-1. **Site data**: `content/[lang]/data/site.json`
-2. **Navigation**: `content/[lang]/data/navigation.json`
-3. **Team members**: Collected from `content/[lang]/team/members/*.md`
+#### Step 3: Render Each Item
+For each content type with a render definition:
+- Get all items of that type
+- Render each using its template
+- Pass the entire `contentStore` so templates can query any data
 
-### 4. Templates (Handlebars)
+### 4. Content Types
 
-**Base Layout** (`src/templates/layouts/base.html`)
-- Wraps all pages
-- Contains header, navigation, footer
-- Receives `body` content from page templates
+All content uses frontmatter to declare its type:
 
-**Page Templates** (`src/templates/pages/`)
-- `page.html` - Generic pages
-- `product.html` - Product pages
-- `news.html` - News articles
-- `landing.html` - Homepage
+```yaml
+---
+type: page        # Required: declares content type
+title: "About"    # Type-specific fields
+template: about   # Optional: override default template
+---
+```
 
-**Template Data Structure:**
+Content types:
+- **page**: Standalone HTML pages
+- **article**: News/blog posts with dates
+- **product**: Product descriptions with categories
+- **person**: Team member data (no pages generated)
+
+### 5. Templates
+
+Templates receive a data object with:
 ```javascript
 {
   // From frontmatter
-  title, description, layout,
+  ...frontmatter,
   
-  // From build process
-  content,           // Parsed HTML
-  navigation,        // From navigation.json
-  langPrefix,        // "" or "/en"
-  currentPath,       // Current page path
+  // Processed content
+  content: '<html>',
   
-  // From site.json
-  name, tagline, copyright,
+  // Site data from site.json
+  ...siteData,
   
-  // Special data
-  teamMembers,       // For team/about pages
-  latestNews,        // For landing page
-  productGroups      // For landing page
+  // The entire content store for querying
+  contentStore: {
+    page: [...],
+    article: [...],
+    product: [...],
+    person: [...]
+  },
+  
+  // Utility data
+  langPrefix: '',
+  currentPath: '/about.html',
+  backLink: { url, text }  // If configured
 }
 ```
 
-### 5. Output Structure
-
-Files are output based on their type:
-- **Pages**: `content/no/pages/about.md` → `dist/about.html`
-- **Products**: `content/no/products/logistics/map-tools.md` → `dist/produkter/logistics/map-tools.html`
-- **Index pages**: Create directory with index.html
-
-### 6. Image Processing
-
-The `ImageProcessor` class:
-1. Extracts image URLs from HTML
-2. Supports query parameters: `?size=300x200&format=webp`
-3. Processes images on demand
-4. Replaces URLs in final HTML
-
-### 7. Development Server
-
-- Watches for file changes
-- Rebuilds on change
-- Serves from `dist/` directory
-- No hot reload (full page refresh)
-
-## Key Concepts
-
-### Multilingual Support
-- Default language (Norwegian) has no prefix
-- Other languages get URL prefix: `/en/about.html`
-- Language switching updates entire path
-
-### Navigation Building
-- Defined in `navigation.json`
-- Can reference content files to pull labels
-- Product navigation can be auto-generated from folder structure
-
-### Frontmatter
-All Markdown files use frontmatter for metadata:
-```yaml
----
-title: "Page Title"
-description: "SEO description"
-layout: "page"  # Optional, defaults based on path
-order: 1        # Optional, for sorting
----
+Templates can query any content:
+```handlebars
+{{#each (getContent 'person')}}
+  {{> team-member this}}
+{{/each}}
 ```
 
-### Special Pages
+### 6. URL Generation
 
-**Team/About Pages**
-- Team members are auto-inserted where comment placeholder exists
-- Members sorted by `order` field
-
-**Landing Page**
-- Uses special `landing` layout
-- Pulls data from multiple sources:
-  - Hero content from frontmatter
-  - Product groups from separate files
-  - Latest news from news directory
-
-### Language Configuration
-Languages are configured in `build.config.js`:
+URLs are generated by render configuration in `site.config.js`:
 ```javascript
-languages: ['no', 'en'],
-defaultLanguage: 'no',
-languageConfig: {
-  'no': { name: 'Norsk', flag: '/assets/images/flags/norway-flag.svg' },
-  'en': { name: 'English', flag: '/assets/images/flags/uk-flag.svg' }
+page: {
+  generateUrl: (item, langPrefix) => `${langPrefix}/${item.slug}.html`
 }
-```
-
-### Translatable Strings
-UI strings are stored in `content/[lang]/data/site.json`:
-```json
-"strings": {
-  "newsSection": {
-    "title": "Aktuelt",
-    "heading": "Nyheter & Oppdateringer"
+article: {
+  generateUrl: (item, langPrefix) => {
+    const year = new Date(item.frontmatter.date).getFullYear();
+    return `${langPrefix}/news/${year}/${slug}.html`;
   }
 }
 ```
-Access in templates: `{{strings.newsSection.title}}`
 
-### Handlebars Helpers
-Custom helpers registered in `build-site.js`:
-- `eq`: Equality comparison `{{#if (eq a b)}}`
-- `lookup`: Object property access `{{lookup obj key}}`
+### 7. Image Processing
 
-### Special Page Classes
-The landing page gets a special body class to handle unique styling:
+The `ImageProcessor`:
+1. Extracts image URLs from HTML
+2. Processes images with query parameters: `?size=300x200&format=webp`
+3. Replaces URLs in final HTML
+
+### 8. Deployment
+
+After build completes:
+1. Base path is determined (GitHub Pages or custom domain)
+2. All URLs in HTML/CSS are updated
+3. Deployment files (CNAME) are created
+
+## Key Concepts
+
+### Self-Contained Content
+Each Markdown file contains all necessary metadata in frontmatter. No dependency on folder structure for behavior.
+
+### Type-Driven Rendering
+Whether content generates a page is determined by `site.config.js`, not by the content itself.
+
+### Query-Based Templates
+Templates receive the entire content store and can query any data they need using Handlebars helpers.
+
+### Language Structure
+- Default language (Norwegian) has no URL prefix
+- Other languages get prefix: `/en/about.html`
+- Each language has its own `site.json` with translations
+
+## Common Tasks
+
+### Adding a New Content Type
+1. Create content with `type: newtype` in frontmatter
+2. Add render definition to `site.config.js`:
+```javascript
+renders: {
+  newtype: {
+    generateUrl: (item, langPrefix) => `...`,
+    getTemplate: (item) => 'newtype-template'
+  }
+}
+```
+3. Create template in `src/templates/pages/newtype-template.html`
+
+### Adding a New Page
+1. Create `content/no/pages/newpage.md`:
+```yaml
+---
+type: page
+title: "New Page"
+---
+Content here...
+```
+2. Page will be generated at `/newpage.html`
+
+### Querying Content in Templates
 ```handlebars
-<body{{#if (eq layout "landing")}} class="landing-page"{{/if}}>
+<!-- Get all articles -->
+{{#each (getContent 'article')}}
+  <h3>{{this.frontmatter.title}}</h3>
+{{/each}}
+
+<!-- Sort by a field -->
+{{#each (sortBy (getContent 'person') 'order')}}
+  {{this.frontmatter.name}}
+{{/each}}
+
+<!-- Filter by a field -->
+{{#each (filterBy (getContent 'product') 'category' 'logistics')}}
+  {{this.frontmatter.title}}
+{{/each}}
 ```
 
-## Common Modifications
+## Debugging
 
-### Adding a New Page Template
-1. Create `src/templates/pages/[name].html`
-2. Add to templates object in `build-site.js`
-3. Use via `layout: [name]` in frontmatter
-
-### Adding a New Language
-1. Update `config/build.config.js` languages array
-2. Create `content/[lang]/` directory structure
-3. Copy and translate all content files
-
-### Changing URL Structure
-- Modify output path logic in `build-site.js` (around line 235)
-- Update `navigation.json` to match
-
-### Adding Global Data
-1. Add to `content/[lang]/data/site.json`
-2. Available in all templates automatically
-
-## Debugging Tips
-
-1. **Build output**: Check console for processing order
-2. **Template data**: Add `{{log this}}` in templates
-3. **File paths**: Build script logs all processed files
-4. **Image processing**: Check `dist/assets/images/` for output
-
-## Important Files Reference
-
-- **Build config**: `config/build.config.js` - languages, paths
-- **Site config**: `config/site.config.js` - metadata
-- **Main build**: `scripts/build-site.js` - core logic
-- **Templates**: `src/templates/` - all HTML templates
-- **Styles**: `src/assets/css/style.css` - imports other CSS
-
-## Deployment
-
-The site deploys to GitHub Pages via Actions:
-1. Push to main branch triggers build
-2. `GITHUB_REPOSITORY` env var determines base path
-3. `CUSTOM_DOMAIN` env var overrides for custom domains
-4. Output goes to `gh-pages` branch
+1. **Build output**: Console shows what's being processed
+2. **Template data**: Use `{{log this}}` in templates
+3. **Content loading**: Check console for loaded counts
+4. **Missing content**: Ensure `type` is specified in frontmatter
 
 ---
 
-*This guide should help anyone (human or AI) understand how to work with and modify the Anteo website builder.*
+*This guide reflects the simplified content-type architecture implemented in 2025.*

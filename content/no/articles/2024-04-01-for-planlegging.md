@@ -1,11 +1,14 @@
 ---
-layout: news
-title: "Vellykket pilot med automatisk fôrplanlegging"
-date: "2024-04-01"
-author: "Anteo Team"
-description: "Maskinlæring optimaliserer fôrforbruk og reduserer svinn"
-excerpt: "Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates."
-image: "/assets/images/news/2024-01-20-miljoepris.png"
+title: Vellykket pilot med automatisk fôrplanlegging
+date: '2024-04-01'
+author: Anteo Team
+description: Maskinlæring optimaliserer fôrforbruk og reduserer svinn
+excerpt: >-
+  Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus
+  saepe eveniet ut et voluptates.
+image: /assets/images/news/2024-01-20-miljoepris.png
+type: article
+template: news
 ---
 # Vellykket pilot med automatisk fôrplanlegging
 

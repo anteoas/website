@@ -1,8 +1,9 @@
 ---
-title: "Anteo RE"
-description: "Rapportering og analyse for havbruksnæringen"
-category: "logistics"
-layout: product
+title: Anteo RE
+description: Rapportering og analyse for havbruksnæringen
+category: logistics
+type: product
+template: product
 ---
 # Anteo RE
 

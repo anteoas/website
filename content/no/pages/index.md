@@ -1,11 +1,19 @@
 ---
 layout: landing
-title: "Anteo - Bærekraftige løsninger for havbruk"
-description: "Beslutningsstøttesystemer for en bærekraftig havbruksnæring"
-hero1: "Internettbasert sanntidssystemer for planlegging, overvåking og varsling"
+title: Anteo - Bærekraftige løsninger for havbruk
+description: Beslutningsstøttesystemer for en bærekraftig havbruksnæring
+hero1: 'Internettbasert sanntidssystemer for planlegging, overvåking og varsling'
 aboutTeaser:
-  title: "Beslutningstøttesystemer for bærekraftig havnæring."
-  text: "Anteo er et selskap som utvikler beslutningsstøttesystemer som skal bidra til en bærekraftig utvikling av norsk havbruksnæringen. Vi leverer sann tids løsninger for overvåkning og varsling av aktiviteter som kan være i strid med biosikkerhetsprinsippet, samtidig som løsningene skal bidra til forslag til risikoreduserende tiltak."
-  linkText: "Les mer"
-  image: "/assets/images/hero-about.jpg"
+  title: Beslutningstøttesystemer for bærekraftig havnæring.
+  text: >-
+    Anteo er et selskap som utvikler beslutningsstøttesystemer som skal bidra
+    til en bærekraftig utvikling av norsk havbruksnæringen. Vi leverer sann tids
+    løsninger for overvåkning og varsling av aktiviteter som kan være i strid
+    med biosikkerhetsprinsippet, samtidig som løsningene skal bidra til forslag
+    til risikoreduserende tiltak.
+  linkText: Les mer
+  image: /assets/images/hero-about.jpg
+type: page
+template: landing
 ---
+

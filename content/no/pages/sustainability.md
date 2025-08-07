@@ -1,7 +1,7 @@
 ---
-title: "Bærekraft"
-description: "Anteos bidrag til en bærekraftig havbruksnæring"
-layout: page
+title: Bærekraft
+description: Anteos bidrag til en bærekraftig havbruksnæring
+type: page
 ---
 
 ::: hero /assets/images/hero-sustainability.jpg?size=1920x1080&format=jpg&quality=85 background-image: linear-gradient(130deg, #003f7e4d, #3fb4984d); background-position: 0 0, 50% 100%; background-size: auto, cover; text-align: center

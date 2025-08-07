@@ -1,7 +1,9 @@
 ---
-title: "Våre ansatte"
-description: "Møt teamet bak Anteo"
+title: Våre ansatte
+description: Møt teamet bak Anteo
 layout: team
+type: page
+template: team
 ---
 
 # Våre ansatte

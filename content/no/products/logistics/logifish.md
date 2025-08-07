@@ -1,8 +1,9 @@
 ---
-layout: product
-title: "Logifish"
-description: "Transportdokumentasjon og sporbarhet for biologisk materiale"
-category: "logistics"
+title: Logifish
+description: Transportdokumentasjon og sporbarhet for biologisk materiale
+category: logistics
+type: product
+template: product
 ---
 # Logifish
 

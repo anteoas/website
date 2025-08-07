@@ -1,8 +1,9 @@
 ---
-title: "Kartverktøy"
-description: "Avansert kartløsning for planlegging og overvåking i havbruk"
-category: "logistics"
-layout: product
+title: Kartverktøy
+description: Avansert kartløsning for planlegging og overvåking i havbruk
+category: logistics
+type: product
+template: product
 ---
 # Kartverktøy
 

@@ -1,7 +1,7 @@
 ---
-title: "Personvern"
-description: "Personvernerklæring for Anteo AS"
-layout: page
+title: Personvern
+description: Personvernerklæring for Anteo AS
+type: page
 ---
 
 # Personvern

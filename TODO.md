@@ -3,8 +3,8 @@
 ## Missing Pages (404 errors)
 - [x] Create `/personvern` (Privacy Policy) page - DONE (created as privacy.html)
 - [x] Create `/brukervilkar` (Terms of Service) page - DONE (created as terms.html)
-- [ ] Create `/products/logistics/index.html` or fix link to use `/products.html#logistics`
-- [ ] Create `/products/fish-health/index.html` or fix link to use `/products.html#fish-health`
+- [ ] Fix product category links - Created collection pages as products-logistics.html and products-fish-health.html
+- [ ] Update navigation to use new collection pages
 
 ## Stub Content
 - [x] Add actual content to `/sustainability.html` - DONE (2025-01-20)
@@ -13,10 +13,10 @@
   - Need to add: hero-sustainability.jpg and SDG icon images
 
 ## Navigation Issues
-- [ ] Product category links (`/products/logistics` and `/products/fish-health`) should either:
-  - Link to the main products page with anchors
-  - Have their own index pages created
-  - Use the existing product-groups pages
+- [x] Update build system to handle new content types (page, article, product, person) - DONE
+- [x] Fix news article URLs to use /news/YEAR/slug.html pattern - DONE
+- [x] Back link in news articles points to `/news/` but should be `/news.html` - DONE (handled by content-types.config.js)
+- [ ] Update product category navigation to use new collection pages
 
 ## Suggestions
 - [x] English versions of privacy policy and terms of service - DONE
@@ -34,13 +34,13 @@
 - [x] Reduced spacing between footer elements
 
 ## Technical Debt
-- [x] Image references in CSS need base path handling for GitHub Pages deployment - FIXED
+- [x] Image references in CSS need base path handling for GitHub Pages deployment - FIXED (2025-01-20)
 - [ ] Consider lazy loading for images below the fold
 - [ ] Add meta descriptions to all pages for SEO
-- [ ] Consolidate `site.json` and `navigation.json` into `data.json` (identified 2025-01-20)
-  - Currently split artificially, causing confusion about where to put strings
-  - Need "backTo" translation for breadcrumbs
-  - Scope: ~20-30 lines of code changes
+- [x] Consolidate `site.json` and `navigation.json` into `data.json` - DONE (2025-01-20)
+  - Merged all data into single site.json at language root
+  - Removed data/ folder
+  - Navigation now part of site.json
 
 ## Recently Completed (Previous Sessions)
 - [x] Added Norwegian privacy policy (`/privacy.html`)
@@ -126,3 +126,40 @@
 - [ ] Back link in news articles points to `/news/` but should be `/news.html`
 - [ ] Need translations for "Back to" / "Tilbake til" strings
 - [ ] Consider breadcrumb system using navigation.json data
+
+## Session: Content Architecture Refactoring (2025-01-20)
+
+### Content Structure Improvements
+- [x] Restructured content with clear content types:
+  - `type: page` - Standalone HTML pages
+  - `type: article` - Time-based news/blog content  
+  - `type: product` - Product descriptions
+  - `type: person` - Team member data
+- [x] Reorganized folder structure:
+  - `/pages/` - All standalone pages
+  - `/articles/` - News articles (was `/news/`)
+  - `/people/` - Team members (was `/team/members/`)
+  - `/products/` - Product descriptions (unchanged)
+- [x] Merged `data.json`, `site.json`, and `navigation.json` into single `site.json`
+- [x] Removed redundant `data/` folder
+- [x] Created product collection pages using page type with special template
+- [x] Updated all content files with proper type declarations
+
+### Build System Updates
+- [x] Created new content-type based build system (build-site.js)
+- [x] Implemented ContentStore class for managing all content in memory
+- [x] Created content-types.config.js for URL patterns and content behavior
+- [x] Implemented URL patterns based on content type:
+  - Pages: `/{slug}.html`
+  - Articles: `/news/{year}/{slug}.html`
+  - Products: `/products/{category}/{slug}.html`
+- [x] Updated template selection logic to use `template` field instead of `layout`
+- [x] Created team-member partial and product-collection template
+- [x] Fixed image processing integration
+- [x] All content is now self-contained with frontmatter metadata
+
+### Hero Background-Image Fix (2025-01-20)
+- [x] Added comprehensive tests for deployment transform
+- [x] Fixed regex patterns to handle compound background-image values
+- [x] Fixed protocol-relative URL handling (`//example.com`)
+- [x] All 57 tests passing

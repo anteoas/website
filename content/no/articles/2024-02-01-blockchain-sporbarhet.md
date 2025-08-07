@@ -1,11 +1,14 @@
 ---
-layout: news
-title: "Ny teknologi forbedrer sporbarhet i verdikjeden"
-date: "2024-02-01"
-author: "Anteo Team"
-description: "Implementering av blockchain-teknologi gir full oversikt over fiskens reise"
-excerpt: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
-image: "/assets/images/news/2024-01-15-samhandling-havbruk.png"
+title: Ny teknologi forbedrer sporbarhet i verdikjeden
+date: '2024-02-01'
+author: Anteo Team
+description: Implementering av blockchain-teknologi gir full oversikt over fiskens reise
+excerpt: >-
+  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+  incididunt ut labore et dolore magna aliqua.
+image: /assets/images/news/2024-01-15-samhandling-havbruk.png
+type: article
+template: news
 ---
 # Ny teknologi forbedrer sporbarhet i verdikjeden
 
