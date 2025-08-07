@@ -1,0 +1,48 @@
+[:footer
+ [:div.footer-content
+  [:div.footer-left
+   [:img {:src "/assets/images/anteo-logo-white.svg" :alt "Anteo" :width "180"}]
+   [:div.footer-box
+    [:p
+     "Vågsallmenningen 6, 5040 Bergen" [:br]
+     "Industrivegen 12, 7900 Rørvik" [:br]
+     "Krambugata 2 (Digs), 7011 Trondheim" [:br]
+     "Fugleskjærgata 16, 6905 Florø" [:br]]
+    [:p {:style "color: var(--light-blue);"} "Org. nr. 999 168 817"]
+    [:p [:a {:href "mailto:post@anteo.no"} "post@anteo.no"]]
+    [:p [:a {:href "tel:+47 952 84 007"} "+47 952 84 007"]]]]
+
+  [:div.footer-right
+   [:div.sitemap-container
+    [:div.footer-section
+     [:h4 "Anteo Logistikk"]
+     [:a {:href "/products/logistics/logifish.html"} "Logifish"]
+     [:a {:href "/products/logistics/kartverktoy.html"} "Kartverktøy"]
+     [:a {:href "/products/logistics/boatcheck.html"} "Boatcheck"]
+     [:a {:href "/products/logistics/anteo-re.html"} "Anteo RE"]]
+
+    [:div.footer-section
+     [:h4 "Anteo Fiskehelse"]
+     [:a {:href "/products/fish-health/fishjrnl.html"} "FishJrnl"]
+     [:a {:href "/products/fish-health/fishctrl.html"} "FishCtrl"]]
+
+    [:div.footer-section
+     [:h4 "Anteo AS"]
+     [:a {:href "/products.html"} "Produkter"]
+     [:a {:href "/news.html"} "Aktuelt"]
+     [:a {:href "/sustainability.html"} "Bærekraft"]
+     [:a {:href "/about.html"} "Om oss"]
+     [:a {:href "/contact.html"} "Kontakt oss"]
+
+     [:div.footer-social
+      [:a {:href "https://www.facebook.com/anteoas" :target "_blank"}
+       [:img {:src "/assets/images/facebook-icon.svg" :width "40" :height "40" :alt "facebook"}]]
+      [:a {:href "https://www.instagram.com/anteo_softwaresolutions/" :target "_blank"}
+       [:img {:src "/assets/images/instagram-icon.svg" :width "40" :height "40" :alt "instagram"}]]]]]]]
+ [:div.footer-bottom
+  [:p "Anteo © 2025"]
+  [:p.footer-links
+   [:a {:href "/privacy.html"} "Personvern"]
+   [:span.footer-separator "|"]
+   [:a {:href "/terms.html"} "Brukervilkår"]]]]
+

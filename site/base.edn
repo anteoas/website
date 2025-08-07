@@ -1,0 +1,45 @@
+[:html {:lang "no"}
+ [:head
+  [:meta {:charset "UTF-8"}]
+  [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
+  [:meta {:name "theme-color" :content "#112a38"}]
+  [:title "Anteo - Bærekraftige løsninger for havbruk - Anteo AS"]
+  [:meta {:name "description" :content "Beslutningsstøttesystemer for en bærekraftig havbruksnæring"}]
+  [:link {:rel "icon" :type "image/png" :sizes "32x32" :href "/assets/images/favicon-32x32.png"}]
+  [:link {:rel "stylesheet" :href "/assets/css/style.css"}]]
+ [:body.landing-page
+  [:header
+   [:nav
+    [:div.container
+     [:a.logo {:href "/"}
+      [:img {:src "/assets/images/anteo-logo.png" :alt "Anteo" :height "80"}]]
+     [:button.mobile-menu-toggle {:aria-label "Toggle menu" :aria-expanded "false"}
+      [:span.hamburger-line]
+      [:span.hamburger-line]
+      [:span.hamburger-line]]
+     [:ul.nav-menu
+      [:li [:a {:href "/products.html"} "Produkter"]]
+      [:li [:a {:href "/news.html"} "Aktuelt"]]
+      [:li [:a {:href "/sustainability.html"} "Bærekraft"]]
+      [:li [:a {:href "/about.html"} "Om oss"]]
+      [:li [:a {:href "/contact.html"} "Kontakt oss"]]
+      [:li.language-switcher
+       [:div.language-dropdown
+        [:button.language-toggle {:aria-label "Select language"}
+         [:img {:src "/assets/images/flags/norway-flag.svg" :alt "Norsk" :width "24" :height "18"}]
+         [:span "Norsk"]
+         [:svg.dropdown-arrow {:width "12" :height "8" :viewBox "0 0 12 8" :fill "none"}
+          [:path {:d "M1 1.5L6 6.5L11 1.5" :stroke "currentColor" :stroke-width "2" :stroke-linecap "round" :stroke-linejoin "round"}]]]
+        [:div.language-menu
+         [:a.language-option {:href "/index.html"}
+          [:img {:src "/assets/images/flags/norway-flag.svg" :alt "Norsk" :width "24" :height "18"}]
+          [:span "Norsk"]]
+         [:a.language-option {:href "/en/index.html"}
+          [:img {:src "/assets/images/flags/uk-flag.svg" :alt "English" :width "24" :height "18"}]
+          [:span "English"]]]]]]]]]
+
+  [:main
+   [:sg/body]]
+
+  [:sg/include :footer]
+  [:script {:src "/assets/js/bundle.min.js"}]]]
