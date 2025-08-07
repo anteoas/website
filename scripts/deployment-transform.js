@@ -55,8 +55,8 @@ function applyDeploymentConfig(config) {
       content = content
         .replace(/(src|href)="\/([^"]+)"/g, `$1="${basePath}/$2"`)
         .replace(/href="\/"/g, `href="${basePath}/"`)
-        // Also handle background-image URLs in style attributes
-        .replace(/background-image:\s*url\('\/([^']+)'\)/g, `background-image: url('${basePath}/$1')`);
+        // Handle background-image URLs in style attributes (including compound values)
+        .replace(/url\((['"]?)\/([^'"\)]+)\1\)/g, `url($1${basePath}/$2$1)`);
     }
     
     writeFileSync(file, content);
@@ -72,12 +72,24 @@ function applyDeploymentConfig(config) {
       
       // Replace absolute URLs in CSS
       content = content
-        // Handle url('/...') with single quotes
-        .replace(/url\('\/([^']+)'\)/g, `url('${basePath}/$1')`)
-        // Handle url("/...") with double quotes
-        .replace(/url\("\/([^"]+)"\)/g, `url("${basePath}/$1")`)
-        // Handle url(/...) without quotes
-        .replace(/url\(\/([^)]+)\)/g, `url(${basePath}/$1)`);
+        // Handle url('/...') with single quotes - only match paths starting with /
+        .replace(/url\('\/([^']+)'\)/g, (match, path) => {
+          // Don't transform protocol-relative URLs (//example.com)
+          if (path.startsWith('/')) return match;
+          return `url('${basePath}/${path}')`;
+        })
+        // Handle url("/...") with double quotes - only match paths starting with /
+        .replace(/url\("\/([^"]+)"\)/g, (match, path) => {
+          // Don't transform protocol-relative URLs (//example.com)
+          if (path.startsWith('/')) return match;
+          return `url("${basePath}/${path}")`;
+        })
+        // Handle url(/...) without quotes - only match paths starting with /
+        .replace(/url\(\/([^)]+)\)/g, (match, path) => {
+          // Don't transform protocol-relative URLs (//example.com)
+          if (path.startsWith('/')) return match;
+          return `url(${basePath}/${path})`;
+        });
       
       writeFileSync(file, content);
     });
