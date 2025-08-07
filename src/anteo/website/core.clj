@@ -8,7 +8,9 @@
 (defn build-page [output-dir]
   (let [base (edn/read-string (slurp "site/base.edn"))
         landing (edn/read-string (slurp "site/landing.edn"))
-        processed (sg/process base landing)
+        footer (edn/read-string (slurp "site/footer.edn"))
+        processed (sg/process base {:body landing
+                                    :includes {:footer footer}})
         html-str (str
                   (hp/doctype :html5)
                   "\n"

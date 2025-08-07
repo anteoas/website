@@ -40,3 +40,27 @@
                     [:section "Two"]
                     [:footer "Footer"]]]
       (is (= expected (sg/process base content))))))
+
+(deftest test-include
+  (testing "Basic include"
+    (let [base [:div [:sg/include :footer]]
+          includes {:footer [:footer "Footer content"]}
+          expected [:div [:footer "Footer content"]]]
+      (is (= expected (sg/process base {:includes includes})))))
+
+  (testing "Include with body"
+    (let [base [:div
+                [:sg/body]
+                [:sg/include :footer]]
+          content {:body [:p "Content"]
+                   :includes {:footer [:footer "Footer"]}}
+          expected [:div
+                    [:p "Content"]
+                    [:footer "Footer"]]]
+      (is (= expected (sg/process base content)))))
+
+  (testing "Missing include returns placeholder"
+    (let [base [:div [:sg/include :missing]]
+          includes {}
+          expected [:div [:sg/include :missing]]]
+      (is (= expected (sg/process base {:includes includes}))))))
