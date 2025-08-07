@@ -1,0 +1,24 @@
+{:title "Anteo - Bærekraftige løsninger for havbruk"
+ :description "Beslutningsstøttesystemer for en bærekraftig havbruksnæring"
+ :type :page
+ :template :landing
+
+ :hero1 "Internettbasert sanntidssystemer for planlegging, overvåking og varsling"
+
+ :about-teaser {:title "Beslutningstøttesystemer for bærekraftig havnæring."
+                :text "Anteo er et selskap som utvikler beslutningsstøttesystemer som skal bidra til en bærekraftig utvikling av norsk havbruksnæringen. Vi leverer sann tids løsninger for overvåkning og varsling av aktiviteter som kan være i strid med biosikkerhetsprinsippet, samtidig som løsningene skal bidra til forslag til risikoreduserende tiltak."
+                :link-text "Les mer"
+                :image "/assets/images/hero-about.jpg"}
+
+ ;; Since this is a landing page, we can define the structure right here
+ :sections [{:type :hero-headline
+             :content :hero1}
+
+            {:type :hero-main
+             :content :about-teaser}
+
+            {:type :products
+             :collections [:logistics :fish-health]}
+
+            {:type :news
+             :count 3}]}

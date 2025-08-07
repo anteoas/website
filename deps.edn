@@ -1,4 +1,16 @@
-{:aliases
+{:paths ["."]
+ :deps {org.clojure/clojure {:mvn/version "1.11.1"}
+        markdown-clj/markdown-clj {:mvn/version "1.11.4"}
+        hiccup/hiccup {:mvn/version "2.0.0-RC2"}
+        babashka/fs {:mvn/version "0.4.19"}
+
+        ;; Dev server dependencies
+        ring/ring-core {:mvn/version "1.10.0"}
+        ring/ring-jetty-adapter {:mvn/version "1.10.0"}
+        ring-refresh/ring-refresh {:mvn/version "0.1.2"}}
+ :aliases
  {:nrepl {:extra-deps {nrepl/nrepl {:mvn/version "1.3.1"}}
           :jvm-opts ["-Djdk.attach.allowAttachSelf"]
-          :main-opts ["-m" "nrepl.cmdline" "--port" "7888"]}}}
+          :main-opts ["-m" "nrepl.cmdline" "--port" "7888"]}
+
+  :dev {:main-opts ["-m" "dev"]}}}
