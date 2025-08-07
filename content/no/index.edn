@@ -1,24 +1,35 @@
 {:title "Anteo - Bærekraftige løsninger for havbruk"
  :description "Beslutningsstøttesystemer for en bærekraftig havbruksnæring"
- :type :page
  :template :landing
+ :body-class "landing-page"
 
- :hero1 "Internettbasert sanntidssystemer for planlegging, overvåking og varsling"
+ ;; Hero section
+ :hero-headline "Internettbasert sanntidssystemer for planlegging, overvåking og varsling"
+ :hero-title "Beslutningstøttesystemer for bærekraftig havnæring."
+ :hero-text "Anteo er et selskap som utvikler beslutningsstøttesystemer som skal bidra til en bærekraftig utvikling av norsk havbruksnæringen. Vi leverer sann tids løsninger for overvåkning og varsling av aktiviteter som kan være i strid med biosikkerhetsprinsippet, samtidig som løsningene skal bidra til forslag til risikoreduserende tiltak."
+ :hero-link-text "Les mer"
+ :hero-image "/assets/images/hero-about.jpg"
+ :hero-alt "Anteo havbruk"
+ :about "/about.html"
 
- :about-teaser {:title "Beslutningstøttesystemer for bærekraftig havnæring."
-                :text "Anteo er et selskap som utvikler beslutningsstøttesystemer som skal bidra til en bærekraftig utvikling av norsk havbruksnæringen. Vi leverer sann tids løsninger for overvåkning og varsling av aktiviteter som kan være i strid med biosikkerhetsprinsippet, samtidig som løsningene skal bidra til forslag til risikoreduserende tiltak."
-                :link-text "Les mer"
-                :image "/assets/images/hero-about.jpg"}
+ ;; Logistics product section
+ :logistics-title "Anteo Logistikk"
+ :logistics-text "Komplett løsning for sporbarhet og logistikk i havbruksnæringen. Fra smolt til tallerken."
+ :logistics-link-text "Les mer om logistikkløsninger"
+ :logistics-image "/assets/images/product-logistics.jpg"
+ :logistics-alt "Anteo Logistikk"
+ :logistics "/products/logistics.html"
 
- ;; Since this is a landing page, we can define the structure right here
- :sections [{:type :hero-headline
-             :content :hero1}
+ ;; Fish health product section
+ :fishhealth-title "Anteo Fiskehelse"
+ :fishhealth-text "Digital journalføring og analyse av fiskehelsedata. Fra daglige observasjoner til behandlingshistorikk."
+ :fishhealth-link-text "Les mer om fiskehelseløsninger"
+ :fishhealth-image "/assets/images/product-fish-health.jpg"
+ :fishhealth-alt "Anteo Fiskehelse"
+ :fishhealth "/products/fish-health.html"
 
-            {:type :hero-main
-             :content :about-teaser}
-
-            {:type :products
-             :collections [:logistics :fish-health]}
-
-            {:type :news
-             :count 3}]}
+ ;; News section
+ :news-section-title "Aktuelt"
+ :news-section-heading "Nyheter & Oppdateringer"
+ :news-more-text "Se alle nyheter →"
+ :news "/news.html"}

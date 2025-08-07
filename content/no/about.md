@@ -1,7 +1,6 @@
----
-type: page
-title: Om oss
-description: Lær mer om Anteo AS og vår misjon
+{:type "page"
+ :title "Om oss"
+ :description "Lær mer om Anteo AS og vår misjon"}
 ---
 
 ::: hero /assets/images/hero-about2.png?size=1920x1080&format=jpg&quality=85 background-image: linear-gradient(130deg, #003f7e4d, #3fb4984d); text-align: right
@@ -18,32 +17,42 @@ Målet vårt er ikke å være størst, men å være til hjelp – med løsninger
 
 Å bidra til en moderne havbruksnæring – der effektiv samhandling gir bedre beslutninger og mer bærekraftig produksjon.
 
-## Misjon
+## Våre verdier
 
-Vi hjelper havbruksnæringen å jobbe smartere – med digitale verktøy som gir bedre kontroll, mindre manuelt arbeid og full oversikt fra merdkant til logistikk. Vi forenkler planlegging, samhandling og dokumentasjon – så du kan bruke tiden der den trengs mest.
+### 1. Tillit
+Vi bygger relasjoner basert på åpenhet og ærlighet. For oss betyr tillit at vi holder det vi lover, og er ærlige når noe tar lengre tid eller blir mer krevende enn planlagt.
 
-## Verdier
+### 2. Samarbeid
+Gode løsninger skapes sammen. Vi tror på kraften i dialog – både internt i teamet vårt og med kunder, partnere og bransjen. Ingen kjenner utfordringene bedre enn de som jobber med dem hver dag.
 
-::: value-block
-![Samarbeids sirkel](/assets/images/values-collaboration.png?size=295x295)
+### 3. Kunnskap
+Vi er nysgjerrige og lærer hele tiden. Havbruksnæringen er i konstant utvikling, og vi må holde tritt. Kunnskap for oss handler om å forstå både teknologi og mennesker.
 
-*SAMARBEID*
+### 4. Bærekraft
+Hver linje med kode vi skriver skal bidra til en mer ansvarlig fremtid for havbruksnæringen. Det handler om smartere ressursbruk, bedre dyrevelferd og mindre miljøavtrykk.
 
-Vi tror de beste løsningene skapes i lag. Gjennom tett dialog med brukerne våre utvikler vi systemer som gir mening i hverdagen.
-:::
+## Vår historie
 
-::: value-block
-![Teknologi sirkel](/assets/images/values-technology.png?size=295x295)
+**2012**: Anteo blir etablert med en idé om å forenkle logistikk og sporbarhet i havbruk.
 
-*TEKNOLOGI*
+**2014**: Første versjon av vår logistikkplattform lanseres i samarbeid med tidlige pilotkunder.
 
-Vi brenner for å gjøre teknologi nyttig. Praktiske, smarte verktøy som løser ekte behov.
-:::
+**2017**: Vi utvider med løsninger for fiskehelse og velferd etter innspill fra næringen.
 
-::: value-block
-![Bærekfraft sirkel](/assets/images/values-sustainability.png?size=295x295)
+**2020**: Anteos plattform brukes av over 50 anlegg langs norskekysten.
 
-*BÆREKRAFT*
+**2022**: Vi feirer 10 år og lanserer nye verktøy for bærekraftsrapportering.
 
-Vi tror på fremtiden til havbruket. Derfor ønsker vi å bidra til bedre beslutninger, redusert fotavtrykk og ansvarlig drift.
-:::
+**2024**: Fortsetter å vokse med fokus på samhandling på tvers av hele verdikjeden.
+
+## Teamet vårt
+
+Vi er et dedikert team av utviklere, designere og bransjeeksperter som brenner for å gjøre en forskjell. Felles for oss alle er ønsket om å bidra til positive endringer i en av Norges viktigste næringer.
+
+[Se vårt team →](/team.html)
+
+## Kontakt oss
+
+Har du spørsmål eller ønsker å høre mer om hvordan vi kan hjelpe din virksomhet?
+
+[Ta kontakt →](/contact.html)

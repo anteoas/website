@@ -1,60 +1,53 @@
 (ns anteo.website.pages.landing
-  (:require [hiccup2.core :as h]
-            [components :as c]))
+  (:require [hiccup2.core :as h]))
 
 (defn render [context]
   [:div
-   ;; Hero Section 1 - Headline
    [:section.hero-headline
     [:div.container
-     [:h1 "Internettbasert sanntidssystemer for planlegging, overvåking og varsling"]]]
+     [:h1 :anteo/hero-headline]]]
 
-   ;; Hero Section 2 - Main
    [:section.hero-main
     [:div.container
      [:div.column-wrap
       [:div.content-block-left
        [:div.content-wrap
         [:p.title "Anteo"]
-        [:h2.heading-primary "Beslutningstøttesystemer for bærekraftig havnæring."]
-        [:p.paragraph.blue "Anteo er et selskap som utvikler beslutningsstøttesystemer som skal bidra til en bærekraftig utvikling av norsk havbruksnæringen. Vi leverer sann tids løsninger for overvåkning og varsling av aktiviteter som kan være i strid med biosikkerhetsprinsippet, samtidig som løsningene skal bidra til forslag til risikoreduserende tiltak."]
-        [:a.btn.btn-primary {:href "/about.html"} "Les mer"]]]
+        [:h2.heading-primary :anteo/hero-title]
+        [:p.paragraph.blue :anteo/hero-text]
+        [:a.btn.btn-primary {:href :anteo.link/about} :anteo/hero-link-text]]]
       [:div.image-block
-       [:img {:src "/assets/images/hero-about.jpg" :alt "Anteo havbruk"}]]]]]
+       [:img {:src :anteo.asset/hero-image :alt :anteo/hero-alt}]]]]]
 
-   ;; Product Section 1 - Anteo Logistikk
    [:section.product-section
     [:div.container
      [:div.product-wrap
       [:div.product-image
-       [:img {:src [:anteo/img :logistics-image] :alt [:anteo/alt :logistics-image]}]]
+       [:img {:src :anteo.asset/logistics-image :alt :anteo/logistics-alt}]]
       [:div.product-content
-       [:h2 [:anteo/t :logistics]]
-       [:p [:anteo/t :the-content]]
-       [:a.btn.btn-primary {:href [:anteo/href :logistics]} [:antoe/t :link-text]]]]]]
+       [:h2 :anteo/logistics-title]
+       [:p :anteo/logistics-text]
+       [:a.btn.btn-primary {:href :anteo.link/logistics} :anteo/logistics-link-text]]]]]
 
-   ;; Product Section 2 - Anteo Fiskehelse  
    [:section.product-section
     [:div.container
      [:div.product-wrap.reversed
       [:div.product-image
-       [:img {:src "/assets/images/product-fish-health.jpg" :alt "Anteo Fiskehelse"}]]
+       [:img {:src :anteo.asset/fishhealth-image :alt :anteo/fishhealth-alt}]]
       [:div.product-content
-       [:h2 "Anteo Fiskehelse"]
-       [:p "Digital journalføring og analyse av fiskehelsedata. Fra daglige observasjoner til behandlingshistorikk."]
-       [:a.btn.btn-primary {:href "/products/fish-health.html"} "Les mer om fiskehelseløsninger"]]]]]
+       [:h2 :anteo/fishhealth-title]
+       [:p :anteo/fishhealth-text]
+       [:a.btn.btn-primary {:href :anteo.link/fishhealth} :anteo/fishhealth-link-text]]]]]
 
-   ;; News Section
    [:section.news-section
     [:div.container
      [:div.section-header
-      [:p.title "Aktuelt"]
-      [:h2 "Nyheter & Oppdateringer"]]
+      [:p.title :anteo/news-section-title]
+      [:h2 :anteo/news-section-heading]]
      [:div.news-grid
-      [:anteo/for {:type :news-card :limit 3 :order-by :date}]]
-
+      [:anteo/for {:type :news-card :limit 3 :order-by [:date :desc]}]]
      [:div.news-more
-      [:a.read-more {:href "/news.html"} "Se alle nyheter →"]]]]])
+      [:a.read-more {:href :anteo.link/news} :anteo/news-more-text]]]]])
 
 ;; This would be called by the build system
 (def page-meta
