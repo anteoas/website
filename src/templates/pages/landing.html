@@ -65,19 +65,11 @@
         </div>
         <div class="news-grid">
             {{#each latestNews}}
-            <div class="news-card">
-                <a href="{{this.url}}" class="news-image" style="background-image: url('{{this.image}}?size=400x220&format=jpg')"></a>
-                <div class="news-content">
-                    <div class="news-category">Nyheter</div>
-                    <h3>{{this.title}}</h3>
-                    <p>{{this.excerpt}}</p>
-                    <a href="{{this.url}}" class="button-outline">Les mer</a>
-                </div>
-            </div>
+                {{> news-card}}
             {{/each}}
         </div>
         <div class="news-more">
-            <a href="{{langPrefix}}/news.html" class="button-outline">{{strings.newsSection.seeMore}}</a>
+            <a href="{{langPrefix}}/news.html" class="read-more">{{strings.newsSection.seeMore}} →</a>
         </div>
     </div>
 </section>

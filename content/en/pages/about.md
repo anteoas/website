@@ -2,9 +2,6 @@
 title: "About Anteo"
 description: "Learn more about Anteo AS and our mission"
 layout: page
-lang: en
-translations:
-  no: "/about.html"
 ---
 
 # About Anteo

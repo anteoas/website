@@ -2,9 +2,6 @@
 title: "Welcome to Anteo"
 description: "Digital tools for modern aquaculture"
 layout: page
-lang: en
-translations:
-  no: "/"
 ---
 
 # Digital Tools for Aquaculture

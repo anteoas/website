@@ -1,8 +1,5 @@
 ---
 title: "Aktuelt"
-description: "Siste nytt fra Anteo"
+description: "Siste nytt fra Anteo og havbruksnæringen"
+layout: news-listing
 ---
-
-# Aktuelt
-
-Les siste nytt om Anteo og våre løsninger for havbruksnæringen.

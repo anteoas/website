@@ -2,9 +2,6 @@
 title: "Contact Us"
 description: "Get in touch with Anteo AS"
 layout: page
-lang: en
-translations:
-  no: "/contact.html"
 ---
 
 # Contact Us

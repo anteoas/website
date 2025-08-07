@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="{{themeColors.headerBackground}}">
-    <title>{{title}} - {{name}}</title>
+    <title>{{title}} - {{site.name}}</title>
     <meta name="description" content="{{description}}">
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/images/favicon-32x32.png">
     <link rel="stylesheet" href="/assets/css/style.css">
 </head>
-<body{{#if (eq layout "landing")}} class="landing-page"{{/if}}>
+<body class="{{layout}}-page">
     <header>
         <nav>
             <div class="container">
@@ -110,9 +110,9 @@
         <div class="footer-bottom">
             <p>Anteo © {{#if currentYear}}{{currentYear}}{{else}}2025{{/if}}</p>
             <p class="footer-links">
-                <a href="{{langPrefix}}/privacy.html">Personvern</a>
+                <a href="{{langPrefix}}/privacy.html">{{t 'strings.footer.privacy'}}</a>
                 <span class="footer-separator">|</span>
-                <a href="{{langPrefix}}/terms.html">Brukervilkår</a>
+                <a href="{{langPrefix}}/terms.html">{{t 'strings.footer.terms'}}</a>
             </p>
         </div>
     </footer>

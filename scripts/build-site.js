@@ -13,6 +13,10 @@ const ImageProcessor = require('./utils/image-processor');
 const languages = buildConfig.languages;
 const defaultLang = buildConfig.defaultLanguage;
 
+// Track missing translations
+const missingTranslations = {};
+languages.forEach(lang => missingTranslations[lang] = new Set());
+
 // Register Handlebars helpers
 Handlebars.registerHelper('eq', function(a, b) {
   return a === b;
@@ -27,6 +31,56 @@ Handlebars.registerHelper('lookup', function(obj, key, prop) {
     return obj && obj[key] && obj[key][prop];
   }
 });
+
+// Translation helper with ### fallback
+Handlebars.registerHelper('t', function(key, options) {
+  const keys = key.split('.');
+  
+  // Helper function to get value from nested object
+  function getValue(obj, keyPath) {
+    let value = obj;
+    for (const k of keyPath) {
+      value = value?.[k];
+    }
+    return value;
+  }
+  
+  // Try current context first
+  let value = getValue(this, keys);
+  
+  // If not found and we have root context, try root
+  if (!value && options?.data?.root) {
+    value = getValue(options.data.root, keys);
+  }
+  
+  if (!value || typeof value !== 'string') {
+    // Determine language for tracking
+    const lang = this.currentLang || this.lang || 
+                 options?.data?.root?.currentLang || 
+                 options?.data?.root?.lang || 
+                 'unknown';
+    
+    if (missingTranslations[lang]) {
+      missingTranslations[lang].add(key);
+    }
+    
+    const fallback = `### ${key} ###`;
+    
+    // Add data attribute for dev mode highlighting
+    const isDev = this.isDevelopment || options?.data?.root?.isDevelopment;
+    if (isDev) {
+      return new Handlebars.SafeString(
+        `<span data-missing-translation="${key}">${fallback}</span>`
+      );
+    }
+    return fallback;
+  }
+  
+  return value;
+});
+
+// Register partials
+Handlebars.registerPartial('news-card', readFileSync(path.join(__dirname, '../src/templates/partials/news-card.html'), 'utf8'));
 
 // Helper to get language prefix
 const getLangPrefix = (lang) => lang === defaultLang ? '' : `/${lang}`;
@@ -83,14 +137,15 @@ function loadProductGroup(groupName, lang) {
   return null;
 }
 
-// Get latest news articles
-function getLatestNews(lang, count = 3) {
+// Get news articles
+function getNews(lang, options = {}) {
+  const { limit = null, sortOrder = 'desc' } = options;
   const newsDir = path.join(__dirname, `../content/${lang}/news`);
   if (!existsSync(newsDir)) {
     return [];
   }
   
-  const newsFiles = glob.sync(`${newsDir}/*.md`)
+  let newsFiles = glob.sync(`${newsDir}/*.md`)
     .filter(file => !file.endsWith('index.md'))
     .map(file => {
       const { data } = matter(readFileSync(file, 'utf8'));
@@ -103,10 +158,19 @@ function getLatestNews(lang, count = 3) {
         url: `${langPrefix}/news/${filename}.html`,
         date: data.date || filename.substring(0, 10) // Extract date from filename if not in frontmatter
       };
-    })
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
-    .slice(0, count);
+    });
     
+  // Sort by date
+  newsFiles.sort((a, b) => {
+    const comparison = new Date(b.date) - new Date(a.date);
+    return sortOrder === 'desc' ? comparison : -comparison;
+  });
+  
+  // Apply limit if specified
+  if (limit) {
+    newsFiles = newsFiles.slice(0, limit);
+  }
+  
   return newsFiles;
 }
 
@@ -137,7 +201,8 @@ const templates = {
   page: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/page.html'), 'utf8')),
   product: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/product.html'), 'utf8')),
   news: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/news.html'), 'utf8')),
-  landing: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/landing.html'), 'utf8'))
+  landing: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/landing.html'), 'utf8')),
+  newsListing: Handlebars.compile(readFileSync(path.join(__dirname, '../src/templates/pages/news-listing.html'), 'utf8'))
 };
 
 // Bundle JavaScript with esbuild
@@ -193,11 +258,36 @@ function bundleCSS() {
 }
 
 // Process a single markdown file
-function processMarkdownFile(file, lang, siteData, navData, teamMembers, products) {
-  const { data, content } = matter(readFileSync(file, 'utf8'));
+function processMarkdownFile(file, lang, data, navData, teamMembers, products) {
+  const { data: frontmatter, content } = matter(readFileSync(file, 'utf8'));
+  
+  // Validate frontmatter properties
+  const allowedProperties = {
+    'news': ['title', 'description', 'date', 'author', 'category', 'image', 'excerpt', 'layout'],
+    'team': ['name', 'position', 'email', 'phone', 'photo', 'order', 'linkedin'],
+    'products': ['title', 'description', 'layout', 'hero', 'features', 'category'],
+    'productGroups': ['title', 'description', 'layout', 'landingDescription', 'link', 'linkText', 'image'],
+    'landing': ['title', 'description', 'layout', 'hero1', 'aboutTeaser'],
+    'default': ['title', 'description', 'layout']
+  };
+  
+  // Detect content type
+  let contentType = 'default';
+  if (file.includes('/news/')) contentType = 'news';
+  else if (file.includes('/team/members/')) contentType = 'team';
+  else if (file.includes('/products/')) contentType = 'products';
+  else if (file.includes('/product-groups/')) contentType = 'productGroups';
+  else if (file.endsWith('/index.md')) contentType = 'landing';
+  
+  const allowed = allowedProperties[contentType] || allowedProperties.default;
+  const unused = Object.keys(frontmatter).filter(key => !allowed.includes(key));
+  
+  if (unused.length > 0) {
+    console.warn(`⚠️  Unused frontmatter in ${file}: ${unused.join(', ')}`);
+  }
   
   // Add language to frontmatter data
-  data.lang = lang;
+  frontmatter.lang = lang;
   
   // Replace absolute links in markdown content
   const langPrefix = getLangPrefix(lang);
@@ -288,8 +378,9 @@ ${contentHtml}
   
   // Determine template based on path or layout
   let template = 'page';
-  if (data.layout) {
-    template = data.layout;
+  if (frontmatter.layout) {
+    // Convert kebab-case to camelCase for template lookup
+    template = frontmatter.layout.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
   } else {
     if (file.includes('/products/')) template = 'product';
     if (file.includes('/news/')) template = 'news';
@@ -297,8 +388,8 @@ ${contentHtml}
   
   // Prepare page data
   const pageData = {
-    ...siteData,
-    ...data,
+    ...data,  // All data from data.json (site, contact, strings, etc.)
+    ...frontmatter,  // Frontmatter overrides
     content: html,
     navigation: navData,
     currentLang: lang,
@@ -310,15 +401,16 @@ ${contentHtml}
     defaultLang: defaultLang,
     siteConfig: loadSiteConfig(),
     products: products, // Add products for footer
-    currentYear: new Date().getFullYear()
+    currentYear: new Date().getFullYear(),
+    isDevelopment: process.env.NODE_ENV === 'development'
   };
   
   // Special handling for landing page
   if (template === 'landing') {
     // Move frontmatter data to nested structure
     pageData.landing = {
-      hero1: data.hero1,
-      aboutTeaser: data.aboutTeaser
+      hero1: frontmatter.hero1,
+      aboutTeaser: frontmatter.aboutTeaser
     };
     
     // Load product groups
@@ -328,7 +420,12 @@ ${contentHtml}
     };
     
     // Get latest news
-    pageData.latestNews = getLatestNews(lang, 3);
+    pageData.latestNews = getNews(lang, { limit: 3 });
+  }
+  
+  // Special handling for news listing page
+  if (template === 'newsListing') {
+    pageData.allNews = getNews(lang); // No limit - get all news
   }
   
   // Special handling for team and about pages
@@ -445,21 +542,21 @@ async function buildSite() {
     console.log(`\nProcessing ${lang} content...`);
     
     // Load language-specific site data
-    const siteDataPath = `content/${lang}/data/site.json`;
+    const dataPath = `content/${lang}/data/data.json`;
     
-    if (!require('fs').existsSync(siteDataPath)) {
-      console.log(`Warning: No site data for ${lang}, skipping...`);
+    if (!require('fs').existsSync(dataPath)) {
+      console.log(`Warning: No data.json for ${lang}, skipping...`);
       return;
     }
     
-    const siteData = JSON.parse(readFileSync(siteDataPath, 'utf8'));
+    const data = JSON.parse(readFileSync(dataPath, 'utf8'));
     const navData = loadNavigation(lang);  // Use the new function instead of loading JSON
     const products = loadProducts(lang);  // Load products for footer
     
     // Dynamically set copyright year
     const currentYear = new Date().getFullYear();
-    if (siteData.copyright) {
-      siteData.copyright = siteData.copyright.replace(/\d{4}/, currentYear);
+    if (data.site?.copyright) {
+      data.site.copyright = data.site.copyright.replace(/\d{4}/, currentYear);
     }
     
     // Process all markdown files for this language
@@ -482,7 +579,7 @@ async function buildSite() {
         return;
       }
       
-      const { pageData, template } = processMarkdownFile(file, lang, siteData, navData, teamMembers, products);
+      const { pageData, template } = processMarkdownFile(file, lang, data, navData, teamMembers, products);
       
       // Generate HTML
       const pageContent = templates[template](pageData);
@@ -493,6 +590,7 @@ async function buildSite() {
         ...pageData,           // Page-specific data (can override if needed)
         body: pageContent,
         currentPath: pageData.currentPath,
+        layout: template,      // Pass the template name as layout
         isDevelopment: process.env.NODE_ENV === 'development'
       });
       
@@ -557,6 +655,17 @@ async function buildSite() {
   
   // Bundle CSS
   bundleCSS();
+  
+  // Report missing translations
+  const hasAnyMissing = Object.values(missingTranslations).some(set => set.size > 0);
+  if (hasAnyMissing) {
+    console.log('\n⚠️  Missing Translations:');
+    for (const [lang, keys] of Object.entries(missingTranslations)) {
+      if (keys.size > 0) {
+        console.log(`  ${lang}: ${Array.from(keys).join(', ')}`);
+      }
+    }
+  }
 }
 
 // Export the build function
