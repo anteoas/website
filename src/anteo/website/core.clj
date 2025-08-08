@@ -6,6 +6,7 @@
             [clojure.java.io :as io]
             [clojure.java.process :as process]
             [markdown.core :as md]
+            [sci.core :as sci]
             [anteo.website.site-generator :as sg]
             [anteo.website.image-processor :as img]))
 
@@ -19,10 +20,7 @@
 
       (str/ends-with? path ".clj")
       ;; Use SCI to evaluate Clojure template files
-      ;; For now, skip CLJ templates until we properly set up SCI
-      (do
-        (println "Skipping CLJ template:" path)
-        nil)
+      (sci/eval-string (slurp template-file))
 
       :else nil)))
 

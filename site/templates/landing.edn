@@ -14,7 +14,7 @@
      [:img {:src [:sg/get :hero-image] :alt [:sg/get :hero-image-alt]}]]]]]
 
  ;; Products
- [:sg/each [:sg/load-content :type :product :featured true :order-by [:order :asc]]
+ [:sg/each :products :order-by [:order :asc]
   [:section.product-section
    [:div.container
     [:div.product-wrap {:class [:sg/get :wrap-class]}
@@ -32,7 +32,7 @@
     [:p.title [:sg/get :news-section-label]]
     [:h2 [:sg/get :news-section-title]]]
    [:div.news-grid
-    [:sg/each [:sg/load-content :type :news :featured true :order-by [:date :desc] :limit 3]
+    [:sg/each :news :order-by [:date :desc] :limit 3
      [:article.news-card
       [:div.news-card-image
        [:a {:href [:sg/get :url]}

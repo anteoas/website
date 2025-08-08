@@ -375,3 +375,19 @@
                     [:footer "Footer text"]]]
       (is (= expected (sg/process template content))))))
 
+(deftest test-sg-body-with-sg-each
+  (testing ":sg/body with vector of vectors containing :sg/each"
+    (let [base-template [:main [:sg/body]]
+          body-content [[:h1 "Title"]
+                        [:sg/each :items [:div [:sg/get :name]]]
+                        [:p "Footer"]]
+          content {:body body-content
+                   :items [{:name "Item 1"} {:name "Item 2"}]}
+          expected [:main
+                    [:h1 "Title"]
+                    [:div "Item 1"]
+                    [:div "Item 2"]
+                    [:p "Footer"]]
+          actual (sg/process base-template content)]
+      (is (= expected actual)))))
+
