@@ -1,0 +1,9 @@
+{:type :product
+ :title "Anteo Fiskehelse"
+ :description "Våre verktøy for fiskehelse sørger for rask og presis registrering av fiskevelferdsindikatorer samt myndighetspålagt lusetelling og en enkel, presis og sikker journalføring av fiskehelsedata."
+ :image "/assets/images/fiskehelse-hero.jpg"
+ :url "/products/fish-health"
+ :cta-text "Les mer"
+ :featured true
+ :order 2
+ :wrap-class "reversed"}

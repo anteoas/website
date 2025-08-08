@@ -1,0 +1,8 @@
+{:type :product
+ :title "Anteo Logistikk"
+ :description "Anteos verktøy for logistikk gir tilgang på fartøy, sensorer, data og rapporter som øker beslutningsstøtten og effektiviserer informasjonsinnhenting og deling. Det gir en unik mulighet til å sammenligne data for lokalitet eller fartøy, som igjen kan brukes til å utvikle produksjonen og gjøre logistikken rundt last og dokumentasjon knyttet til transport av biologisk materiale enklere."
+ :image "/assets/images/logistikk-hero.jpg"
+ :url "/products/logistics"
+ :cta-text "Les mer"
+ :featured true
+ :order 1}

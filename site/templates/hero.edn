@@ -1,0 +1,3 @@
+[:section.hero-headline
+ [:div.container
+  [:h1 [:sg/get :title]]]]
