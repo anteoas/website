@@ -175,3 +175,109 @@
                      :replace-url "/assets/images/local-200x200.jpg"}]]
       (is (= expected (sg/extract-image-urls css))))))
 
+(deftest test-sg-get
+  (testing "Basic :sg/get replacement"
+    (let [template [:div [:h1 [:sg/get :title]]]
+          content {:data {:title "Welcome"}}
+          expected [:div [:h1 "Welcome"]]]
+      (is (= expected (sg/process template content)))))
+
+  (testing ":sg/get without :data key looks in content directly"
+    (let [template [:div [:h1 [:sg/get :title]]]
+          content {:title "Welcome"
+                   :body [:p "Content"]}
+          expected [:div [:h1 "Welcome"]]]
+      (is (= expected (sg/process template content)))))
+
+  (testing ":sg/get with missing key returns placeholder"
+    (let [template [:div [:h1 [:sg/get :missing-key]]]
+          content {:data {:title "Welcome"}}
+          expected [:div [:h1 [:sg/get :missing-key]]]]
+      (is (= expected (sg/process template content)))))
+
+  (testing ":sg/get nested in attributes"
+    (let [template [:a {:href [:sg/get :link]} "Click here"]
+          content {:data {:link "/about.html"}}
+          expected [:a {:href "/about.html"} "Click here"]]
+      (is (= expected (sg/process template content)))))
+
+  (testing ":sg/get with nested data access"
+    (let [template [:div [:sg/get :user :name]]
+          content {:data {:user {:name "John Doe"}}}
+          expected [:div "John Doe"]]
+      (is (= expected (sg/process template content)))))
+
+  (testing ":sg/get combined with :sg/body"
+    (let [template [:article
+                    [:h1 [:sg/get :title]]
+                    [:sg/body]]
+          content {:body [:p "Article content"]
+                   :data {:title "My Article"}}
+          expected [:article
+                    [:h1 "My Article"]
+                    [:p "Article content"]]]
+      (is (= expected (sg/process template content))))))
+
+(deftest test-vector-of-vectors-processing
+  (testing "Processing a vector of elements"
+    (let [template [[:h1 [:sg/get :title]]
+                    [:p [:sg/get :description]]]
+          content {:title "Welcome"
+                   :description "Hello world"}
+          expected [[:h1 "Welcome"]
+                    [:p "Hello world"]]]
+      (is (= expected (sg/process template content)))))
+
+  (testing "Processing nested vectors with :sg/body"
+    (let [wrapper [:div [:sg/body]]
+          content {:body [[:h1 "Title"]
+                          [:p "Paragraph"]]}
+          expected [:div [:h1 "Title"] [:p "Paragraph"]]]
+      (is (= expected (sg/process wrapper content))))
+
+    (testing "should splice vector of vectors"
+      (let [wrapper [:article [:sg/body]]
+            content {:body [[:h1 "Title"]
+                            [:p "First"]
+                            [:p "Second"]]}
+            expected [:article [:h1 "Title"] [:p "First"] [:p "Second"]]]
+        (is (= expected (sg/process wrapper content))))))
+
+  (testing "Processing :sg/get in vector of elements"
+    (let [template [[:h1 [:sg/get :title]]
+                    [:section [:p [:sg/get :intro]]]
+                    [:footer "Copyright"]]
+          content {:title "My Page"
+                   :intro "Welcome to our site"}
+          expected [[:h1 "My Page"]
+                    [:section [:p "Welcome to our site"]]
+                    [:footer "Copyright"]]]
+      (is (= expected (sg/process template content)))))
+
+  (testing "Combining :sg/body with vector of elements"
+    (let [template [:main
+                    [:header [:h1 [:sg/get :title]]]
+                    [:sg/body]
+                    [:footer "© 2024"]]
+          content {:title "Page Title"
+                   :body [[:section [:p "Content 1"]]
+                          [:section [:p "Content 2"]]]}
+          expected [:main
+                    [:header [:h1 "Page Title"]]
+                    [:section [:p "Content 1"]]
+                    [:section [:p "Content 2"]]
+                    [:footer "© 2024"]]]
+      (is (= expected (sg/process template content)))))
+
+  (testing "Vector template with includes"
+    (let [template [[:header [:sg/include :nav]]
+                    [:main [:sg/body]]
+                    [:sg/include :footer]]
+          content {:body [:p "Main content"]
+                   :includes {:nav [:nav "Navigation"]
+                              :footer [:footer "Footer text"]}}
+          expected [[:header [:nav "Navigation"]]
+                    [:main [:p "Main content"]]
+                    [:footer "Footer text"]]]
+      (is (= expected (sg/process template content))))))
+

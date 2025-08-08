@@ -80,21 +80,6 @@
 
       :else nil)))
 
-(defn load-content
-  "Load all content for supported languages. Returns map of lang -> type -> [items]."
-  [content-dir languages]
-  (reduce (fn [content [lang-code lang-config]]
-            (let [lang-dir (io/file content-dir (name lang-code))]
-              (if (.exists lang-dir)
-                (let [files (filter #(re-matches #".*\.(edn|md)$" (.getName %))
-                                    (file-seq lang-dir))
-                      items (keep load-content-file files)
-                      by-type (group-by :type items)]
-                  (assoc content (name lang-code) by-type))
-                content)))
-          {}
-          languages))
-
 (defn load-site-data
   "Load all site data from filesystem."
   [site-edn-path]
@@ -103,63 +88,91 @@
                    edn/read-string
                    (assoc :root-path root-path))]
     {:config config
-     :templates (load-templates (io/file root-path "templates"))
-     :content (load-content (io/file root-path "content") (:lang config))}))
-
-(defn process-template
-  "Process a template with content, handling :sg/* directives."
-  [template content includes]
-  (sg/process template {:body content
-                        :includes includes}))
-
-(defn render-markdown
-  "Convert markdown content to HTML."
-  [content]
-  (if-let [md-content (:markdown/content content)]
-    (md/md-to-html-string md-content)
-    content))
-
-(defn build-page
-  "Build a single page by combining template and content."
-  [wrapper-template page-template content includes]
-  (let [;; Process markdown if needed
-        processed-content (if (:markdown/content content)
-                            (render-markdown content)
-                            content)
-        ;; Apply page template if it exists
-        page-html (if page-template
-                    (process-template page-template processed-content includes)
-                    processed-content)
-        ;; Apply wrapper template
-        wrapped-html (process-template wrapper-template page-html includes)]
-    (str (h/html wrapped-html))))
+     :templates (load-templates (io/file root-path "templates"))}))
 
 (defn build-site
-  "Build static site from prepared data.
+  "Build static site from prepared data (content-driven).
    Data map should contain:
      :config - Original site.edn data with :root-path
      :templates - Map of template-name -> template data/fn
-     :content - Map of lang -> content-type -> [content items]
    Options:
      :output-dir - Output directory
      :verbose - Enable verbose logging"
-  [{:keys [config templates content]} {:keys [output-dir verbose]
-                                       :or {output-dir "dist"}}]
+  [{:keys [config templates]} {:keys [output-dir verbose]
+                               :or {output-dir "dist"}}]
   (let [wrapper-name (:wrapper config)
         wrapper-template (get templates wrapper-name)
+        root-path (:root-path config)
+        ;; Find the default language (one with :default true)
+        ;; If none marked as default, use the first one
+        default-lang (or (some (fn [[lang-code lang-config]]
+                                 (when (:default lang-config)
+                                   lang-code))
+                               (:lang config))
+                         (first (keys (:lang config))))]
 
-        ;; Process each language
-        html-files (for [[lang-code lang-config] (:lang config)]
-                     (let [;; Process each render target
-                           pages (for [[template-key output-path] (:render config)]
-                                   (let [template (get templates template-key)]
-                                     (when template
-                                       {:path output-path
-                                        :html (str (h/html (sg/process wrapper-template
-                                                                       {:body template
-                                                                        :includes {}})))})))]
-                       (filter some? pages)))]
-    (apply concat html-files)))
+    ;; Check for required wrapper template
+    (when-not wrapper-template
+      (throw (ex-info (str "Wrapper template '" wrapper-name "' not found")
+                      {:wrapper wrapper-name
+                       :available-templates (keys templates)})))
+
+    ;; Process each language
+    (let [html-files (for [[lang-code lang-config] (:lang config)]
+                       (let [lang-content-dir (io/file root-path "content" (name lang-code))
+                             ;; Process each render target
+                             pages (for [[content-key output-path] (:render config)]
+                                     (let [;; Try to load content file (.edn or .md)
+                                           content-file-edn (io/file lang-content-dir (str (name content-key) ".edn"))
+                                           content-file-md (io/file lang-content-dir (str (name content-key) ".md"))
+                                           content-data (cond
+                                                          (.exists content-file-edn) (load-content-file content-file-edn)
+                                                          (.exists content-file-md) (load-content-file content-file-md)
+                                                          :else nil)
+                                           ;; Calculate final output path with language prefix
+                                           final-output-path (if (= lang-code default-lang)
+                                                               output-path
+                                                               (let [clean-path (if (str/starts-with? output-path "/")
+                                                                                  (subs output-path 1)
+                                                                                  output-path)]
+                                                                 (str "/" (name lang-code) "/" clean-path)))]
+                                       (if content-data
+                                         (let [;; Get template name from content
+                                               template-name (or (:template content-data) content-key)
+                                               template (get templates template-name)]
+                                           (if template
+                                             (let [;; Process markdown if needed
+                                                   processed-content (if (:markdown/content content-data)
+                                                                       (assoc content-data
+                                                                              :rendered-html
+                                                                              (md/md-to-html-string (:markdown/content content-data)))
+                                                                       content-data)
+                                                   ;; Add language info to content
+                                                   content-with-lang (assoc processed-content
+                                                                            :lang lang-code
+                                                                            :lang-prefix (if (= lang-code default-lang)
+                                                                                           ""
+                                                                                           (str "/" (name lang-code))))
+                                                   ;; Process template with content data
+                                                   page-html (sg/process template content-with-lang)
+                                                   ;; Wrap with wrapper template
+                                                   wrapped-html (sg/process wrapper-template
+                                                                            {:body page-html
+                                                                             :includes templates ; Just pass all templates
+                                                                             :data content-with-lang})]
+                                               {:path final-output-path
+                                                :html (str (h/html wrapped-html))})
+                                             (do
+                                               (println (str "ERROR: Template '" template-name "' not found for content '" content-key "'"))
+                                               (println "  Available templates:" (keys templates))
+                                               nil)))
+                                         (do
+                                           (println (str "ERROR: No content file found for '" content-key "'"))
+                                           (println "  Looked for:" (.getPath content-file-edn))
+                                           (println "          or:" (.getPath content-file-md))
+                                           nil))))]
+                         (filter some? pages)))]
+      (apply concat html-files))))
 
 (defn process-images
   "Process images in HTML and CSS files based on query parameters."
@@ -267,7 +280,9 @@
     (let [;; Handle both absolute paths (/) and relative paths
           clean-path (cond
                        (= path "/") "index.html"
-                       (.startsWith path "/") (subs path 1)
+                       (= path "") "index.html"
+                       (str/ends-with? path "/") (str path "index.html")
+                       (str/starts-with? path "/") (subs path 1)
                        :else path)
           output-file (io/file output-dir clean-path)]
       (io/make-parents output-file)
@@ -378,3 +393,83 @@
         (let [proc (start-dev-server (.getPath output-dir))]
           ;; Wait for the process to complete
           (.waitFor proc))))))
+
+(comment
+  ;; Development helper functions
+
+  ;; Load and inspect site data
+  (def site-data (load-site-data "site/site.edn"))
+
+  ;; Check what templates are loaded
+  (keys (:templates site-data))
+  ;; => (:about :base :footer :landing)
+
+  ;; Check site configuration
+  (:config site-data)
+
+  ;; Build the site to dist directory
+  (do
+    (def site-data (load-site-data "site/site.edn"))
+    (def html-files (build-site site-data {:verbose true}))
+    (println "Generated" (count html-files) "pages"))
+
+  ;; Quick build - no image processing
+  (let [site-data (load-site-data "site/site.edn")
+        output-dir "dist-dev"]
+    (write-output (build-site site-data {:verbose true}) (io/file output-dir))
+    (bundle-assets (:root-path (:config site-data)) output-dir :dev)
+    (println "Quick build complete!"))
+
+  ;; Full build with image processing
+  (-main "site/site.edn" "--output-dir" "dist-test")
+
+  ;; Build and serve
+  (-main "site/site.edn" "--serve")
+
+  ;; Test loading specific content
+  (load-content-file (io/file "site/content/no/landing.edn"))
+  ;; => {:template :landing, 
+  ;;     :hero-title "Internettbasert...", 
+  ;;     :hero-subtitle "Beslutningsstøttesystemer..."}
+
+  ;; Test template processing
+  (require '[anteo.website.site-generator :as sg])
+  (let [template [:h1 [:sg/get :title]]
+        content {:title "Test"}]
+    (sg/process template content))
+  ;; => [:h1 "Test"]
+
+  ;; Debug a specific page build
+  (let [site-data (load-site-data "site/site.edn")
+        templates (:templates site-data)
+        landing-content (load-content-file (io/file "site/content/no/landing.edn"))
+        landing-template (get templates :landing)
+        processed (sg/process landing-template landing-content)]
+    (println "First element of processed landing:")
+    (prn (first processed)))
+
+  ;; Check why footer might not be rendering
+  (let [site-data (load-site-data "site/site.edn")
+        templates (:templates site-data)]
+    (println "Footer template exists?" (some? (:footer templates)))
+    (println "Footer template type:" (type (:footer templates))))
+
+  ;; Test language prefix calculation
+  (let [config {:lang {:no {:name "Norsk" :default true}
+                       :en {:name "English"}}}
+        default-lang (or (some (fn [[lang-code lang-config]]
+                                 (when (:default lang-config)
+                                   lang-code))
+                               (:lang config))
+                         (first (keys (:lang config))))]
+    (println "Default language:" default-lang)
+    (println "Path for :no:" (if (= :no default-lang) "/" "/no/"))
+    (println "Path for :en:" (if (= :en default-lang) "/" "/en/")))
+
+  ;; Clean build directories
+  (do
+    (require '[babashka.fs :as fs])
+    (fs/delete-tree "dist")
+    (fs/delete-tree ".temp")
+    (println "Cleaned build directories")))
+

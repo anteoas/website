@@ -9,11 +9,25 @@
   [base content]
   (let [;; Handle both direct content and map with :body/:includes
         body-content (if (map? content) (:body content) content)
-        includes (when (map? content) (:includes content))]
+        includes (when (map? content) (:includes content))
+        ;; Get data source - either from :data key or directly from content
+        data-source (if (contains? content :data)
+                      (:data content)
+                      content)]
     (cond
       ;; Not a vector, return as-is
-      (not (and (vector? base) (seq base)))
+      (not (vector? base))
       base
+
+      ;; Empty vector
+      (empty? base)
+      base
+
+      ;; Vector of vectors - if first element is a vector with a keyword (hiccup element)
+      ;; then this is a collection of elements to process
+      (and (vector? (first base))
+           (keyword? (first (first base))))
+      (mapv #(process % content) base)
 
       ;; Handle :sg/body
       (= (first base) :sg/body)
@@ -25,6 +39,15 @@
       (if-let [included (get includes (second base))]
         included
         base) ; Return placeholder if not found
+
+      ;; Handle :sg/get
+      (and (= (first base) :sg/get)
+           (> (count base) 1))
+      (let [path (rest base)
+            value (get-in data-source path)]
+        (if (some? value)
+          value
+          base)) ; Return placeholder if not found
 
       ;; Handle :sg/img
       (and (= (first base) :sg/img)
@@ -49,18 +72,34 @@
                           (assoc :src new-src))]
         [:img img-attrs])
 
-      ;; Process children
+      ;; Process children recursively
       :else
-      (let [processed-children (map #(process % content) (rest base))]
+      (let [tag (first base)
+            has-attrs? (and (> (count base) 1) (map? (second base)))
+            attrs (when has-attrs? (second base))
+            children (if has-attrs? (drop 2 base) (rest base))
+            ;; Process attributes if they exist
+            processed-attrs (when attrs
+                              (reduce-kv (fn [m k v]
+                                           (assoc m k (process v content)))
+                                         {}
+                                         attrs))
+            ;; Process children
+            processed-children (map #(process % content) children)]
+        ;; Reconstruct the element
         (if (some #(and (vector-of-vectors? %) (= % body-content)) processed-children)
-          ;; If we just replaced :sg/body with a vector of vectors, splice it
-          (into [(first base)]
-                (mapcat #(if (and (vector-of-vectors? %) (= % body-content))
-                           %
-                           [%])
-                        processed-children))
+          ;; Splice body content
+          (let [spliced (mapcat #(if (and (vector-of-vectors? %) (= % body-content))
+                                   %
+                                   [%])
+                                processed-children)]
+            (if processed-attrs
+              (into [tag processed-attrs] spliced)
+              (into [tag] spliced)))
           ;; Normal case
-          (into [(first base)] processed-children))))))
+          (if processed-attrs
+            (into [tag processed-attrs] processed-children)
+            (into [tag] processed-children)))))))
 
 (defn extract-image-urls
   "Extract image URLs with query parameters from HTML or CSS.

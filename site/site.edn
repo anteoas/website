@@ -1,5 +1,6 @@
 {:wrapper :base
  :lang {:no {:name "Norsk"
+             :default true
              :icon "assets/images/flags/norway-flag.svg"}}
  :render {:about "/about.html"
           :landing "/"}
