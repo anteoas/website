@@ -5,10 +5,8 @@ public/
 .nrepl-port
 .cpcache/
 out/
+.temp/
+dist/
+.clojure-mcp/
+coverage/
 
-/.temp
-/.clojure-mcp/
-/dist/
-/coverage/
-/site/.temp/
-/site/dist/

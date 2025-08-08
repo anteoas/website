@@ -1,5 +1,55 @@
 # Development Workflow
 
+## ⚠️ CRITICAL LESSONS FROM RECENT SESSIONS ⚠️
+
+### 🚨 SYSTEMATIC DEBUGGING IS NON-NEGOTIABLE 🚨
+
+**The "hero-title" incident:** We spent 30+ minutes chasing a phantom bug because we didn't follow systematic debugging:
+
+**WHAT WENT WRONG:**
+1. Saw `<get>hero-title</get>` in HTML output
+2. Immediately started editing site-generator.clj 
+3. Created cascading failures and corrupted files
+4. Realized we were checking output in the wrong directory
+
+**WHAT WE SHOULD HAVE DONE:**
+1. ✅ Run existing tests FIRST
+2. ✅ Add test cases for the specific issue
+3. ✅ Verify assumptions about inputs/outputs
+4. ✅ Check which files we're actually reading
+
+**THE RULE:** When debugging, ALWAYS follow this order:
+1. **TEST** - Run existing tests
+2. **ISOLATE** - Create minimal test case
+3. **VERIFY** - Check your assumptions
+4. **TRACE** - Follow data flow systematically
+5. **FIX** - Only after understanding the issue
+
+### 🚨 ALWAYS CHECK OUTPUT DIRECTORIES 🚨
+
+**We had TWO dist folders:**
+- `dist/` (root) - where we should write
+- `site/dist/` - old location
+
+**THE RULE:** Before debugging output issues:
+```bash
+ls -la dist/ site/dist/  # Check ALL possible output locations
+pwd                      # Verify working directory
+```
+
+### 🚨 RUN CLJ-KONDO BEFORE COMPLETING ANY TASK 🚨
+
+**THIS IS NOT OPTIONAL.** Every file you modify must pass clj-kondo.
+
+```bash
+clj-kondo --lint src/anteo/website/core.clj
+```
+
+Common issues to fix:
+- Unused namespaces (remove them)
+- Misplaced docstrings (put before argument list)
+- Unused bindings (use `_` prefix or remove)
+
 ## Core Principles
 
 ### 0. Stick to the Plan (MOST IMPORTANT)
@@ -112,22 +162,27 @@ Before implementing anything substantial, validate your approach in the REPL.
 ;; Validated? Now implement in build-site
 ```
 
-### 5. Handle All Cases Properly
+### 6. Edit Files Carefully
 
-When you discover an edge case, handle it properly, don't hack around it.
+**NEVER make large, untested edits to files.** The site-generator corruption showed how dangerous this is.
 
 **Example from this session:**
 ```clojure
-;; WRONG: My sg/process doesn't handle vectors, so I'll map over them
-(mapv #(sg/process % content) template)
+;; WRONG: Tried to edit process function, ended up with:
+(defn process
+  "Process a base template by replacing :sg/* directives"
+  [base content]
+  (let []))  ; CORRUPTED FILE!
 
-;; RIGHT: Make sg/process handle vectors properly
-(cond
-  (and (vector? (first base))
-       (keyword? (first (first base))))
-  (mapv #(process % content) base)
-  ...)
+;; RIGHT: Should have used git to revert:
+git checkout src/anteo/website/site_generator.clj
 ```
+
+**THE RULE:** 
+- Make small, focused edits
+- Test after each edit
+- Use `git status` and `git diff` to verify changes
+- **If you mess up, USE GIT TO REVERT**
 
 ## Practical Workflow Steps
 
@@ -176,13 +231,15 @@ When you discover an edge case, handle it properly, don't hack around it.
 
 Before considering work complete:
 
-- [ ] All tests pass
+- [ ] All tests pass (`clj -M:test`)
+- [ ] **CLJ-KONDO PASSES** (`clj-kondo --lint <file>`)
 - [ ] New functionality has tests
 - [ ] No hardcoded assumptions
 - [ ] Error messages are helpful
 - [ ] Unused code is removed
 - [ ] REPL examples in comment block
 - [ ] Complex logic is documented
+- [ ] Check correct output directories
 
 ## Common Anti-Patterns to Avoid
 

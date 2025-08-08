@@ -218,6 +218,15 @@
                     [:p "Article content"]]]
       (is (= expected (sg/process template content))))))
 
+(testing ":sg/get in nested vector structure (like landing template)"
+  (let [template [[:section.hero [:h1 [:sg/get :hero-title]]]
+                  [:section.main [:h2 [:sg/get :hero-subtitle]]]]
+        content {:hero-title "Title Text"
+                 :hero-subtitle "Subtitle Text"}
+        expected [[:section.hero [:h1 "Title Text"]]
+                  [:section.main [:h2 "Subtitle Text"]]]]
+    (is (= expected (sg/process template content)))))
+
 (deftest test-vector-of-vectors-processing
   (testing "Processing a vector of elements"
     (let [template [[:h1 [:sg/get :title]]

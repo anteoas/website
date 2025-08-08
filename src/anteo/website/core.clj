@@ -1,23 +1,18 @@
 (ns anteo.website.core
   (:require [hiccup2.core :as h]
-            [hiccup.page :as hp]
             [babashka.fs :as fs]
             [clojure.edn :as edn]
             [clojure.string :as str]
             [clojure.java.io :as io]
             [clojure.java.process :as process]
             [markdown.core :as md]
-            [sci.core :as sci]
             [anteo.website.site-generator :as sg]
             [anteo.website.image-processor :as img]))
 
 (defn load-template
   "Load a single template file. Returns template data or function."
   [template-file]
-  (let [path (.getPath template-file)
-        name (-> (.getName template-file)
-                 (str/replace #"\.(edn|clj)$" "")
-                 keyword)]
+  (let [path (.getPath template-file)]
     (cond
       (str/ends-with? path ".edn")
       (edn/read-string (slurp template-file))
@@ -90,15 +85,17 @@
     {:config config
      :templates (load-templates (io/file root-path "templates"))}))
 
-(defn find-default-language [{:keys [config] :as ctx}]
+(defn find-default-language
   "Find the default language and assoc it to context"
+  [{:keys [config] :as ctx}]
   (let [lang-config (:lang config)
         default-lang (or (some (fn [[code cfg]] (when (:default cfg) code)) lang-config)
                          (first (keys lang-config)))]
     (assoc ctx :default-lang default-lang)))
 
-(defn expand-render-targets [{:keys [config] :as ctx}]
+(defn expand-render-targets
   "Expand render targets into individual page specs"
+  [{:keys [config] :as ctx}]
   (let [pages (for [[lang-code lang-config] (:lang config)
                     [content-key output-path] (:render config)]
                 {:lang-code lang-code
@@ -107,8 +104,9 @@
                  :output-path output-path})]
     (assoc ctx :pages pages)))
 
-(defn load-page-content [{:keys [config] :as ctx} page]
+(defn load-page-content
   "Load content for a single page"
+  [{:keys [config]} page]
   (let [root-path (:root-path config)
         lang-dir (io/file root-path "content" (name (:lang-code page)))
         base-name (name (:content-key page))
@@ -120,12 +118,14 @@
              (.exists md-file) (load-content-file md-file)
              :else nil))))
 
-(defn load-all-content [{:keys [pages] :as ctx}]
+(defn load-all-content
   "Load content for all pages"
+  [{:keys [pages] :as ctx}]
   (assoc ctx :pages (map #(load-page-content ctx %) pages)))
 
-(defn process-page-content [{:keys [default-lang]} page]
+(defn process-page-content
   "Process markdown and add language info"
+  [{:keys [default-lang]} page]
   (if-let [content (:content page)]
     (let [lang-code (:lang-code page)
           processed (cond-> content
@@ -138,24 +138,28 @@
       (assoc page :content processed))
     page))
 
-(defn process-all-content [{:keys [pages default-lang] :as ctx}]
+(defn process-all-content
   "Process content for all pages"
+  [{:keys [pages default-lang] :as ctx}]
   (assoc ctx :pages (map #(process-page-content {:default-lang default-lang} %) pages)))
 
-(defn calculate-page-path [{:keys [default-lang]} page]
+(defn calculate-page-path
   "Calculate final output path with language prefix"
+  [{:keys [default-lang]} page]
   (let [{:keys [output-path lang-code]} page
         final-path (if (= lang-code default-lang)
                      output-path
                      (str "/" (name lang-code) "/" (str/replace output-path #"^/" "")))]
     (assoc page :path final-path)))
 
-(defn calculate-all-paths [{:keys [pages default-lang] :as ctx}]
+(defn calculate-all-paths
   "Calculate paths for all pages"
+  [{:keys [pages default-lang] :as ctx}]
   (assoc ctx :pages (map #(calculate-page-path {:default-lang default-lang} %) pages)))
 
-(defn render-page [{:keys [config templates]} page]
+(defn render-page
   "Render page HTML if content exists"
+  [{:keys [config templates]} page]
   (if-let [content (:content page)]
     (let [template-name (or (:template content) (:content-key page))
           template (get templates template-name)
@@ -173,8 +177,9 @@
       (println (str "ERROR: No content for " (:content-key page) " in " (:lang-code page)))
       page)))
 
-(defn render-all-pages [{:keys [pages config templates] :as ctx}]
+(defn render-all-pages
   "Render all pages"
+  [{:keys [pages config templates] :as ctx}]
   (assoc ctx :pages (map #(render-page {:config config :templates templates} %) pages)))
 
 (defn build-site
@@ -185,8 +190,7 @@
    Options:
      :output-dir - Output directory
      :verbose - Enable verbose logging"
-  [{:keys [config templates]} {:keys [output-dir verbose]
-                               :or {output-dir "dist"}}]
+  [{:keys [config templates]} _opts]
   ;; Validate wrapper template exists
   (when-not (get templates (:wrapper config))
     (throw (ex-info (str "Wrapper template '" (:wrapper config) "' not found")
@@ -214,20 +218,20 @@
         all-image-urls (concat html-image-urls css-image-urls)
 
         ;; Ensure .temp/images directory exists
-        temp-dir (io/file root-path ".temp/images")
+        temp-dir (io/file ".temp/images")
         _ (io/make-parents (io/file temp-dir "dummy.txt"))
 
         ;; Process each unique image
-        processed-images (doall
-                          (for [img-data all-image-urls]
-                            (when-not (:error img-data)
-                              (let [;; Convert web path to file system path
-                                    source-path (str root-path (:source-path img-data))
-                                    output-dir (str root-path "/.temp/images")]
+        _ (doall
+           (for [img-data all-image-urls]
+             (when-not (:error img-data)
+               (let [;; Convert web path to file system path
+                     source-path (str root-path (:source-path img-data))
+                     output-dir ".temp/images"]
                                 ;; Call image processor with consistent keys
-                                (img/process-image (merge {:source-path source-path
-                                                           :output-dir output-dir}
-                                                          (select-keys img-data [:width :height :format :quality])))))))
+                 (img/process-image (merge {:source-path source-path
+                                            :output-dir output-dir}
+                                           (select-keys img-data [:width :height :format :quality])))))))
 
         ;; Build URL replacement map
         url-replacements (reduce (fn [m img-data]
@@ -358,7 +362,7 @@
 
   (let [site-data (load-site-data site-edn)
         root-path (:root-path (:config site-data))
-        output-dir (io/file (or output-dir (str root-path "/dist")))
+        output-dir (io/file (or output-dir "dist"))
 
         ;; Build HTML
         html-output (build-site site-data {:verbose true})
@@ -396,7 +400,7 @@
 
     ;; Copy processed images from .temp to dist
     (when (:image-processor (:config site-data))
-      (let [temp-images (io/file root-path ".temp/images")
+      (let [temp-images (io/file ".temp/images")
             dist-images (io/file output-dir "assets/images")]
         (when (.exists temp-images)
           (fs/copy-tree temp-images dist-images {:replace-existing true})
@@ -514,7 +518,7 @@
   ;;     :hero-subtitle "Beslutningsstøttesystemer..."}
 
   ;; Test template processing
-  (require '[anteo.website.site-generator :as sg])
+
   (let [template [:h1 [:sg/get :title]]
         content {:title "Test"}]
     (sg/process template content))
@@ -549,7 +553,7 @@
 
   ;; Clean build directories
   (do
-    (require '[babashka.fs :as fs])
+
     (fs/delete-tree "dist")
     (fs/delete-tree ".temp")
     (println "Cleaned build directories")))
