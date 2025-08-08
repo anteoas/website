@@ -65,6 +65,37 @@ Common issues to fix:
 (require '[namespace] :reload-all)
 ```
 
+### 🚨 NEW LESSON: VERIFY SMALL SNIPPETS IN REPL FIRST 🚨
+
+**The imgscalr implementation:** We made assumptions about API without testing.
+
+**WHAT WENT WRONG:**
+1. Assumed imgscalr had a simple 2-arg resize method
+2. Wrote entire implementation based on this assumption
+3. Got ClassCastException when running
+4. Had to rewrite after testing actual API
+
+**THE RULE:** Before writing any significant code:
+```clojure
+;; Test the actual API
+(.getMethods ClassName)
+;; Try simple examples
+(ClassName/method arg1 arg2)
+;; THEN implement
+```
+
+### 🚨 NEW LESSON: USE REPL DEPENDENCY LOADING 🚨
+
+**The missing dependency issue:** Spent time restarting REPL when we could reload deps.
+
+**THE SOLUTION:**
+```clojure
+(require '[clojure.repl.deps :as deps])
+(deps/sync-deps)  ; Loads new dependencies from deps.edn
+```
+
+This works for adding new libraries without restarting the REPL!
+
 ## Core Principles
 
 ### 0. Stick to the Plan (MOST IMPORTANT)

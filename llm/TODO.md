@@ -28,6 +28,35 @@
   - Prints warning: "WARNING: :sg/get key not found: <key>"
   - With :verbose flag, also prints context for debugging
 
+### 2024-08-08 - Image Processor Rewrite
+
+- [x] Replace Thumbnailator with imgscalr library
+  - Thumbnailator was producing poor quality PNG images with artifacts
+  - imgscalr is specifically designed for high-quality image scaling
+  
+- [x] Fix PNG scaling issues
+  - PNG images with indexed color palettes were getting black stripes
+  - Using imgscalr's ULTRA_QUALITY method produces much better results
+  - File sizes increased appropriately (e.g., 295x295 went from 5.9KB to 16KB)
+
+- [x] Simplify image processor API
+  - Removed format conversion support
+  - Removed quality parameter (not needed for scaling)
+  - Focus solely on high-quality scaling
+
+- [x] Add aspect ratio protection
+  - By default, images maintain aspect ratio even with width AND height specified
+  - Added :allow-stretch flag for cases where stretching is explicitly desired
+  - Prevents accidental image distortion
+
+### 2024-08-08 - Build System Improvements
+
+- [x] Fix CSS bundling output path issue
+  - CSS was being written to site/dist/assets/css/ instead of dist/assets/css/
+  - Added :output-path to config alongside :root-path
+  - Calculate absolute output-path early in load-site-data
+  - All functions now use absolute paths, eliminating directory context issues
+
 ## Pending Tasks
 
 - [ ] Implement :sg/if directive for conditional rendering

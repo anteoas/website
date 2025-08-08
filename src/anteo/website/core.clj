@@ -120,11 +120,13 @@
 
 (defn- load-site-data
   "Load all site data from filesystem."
-  [site-edn-path]
+  [site-edn-path output-dir]
   (let [root-path (-> site-edn-path io/file .getParentFile .getAbsolutePath)
+        output-path (-> output-dir io/file .getAbsolutePath)
         config (-> (slurp site-edn-path)
                    edn/read-string
-                   (assoc :root-path root-path))]
+                   (assoc :root-path root-path
+                          :output-path output-path))]
     {:config config
      :templates (load-templates (io/file root-path "templates"))}))
 
@@ -411,9 +413,10 @@
   (when-not site-edn
     (throw (ex-info "Missing required :site-edn parameter" {})))
 
-  (let [site-data (load-site-data site-edn)
+  (let [output-dir-str (or output-dir "dist")
+        site-data (load-site-data site-edn output-dir-str)
         root-path (:root-path (:config site-data))
-        output-dir (io/file (or output-dir "dist"))
+        output-path (:output-path (:config site-data))
 
         ;; Build HTML
         html-output (build-site site-data {:verbose true})
@@ -424,15 +427,15 @@
                      html-output)]
 
     (println "Building site from:" site-edn)
-    (println "Output directory:" (.getPath output-dir))
+    (println "Output directory:" output-path)
     (println "Build mode:" mode)
 
     ;; Bundle CSS and JS
-    (bundle-assets root-path (.getPath output-dir) mode)
+    (bundle-assets root-path output-path mode)
 
     ;; Copy static assets (excluding CSS/JS which are bundled)
     (let [assets-source (io/file root-path "assets")
-          assets-target (io/file output-dir "assets")]
+          assets-target (io/file output-path "assets")]
       (when (.exists assets-source)
         (doseq [file (file-seq assets-source)]
           (when (and (.isFile file)
@@ -447,12 +450,12 @@
         (println "✓ Copied static assets")))
 
     ;; Write HTML files
-    (write-output final-html output-dir)
+    (write-output final-html output-path)
 
     ;; Copy processed images from .temp to dist
     (when (:image-processor (:config site-data))
       (let [temp-images (io/file ".temp/images")
-            dist-images (io/file output-dir "assets/images")]
+            dist-images (io/file output-path "assets/images")]
         (when (.exists temp-images)
           (fs/copy-tree temp-images dist-images {:replace-existing true})
           (println "✓ Copied processed images"))))
@@ -480,7 +483,7 @@
       :or {output-dir "dist" temp-dir ".temp"}}]
   ;; If site-edn provided, use its root path
   (let [dirs-to-clean (if site-edn
-                        (let [root-path (-> site-edn load-site-data :config :root-path)]
+                        (let [root-path (-> site-edn (load-site-data output-dir) :config :root-path)]
                           [(io/file root-path output-dir)
                            (io/file root-path temp-dir)])
                         [(io/file output-dir)
@@ -533,6 +536,5 @@
 
   (build {:site-edn "site/site.edn" :mode :dev})
 
-  (dev {:site-edn "site/site.edn"})
-)
+  (dev {:site-edn "site/site.edn"}))
 

@@ -46,8 +46,25 @@ site.edn → Load Config → Load Templates → For each language:
 
 ### 5. Asset Processing
 - **CSS/JS**: Bundled with esbuild via npx
-- **Images**: On-demand processing based on URL parameters
+- **Images**: High-quality scaling with imgscalr library
 - **Static files**: Copied as-is
+
+### 6. Image Processing (`anteo.website.image-processor`)
+- **Library**: imgscalr (replaced Thumbnailator)
+- **Quality**: Uses ULTRA_QUALITY method for best results
+- **Features**:
+  - High-quality image scaling
+  - Preserves original format (no conversion)
+  - Maintains aspect ratio by default
+  - Generates placeholders for missing images
+- **API**: Simple scaling-focused interface
+  ```clojure
+  (process-image {:source-path "image.png"
+                  :width 300
+                  :height 200
+                  :output-dir "dist/"
+                  :allow-stretch false}) ; default
+  ```
 
 ## Directory Structure
 
@@ -142,6 +159,7 @@ With `:verbose true` in content, logs full context for debugging.
 - `markdown-clj` - Markdown parsing  
 - `babashka/fs` - File operations
 - `sci` - Sandboxed Clojure evaluation (used for .clj templates)
+- `imgscalr` - High-quality image scaling
 
 ### External Tools (via npx)
 - `esbuild` - CSS/JS bundling
@@ -154,3 +172,5 @@ With `:verbose true` in content, logs full context for debugging.
 3. **Content subdirectories**: Better organization for products, news, etc.
 4. **Improved error handling**: :sg/get shows missing keys with warnings
 5. **Fixed vector-of-vectors**: Proper flattening prevents Hiccup errors
+6. **Image processor rewrite**: Switched from Thumbnailator to imgscalr for better quality
+7. **Aspect ratio protection**: Images maintain proportions by default

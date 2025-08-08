@@ -71,3 +71,81 @@
 - load-page-content automatically loads subdirectories
 - Merges into main content as :products, :news, etc.
 - Content files include :type field for identification
+
+## 2024-08-08 - Output Path Management
+
+### Absolute Output Path Calculation
+
+**Decision**: Calculate absolute output-path alongside root-path in load-site-data.
+
+**Rationale**:
+- Eliminates directory context issues when running tools from different locations
+- CSS bundling was writing to site/dist/ instead of root dist/
+- Consistent with how root-path is handled
+- Makes all path handling explicit and unambiguous
+
+**Implementation**:
+- load-site-data now takes output-dir parameter
+- Calculates absolute output-path and adds to config
+- All functions use absolute paths from config
+- No more relative path confusion when running esbuild from site directory
+
+## 2024-08-08 - Image Processing Decisions
+
+### Switch from Thumbnailator to imgscalr
+
+**Decision**: Replace Thumbnailator with imgscalr for image processing.
+
+**Rationale**:
+- Thumbnailator was producing poor quality results for PNG images with indexed color palettes
+- Images had visible artifacts including black vertical stripes
+- imgscalr is specifically designed for high-quality image scaling
+- Using ULTRA_QUALITY method produces significantly better results
+
+**Evidence**:
+- 295x295 PNG scaling: Thumbnailator produced 5.9KB file with artifacts
+- Same operation with imgscalr: 16KB file with clean scaling
+- 150x150 scaling improved from 2.9KB (poor) to 7.3KB (good)
+
+### Simplify Image Processing API
+
+**Decision**: Remove format conversion and quality parameters from image processor.
+
+**Rationale**:
+- Format conversion and quality reduction can be done out-of-band if needed
+- Simplifies the API to focus on one thing: high-quality scaling
+- Reduces complexity and potential for user error
+
+**Implementation**:
+- Removed `format` parameter
+- Removed `quality` parameter
+- Images always saved in original format
+- Only operations are scaling and placeholder generation
+
+### Aspect Ratio Protection by Default
+
+**Decision**: When both width and height are specified, maintain aspect ratio by default rather than stretching.
+
+**Rationale**:
+- Stretching/distorting images is almost never the desired behavior
+- Users often specify both dimensions expecting the image to fit within bounds
+- Accidental distortion looks unprofessional
+
+**Implementation**:
+- Default behavior: Use AUTOMATIC mode (fits within bounds, maintains ratio)
+- Added `:allow-stretch` flag for explicit stretching when needed
+- With flag: Uses FIT_EXACT mode for exact dimensions
+
+### No ARGB Conversion Needed
+
+**Decision**: Remove the convert-to-argb helper function.
+
+**Rationale**:
+- Testing showed imgscalr handles color space conversions automatically
+- Both direct scaling and ARGB pre-conversion produced identical file sizes
+- Unnecessary complexity that doesn't improve output quality
+
+**Evidence**:
+- Simple resize: 5,424 bytes
+- With ARGB conversion: 5,424 bytes (identical)
+- imgscalr already outputs proper RGBA PNGs
