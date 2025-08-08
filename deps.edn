@@ -15,6 +15,11 @@
 
  :aliases {:run {:main-opts ["-m" "anteo.website.core"]}
            :dev {:main-opts ["-m" "dev"]}
+           :build {:exec-fn anteo.website.core/build
+                   :exec-args {:site-edn "site/site.edn"}}
+           :serve {:exec-fn anteo.website.core/dev
+                   :exec-args {:site-edn "site/site.edn"}}
+           :clean {:exec-fn anteo.website.core/clean}
            :test {:extra-paths ["test"]
                   :extra-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}}
                   :main-opts ["-m" "kaocha.runner"]}

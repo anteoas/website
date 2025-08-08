@@ -90,6 +90,93 @@
     {:config config
      :templates (load-templates (io/file root-path "templates"))}))
 
+(defn find-default-language [{:keys [config] :as ctx}]
+  "Find the default language and assoc it to context"
+  (let [lang-config (:lang config)
+        default-lang (or (some (fn [[code cfg]] (when (:default cfg) code)) lang-config)
+                         (first (keys lang-config)))]
+    (assoc ctx :default-lang default-lang)))
+
+(defn expand-render-targets [{:keys [config] :as ctx}]
+  "Expand render targets into individual page specs"
+  (let [pages (for [[lang-code lang-config] (:lang config)
+                    [content-key output-path] (:render config)]
+                {:lang-code lang-code
+                 :lang-config lang-config
+                 :content-key content-key
+                 :output-path output-path})]
+    (assoc ctx :pages pages)))
+
+(defn load-page-content [{:keys [config] :as ctx} page]
+  "Load content for a single page"
+  (let [root-path (:root-path config)
+        lang-dir (io/file root-path "content" (name (:lang-code page)))
+        base-name (name (:content-key page))
+        edn-file (io/file lang-dir (str base-name ".edn"))
+        md-file (io/file lang-dir (str base-name ".md"))]
+    (assoc page :content
+           (cond
+             (.exists edn-file) (load-content-file edn-file)
+             (.exists md-file) (load-content-file md-file)
+             :else nil))))
+
+(defn load-all-content [{:keys [pages] :as ctx}]
+  "Load content for all pages"
+  (assoc ctx :pages (map #(load-page-content ctx %) pages)))
+
+(defn process-page-content [{:keys [default-lang]} page]
+  "Process markdown and add language info"
+  (if-let [content (:content page)]
+    (let [lang-code (:lang-code page)
+          processed (cond-> content
+                      (:markdown/content content)
+                      (assoc :rendered-html (md/md-to-html-string (:markdown/content content)))
+
+                      true
+                      (assoc :lang lang-code
+                             :lang-prefix (if (= lang-code default-lang) "" (str "/" (name lang-code)))))]
+      (assoc page :content processed))
+    page))
+
+(defn process-all-content [{:keys [pages default-lang] :as ctx}]
+  "Process content for all pages"
+  (assoc ctx :pages (map #(process-page-content {:default-lang default-lang} %) pages)))
+
+(defn calculate-page-path [{:keys [default-lang]} page]
+  "Calculate final output path with language prefix"
+  (let [{:keys [output-path lang-code]} page
+        final-path (if (= lang-code default-lang)
+                     output-path
+                     (str "/" (name lang-code) "/" (str/replace output-path #"^/" "")))]
+    (assoc page :path final-path)))
+
+(defn calculate-all-paths [{:keys [pages default-lang] :as ctx}]
+  "Calculate paths for all pages"
+  (assoc ctx :pages (map #(calculate-page-path {:default-lang default-lang} %) pages)))
+
+(defn render-page [{:keys [config templates]} page]
+  "Render page HTML if content exists"
+  (if-let [content (:content page)]
+    (let [template-name (or (:template content) (:content-key page))
+          template (get templates template-name)
+          wrapper (get templates (:wrapper config))]
+      (if template
+        (let [page-html (sg/process template content)
+              wrapped-html (sg/process wrapper {:body page-html
+                                                :includes templates
+                                                :data content})]
+          (assoc page :html (str (h/html wrapped-html))))
+        (do
+          (println (str "ERROR: Template '" template-name "' not found"))
+          page)))
+    (do
+      (println (str "ERROR: No content for " (:content-key page) " in " (:lang-code page)))
+      page)))
+
+(defn render-all-pages [{:keys [pages config templates] :as ctx}]
+  "Render all pages"
+  (assoc ctx :pages (map #(render-page {:config config :templates templates} %) pages)))
+
 (defn build-site
   "Build static site from prepared data (content-driven).
    Data map should contain:
@@ -100,79 +187,23 @@
      :verbose - Enable verbose logging"
   [{:keys [config templates]} {:keys [output-dir verbose]
                                :or {output-dir "dist"}}]
-  (let [wrapper-name (:wrapper config)
-        wrapper-template (get templates wrapper-name)
-        root-path (:root-path config)
-        ;; Find the default language (one with :default true)
-        ;; If none marked as default, use the first one
-        default-lang (or (some (fn [[lang-code lang-config]]
-                                 (when (:default lang-config)
-                                   lang-code))
-                               (:lang config))
-                         (first (keys (:lang config))))]
+  ;; Validate wrapper template exists
+  (when-not (get templates (:wrapper config))
+    (throw (ex-info (str "Wrapper template '" (:wrapper config) "' not found")
+                    {:wrapper (:wrapper config)
+                     :available (keys templates)})))
 
-    ;; Check for required wrapper template
-    (when-not wrapper-template
-      (throw (ex-info (str "Wrapper template '" wrapper-name "' not found")
-                      {:wrapper wrapper-name
-                       :available-templates (keys templates)})))
-
-    ;; Process each language
-    (let [html-files (for [[lang-code lang-config] (:lang config)]
-                       (let [lang-content-dir (io/file root-path "content" (name lang-code))
-                             ;; Process each render target
-                             pages (for [[content-key output-path] (:render config)]
-                                     (let [;; Try to load content file (.edn or .md)
-                                           content-file-edn (io/file lang-content-dir (str (name content-key) ".edn"))
-                                           content-file-md (io/file lang-content-dir (str (name content-key) ".md"))
-                                           content-data (cond
-                                                          (.exists content-file-edn) (load-content-file content-file-edn)
-                                                          (.exists content-file-md) (load-content-file content-file-md)
-                                                          :else nil)
-                                           ;; Calculate final output path with language prefix
-                                           final-output-path (if (= lang-code default-lang)
-                                                               output-path
-                                                               (let [clean-path (if (str/starts-with? output-path "/")
-                                                                                  (subs output-path 1)
-                                                                                  output-path)]
-                                                                 (str "/" (name lang-code) "/" clean-path)))]
-                                       (if content-data
-                                         (let [;; Get template name from content
-                                               template-name (or (:template content-data) content-key)
-                                               template (get templates template-name)]
-                                           (if template
-                                             (let [;; Process markdown if needed
-                                                   processed-content (if (:markdown/content content-data)
-                                                                       (assoc content-data
-                                                                              :rendered-html
-                                                                              (md/md-to-html-string (:markdown/content content-data)))
-                                                                       content-data)
-                                                   ;; Add language info to content
-                                                   content-with-lang (assoc processed-content
-                                                                            :lang lang-code
-                                                                            :lang-prefix (if (= lang-code default-lang)
-                                                                                           ""
-                                                                                           (str "/" (name lang-code))))
-                                                   ;; Process template with content data
-                                                   page-html (sg/process template content-with-lang)
-                                                   ;; Wrap with wrapper template
-                                                   wrapped-html (sg/process wrapper-template
-                                                                            {:body page-html
-                                                                             :includes templates ; Just pass all templates
-                                                                             :data content-with-lang})]
-                                               {:path final-output-path
-                                                :html (str (h/html wrapped-html))})
-                                             (do
-                                               (println (str "ERROR: Template '" template-name "' not found for content '" content-key "'"))
-                                               (println "  Available templates:" (keys templates))
-                                               nil)))
-                                         (do
-                                           (println (str "ERROR: No content file found for '" content-key "'"))
-                                           (println "  Looked for:" (.getPath content-file-edn))
-                                           (println "          or:" (.getPath content-file-md))
-                                           nil))))]
-                         (filter some? pages)))]
-      (apply concat html-files))))
+  ;; Build pipeline
+  (-> {:config config :templates templates}
+      find-default-language
+      expand-render-targets
+      load-all-content
+      process-all-content
+      calculate-all-paths
+      render-all-pages
+      :pages
+      (->> (filter :html)
+           (map #(select-keys % [:path :html])))))
 
 (defn process-images
   "Process images in HTML and CSS files based on query parameters."
@@ -318,81 +349,128 @@
             (println "Unknown option:" arg)
             (recur (rest args) result)))))))
 
+(defn build
+  "Build the site. Suitable for clj -X invocation.
+   Example: clj -X anteo.website.core/build :site-edn '\"site/site.edn\"' :output-dir '\"dist\"' :mode :prod"
+  [{:keys [site-edn output-dir mode] :or {mode :prod}}]
+  (when-not site-edn
+    (throw (ex-info "Missing required :site-edn parameter" {})))
+
+  (let [site-data (load-site-data site-edn)
+        root-path (:root-path (:config site-data))
+        output-dir (io/file (or output-dir (str root-path "/dist")))
+
+        ;; Build HTML
+        html-output (build-site site-data {:verbose true})
+        final-html (if (:image-processor (:config site-data))
+                     (do
+                       (println "Processing images...")
+                       (process-images html-output [] root-path))
+                     html-output)]
+
+    (println "Building site from:" site-edn)
+    (println "Output directory:" (.getPath output-dir))
+    (println "Build mode:" mode)
+
+    ;; Bundle CSS and JS
+    (bundle-assets root-path (.getPath output-dir) mode)
+
+    ;; Copy static assets (excluding CSS/JS which are bundled)
+    (let [assets-source (io/file root-path "assets")
+          assets-target (io/file output-dir "assets")]
+      (when (.exists assets-source)
+        (doseq [file (file-seq assets-source)]
+          (when (and (.isFile file)
+                     (not (str/includes? (.getPath file) "/css/"))
+                     (not (str/includes? (.getPath file) "/js/")))
+            (let [source-path (.toPath assets-source)
+                  file-path (.toPath file)
+                  relative-path (.relativize source-path file-path)
+                  target-file (io/file assets-target (.toString relative-path))]
+              (io/make-parents target-file)
+              (io/copy file target-file))))
+        (println "✓ Copied static assets")))
+
+    ;; Write HTML files
+    (write-output final-html output-dir)
+
+    ;; Copy processed images from .temp to dist
+    (when (:image-processor (:config site-data))
+      (let [temp-images (io/file root-path ".temp/images")
+            dist-images (io/file output-dir "assets/images")]
+        (when (.exists temp-images)
+          (fs/copy-tree temp-images dist-images {:replace-existing true})
+          (println "✓ Copied processed images"))))
+
+    (println "Build complete!")))
+
+(defn dev
+  "Build and start dev server. Suitable for clj -X invocation.
+   Example: clj -X anteo.website.core/dev :site-edn '\"site/site.edn\"'"
+  [{:keys [site-edn output-dir] :or {output-dir "dist"}}]
+  ;; Build with dev mode
+  (build {:site-edn site-edn
+          :output-dir output-dir
+          :mode :dev})
+
+  ;; Start dev server
+  (let [proc (start-dev-server output-dir)]
+    (println "Dev server running. Press Ctrl+C to stop.")
+    (.waitFor proc)))
+
+(defn clean
+  "Clean build artifacts. Suitable for clj -X invocation.
+   Example: clj -X anteo.website.core/clean"
+  [{:keys [output-dir temp-dir site-edn]
+    :or {output-dir "dist" temp-dir ".temp"}}]
+  ;; If site-edn provided, use its root path
+  (let [dirs-to-clean (if site-edn
+                        (let [root-path (-> site-edn load-site-data :config :root-path)]
+                          [(io/file root-path output-dir)
+                           (io/file root-path temp-dir)])
+                        [(io/file output-dir)
+                         (io/file temp-dir)])]
+    (doseq [dir dirs-to-clean]
+      (when (.exists dir)
+        (fs/delete-tree dir)
+        (println "✓ Cleaned" (.getPath dir))))
+    (println "Clean complete!")))
+
 (defn -main
   "CLI entry point for site generator.
    Usage: clojure -M:run path/to/site.edn [options]
    Options:
      --output-dir PATH  Output directory (default: dist)
      --mode MODE        Build mode: dev or prod (default: prod)
-     --serve            Start dev server after build"
+     --serve            Start dev server after build
+     --clean            Clean build artifacts"
   [& args]
-  (let [parsed (parse-args args)
-        site-edn-path (:site-edn parsed)]
+  (let [parsed (parse-args args)]
+    (cond
+      ;; Clean command
+      (some #{"--clean"} args)
+      (clean {:site-edn (:site-edn parsed)
+              :output-dir (:output-dir parsed)})
 
-    (when-not site-edn-path
-      (println "Usage: clojure -M:run path/to/site.edn [options]")
-      (println "Options:")
-      (println "  --output-dir PATH  Output directory (default: dist)")
-      (println "  --mode MODE        Build mode: dev or prod (default: prod)")
-      (println "  --serve            Start dev server after build (implies --mode dev)")
-      (System/exit 1))
+      ;; Build/serve commands
+      (:site-edn parsed)
+      (if (:serve parsed)
+        (dev {:site-edn (:site-edn parsed)
+              :output-dir (:output-dir parsed)})
+        (build {:site-edn (:site-edn parsed)
+                :output-dir (:output-dir parsed)
+                :mode (or (:mode parsed) :prod)}))
 
-    (let [site-data (load-site-data site-edn-path)
-          root-path (:root-path (:config site-data))
-          output-dir (io/file (or (:output-dir parsed)
-                                  (str root-path "/dist")))
-          mode (or (:mode parsed) :prod)
-
-          ;; Process images if enabled
-          html-output (build-site site-data {:verbose true})
-          final-html (if (:image-processor (:config site-data))
-                       (do
-                         (println "Processing images...")
-                         (process-images html-output [] root-path))
-                       html-output)]
-
-      (println "Building site from:" site-edn-path)
-      (println "Output directory:" (.getPath output-dir))
-      (println "Build mode:" mode)
-
-      ;; Bundle CSS and JS
-      (bundle-assets root-path (.getPath output-dir) mode)
-
-      ;; Copy static assets (excluding CSS/JS which are bundled)
-      (let [assets-source (io/file root-path "assets")
-            assets-target (io/file output-dir "assets")]
-        (when (.exists assets-source)
-          ;; Copy everything except css and js directories
-          (doseq [file (file-seq assets-source)]
-            (when (and (.isFile file)
-                       (not (str/includes? (.getPath file) "/css/"))
-                       (not (str/includes? (.getPath file) "/js/")))
-              (let [source-path (.toPath assets-source)
-                    file-path (.toPath file)
-                    relative-path (.relativize source-path file-path)
-                    target-file (io/file assets-target (.toString relative-path))]
-                (io/make-parents target-file)
-                (io/copy file target-file))))
-          (println "✓ Copied static assets")))
-
-      ;; Write HTML files
-      (write-output final-html output-dir)
-
-      ;; Copy processed images from .temp to dist
-      (when (:image-processor (:config site-data))
-        (let [temp-images (io/file root-path ".temp/images")
-              dist-images (io/file output-dir "assets/images")]
-          (when (.exists temp-images)
-            (fs/copy-tree temp-images dist-images {:replace-existing true})
-            (println "✓ Copied processed images"))))
-
-      (println "Build complete!")
-
-      ;; Start dev server if requested
-      (when (:serve parsed)
-        (let [proc (start-dev-server (.getPath output-dir))]
-          ;; Wait for the process to complete
-          (.waitFor proc))))))
+      ;; No site-edn provided
+      :else
+      (do
+        (println "Usage: clojure -M:run path/to/site.edn [options]")
+        (println "Options:")
+        (println "  --output-dir PATH  Output directory (default: dist)")
+        (println "  --mode MODE        Build mode: dev or prod (default: prod)")
+        (println "  --serve            Start dev server after build (implies --mode dev)")
+        (println "  --clean            Clean build artifacts")
+        (System/exit 1)))))
 
 (comment
   ;; Development helper functions
@@ -421,13 +499,16 @@
     (println "Quick build complete!"))
 
   ;; Full build with image processing
+  ;; Full build with image processing
   (-main "site/site.edn" "--output-dir" "dist-test")
 
   ;; Build and serve
   (-main "site/site.edn" "--serve")
 
-  ;; Test loading specific content
-  (load-content-file (io/file "site/content/no/landing.edn"))
+  ;; Using -X style invocations
+  (build {:site-edn "site/site.edn" :output-dir "dist-test" :mode :prod})
+  (dev {:site-edn "site/site.edn"})
+  (clean {:site-edn "site/site.edn"})
   ;; => {:template :landing, 
   ;;     :hero-title "Internettbasert...", 
   ;;     :hero-subtitle "Beslutningsstøttesystemer..."}
