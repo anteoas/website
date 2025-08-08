@@ -65,15 +65,22 @@
 (defn load-content-file
   "Load a single content file."
   [file]
-  (let [path (.getPath file)]
+  (let [path (str file)]
     (cond
       (str/ends-with? path ".edn")
-      (edn/read-string (slurp file))
+      (edn/read-string (slurp (str file)))
 
       (str/ends-with? path ".md")
-      (parse-markdown (slurp file))
+      (parse-markdown (slurp (str file)))
 
       :else nil)))
+
+(defn load-content-directory
+  "Load all content files from a directory"
+  [dir]
+  (when (fs/exists? dir)
+    (let [files (fs/glob dir "*.{edn,md}")]
+      (vec (keep load-content-file files)))))
 
 (defn load-site-data
   "Load all site data from filesystem."
@@ -105,18 +112,26 @@
     (assoc ctx :pages pages)))
 
 (defn load-page-content
-  "Load content for a single page"
+  "Load content file for a specific page/language combination"
   [{:keys [config]} page]
-  (let [root-path (:root-path config)
-        lang-dir (io/file root-path "content" (name (:lang-code page)))
-        base-name (name (:content-key page))
-        edn-file (io/file lang-dir (str base-name ".edn"))
-        md-file (io/file lang-dir (str base-name ".md"))]
+  (let [lang-code (name (:lang-code page))
+        content-name (name (:content-key page))
+        root-path (:root-path config)
+        content-dir (fs/path root-path "content" lang-code)
+        ;; Try .edn first, then .md
+        content-file (or (fs/file content-dir (str content-name ".edn"))
+                         (fs/file content-dir (str content-name ".md")))
+        ;; Load the main content file
+        base-content (when (fs/exists? content-file)
+                       (load-content-file content-file))
+        ;; Load subdirectory content
+        products (load-content-directory (fs/path content-dir "products"))
+        news (load-content-directory (fs/path content-dir "news"))]
     (assoc page :content
-           (cond
-             (.exists edn-file) (load-content-file edn-file)
-             (.exists md-file) (load-content-file md-file)
-             :else nil))))
+           (when base-content
+             (cond-> base-content
+               (seq products) (assoc :products products)
+               (seq news) (assoc :news news))))))
 
 (defn load-all-content
   "Load content for all pages"
