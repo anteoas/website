@@ -150,29 +150,6 @@
           ;; No collection found, return empty
           []))
 
-      ;; Handle :sg/img
-      (and (= (first base) :sg/img)
-           (= (count base) 2)
-           (map? (second base)))
-      (let [img-config (second base)
-            {:keys [src width height format]} img-config
-            ;; Generate new src based on processing needs
-            new-src (if (or width height format)
-                      (let [path-parts (str/split src #"\.")
-                            base-path (str/join "." (butlast path-parts))
-                            extension (or format (last path-parts))
-                            dimension-part (cond
-                                             (and width height) (str "-" width "x" height)
-                                             width (str "-" width "x")
-                                             :else "")]
-                        (str base-path dimension-part "." extension))
-                      src)
-            ;; Build img attributes, preserving all except format
-            img-attrs (-> img-config
-                          (dissoc :format)
-                          (assoc :src new-src))]
-        [:img img-attrs])
-
       ;; Process children recursively
       :else
       (let [tag (first base)
