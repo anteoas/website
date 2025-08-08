@@ -1,8 +1,38 @@
-(ns anteo.website.site-generator)
+(ns anteo.website.site-generator
+  (:require [clojure.string :as str]))
 
 (defn vector-of-vectors? [v]
   (and (vector? v)
        (every? vector? v)))
+
+(defn parse-sg-each-args
+  "Parse :sg/each arguments into collection-key, options-map, and template"
+  [args]
+  (let [collection-key (first args)
+        remaining (rest args)
+        ;; Find the template - it's a vector that starts with a keyword (hiccup element)
+        ;; Options are keyword-value pairs before that
+        template-idx (loop [idx 0
+                            rem remaining]
+                       (cond
+                         (empty? rem) idx
+                         ;; Found a vector starting with keyword - this is the template
+                         (and (vector? (first rem))
+                              (keyword? (first (first rem))))
+                         idx
+                         ;; Skip option key-value pairs
+                         (keyword? (first rem))
+                         (recur (+ idx 2) (drop 2 rem))
+                         ;; Otherwise move forward
+                         :else
+                         (recur (inc idx) (rest rem))))
+        options-list (take template-idx remaining)
+        template (nth remaining template-idx nil)
+        ;; Parse options as key-value pairs
+        options-map (apply hash-map options-list)]
+    {:collection-key collection-key
+     :options options-map
+     :template template}))
 
 (defn process
   "Process a base template by replacing :sg/* directives"
@@ -37,7 +67,7 @@
       (and (= (first base) :sg/include)
            (= (count base) 2))
       (if-let [included (get includes (second base))]
-        included
+        (process included content)
         base) ; Return placeholder if not found
 
       ;; Handle :sg/get
@@ -49,6 +79,49 @@
           value
           base)) ; Return placeholder if not found
 
+      ;; Handle :sg/each
+      (and (= (first base) :sg/each)
+           (>= (count base) 3))
+      (let [{:keys [collection-key options template]} (parse-sg-each-args (rest base))
+            limit (:limit options)
+            order-by (:order-by options)
+            ;; Get collection from data source
+            collection (get data-source collection-key)]
+        (if (and collection (sequential? collection))
+          (let [;; Apply ordering if specified
+                sorted-coll (if order-by
+                              (let [;; Parse order-by: [:field :asc/:desc ...]
+                                    order-specs (partition 2 order-by)
+                                    comparators (map (fn [[field dir]]
+                                                       (if (= dir :desc)
+                                                         #(compare (get %2 field) (get %1 field))
+                                                         #(compare (get %1 field) (get %2 field))))
+                                                     order-specs)]
+                                (sort (fn [a b]
+                                        (loop [comps comparators]
+                                          (if (empty? comps)
+                                            0
+                                            (let [result ((first comps) a b)]
+                                              (if (zero? result)
+                                                (recur (rest comps))
+                                                result)))))
+                                      collection))
+                              collection)
+                ;; Apply limit if specified
+                limited-coll (if limit
+                               (take limit sorted-coll)
+                               sorted-coll)]
+            ;; Process template for each item
+            ;; Process template for each item
+            (vec (map (fn [item]
+                        (let [;; Create new content with current item data
+                              item-content (merge content item)
+                              processed (process template item-content)]
+                          processed))
+                      limited-coll)))
+          ;; No collection found, return empty
+          []))
+
       ;; Handle :sg/img
       (and (= (first base) :sg/img)
            (= (count base) 2)
@@ -57,8 +130,8 @@
             {:keys [src width height format]} img-config
             ;; Generate new src based on processing needs
             new-src (if (or width height format)
-                      (let [path-parts (clojure.string/split src #"\.")
-                            base-path (clojure.string/join "." (butlast path-parts))
+                      (let [path-parts (str/split src #"\.")
+                            base-path (str/join "." (butlast path-parts))
                             extension (or format (last path-parts))
                             dimension-part (cond
                                              (and width height) (str "-" width "x" height)
@@ -85,7 +158,16 @@
                                          {}
                                          attrs))
             ;; Process children
-            processed-children (map #(process % content) children)]
+            processed-children (mapcat (fn [child]
+                                         (let [result (process child content)]
+                                           ;; If this was an :sg/each that returned a vector of elements
+                                           (if (and (vector? child)
+                                                    (= (first child) :sg/each)
+                                                    (vector? result)
+                                                    (not (keyword? (first result))))
+                                             result
+                                             [result])))
+                                       children)]
         ;; Reconstruct the element
         (if (some #(and (vector-of-vectors? %) (= % body-content)) processed-children)
           ;; Splice body content

@@ -218,6 +218,91 @@
                     [:p "Article content"]]]
       (is (= expected (sg/process template content))))))
 
+(deftest test-sg-each
+  (testing "Basic :sg/each iteration"
+    (let [template [:div
+                    [:sg/each :news :limit 2
+                     [:div.item [:sg/get :title]]]]
+          content {:news [{:title "News 1"}
+                          {:title "News 2"}
+                          {:title "News 3"}]}
+          expected [:div
+                    [:div.item "News 1"]
+                    [:div.item "News 2"]]]
+      (is (= expected (sg/process template content)))))
+
+  (testing ":sg/each with ordering"
+    (let [template [:ul
+                    [:sg/each :items :order-by [:date :desc]
+                     [:li [:sg/get :date] " - " [:sg/get :name]]]]
+          content {:items [{:date "2024-01-01" :name "First"}
+                           {:date "2024-03-01" :name "Third"}
+                           {:date "2024-02-01" :name "Second"}]}
+          expected [:ul
+                    [:li "2024-03-01" " - " "Third"]
+                    [:li "2024-02-01" " - " "Second"]
+                    [:li "2024-01-01" " - " "First"]]]
+      (is (= expected (sg/process template content)))))
+
+  (testing ":sg/each with nested template"
+    (let [template [:section
+                    [:sg/each :products :limit 2
+                     [:article
+                      [:h3 [:sg/get :name]]
+                      [:p [:sg/get :description]]]]]
+          content {:products [{:name "Product A" :description "Description A"}
+                              {:name "Product B" :description "Description B"}
+                              {:name "Product C" :description "Description C"}]}
+          expected [:section
+                    [:article
+                     [:h3 "Product A"]
+                     [:p "Description A"]]
+                    [:article
+                     [:h3 "Product B"]
+                     [:p "Description B"]]]]
+      (is (= expected (sg/process template content)))))
+
+  (testing ":sg/each with missing collection"
+    (let [template [:div
+                    [:sg/each :missing :limit 5
+                     [:span "Item"]]]
+          content {}
+          expected [:div]]
+      (is (= expected (sg/process template content)))))
+
+  (testing ":sg/each with :sg/include"
+    (let [template [:div.news-grid
+                    [:sg/each :news :limit 2
+                     [:sg/include :news-card]]]
+          content {:news [{:title "News 1" :date "2024-04-15"}
+                          {:title "News 2" :date "2024-04-01"}]
+                   :includes {:news-card [:div.card
+                                          [:h4 [:sg/get :title]]
+                                          [:time [:sg/get :date]]]}}
+          expected [:div.news-grid
+                    [:div.card
+                     [:h4 "News 1"]
+                     [:time "2024-04-15"]]
+                    [:div.card
+                     [:h4 "News 2"]
+                     [:time "2024-04-01"]]]]
+      (is (= expected (sg/process template content)))))
+
+  (testing ":sg/each with complex ordering"
+    (let [template [:div
+                    [:sg/each :items :order-by [:priority :asc :name :desc]
+                     [:div [:sg/get :priority] "-" [:sg/get :name]]]]
+          content {:items [{:priority 2 :name "B"}
+                           {:priority 1 :name "A"}
+                           {:priority 1 :name "C"}
+                           {:priority 2 :name "A"}]}
+          expected [:div
+                    [:div 1 "-" "C"]
+                    [:div 1 "-" "A"]
+                    [:div 2 "-" "B"]
+                    [:div 2 "-" "A"]]]
+      (is (= expected (sg/process template content))))))
+
 (testing ":sg/get in nested vector structure (like landing template)"
   (let [template [[:section.hero [:h1 [:sg/get :hero-title]]]
                   [:section.main [:h2 [:sg/get :hero-subtitle]]]]
