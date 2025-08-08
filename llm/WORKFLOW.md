@@ -179,6 +179,7 @@ When facing mysterious errors, trace systematically.
 
 **THE RULE:** 
 - Make small, focused edits
+- Always read the WHOLE file with `collapse: false` before editing
 - Test after each edit
 - Use `git status` and `git diff` to verify changes
 - **If you mess up, USE GIT TO REVERT**

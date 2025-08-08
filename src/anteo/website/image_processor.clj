@@ -1,19 +1,21 @@
 (ns anteo.website.image-processor
-  "Image processing wrapper using Thumbnailator and TwelveMonkeys.
+  "Image processing using imgscalr for high-quality scaling.
    
    Usage:
    (process-image {:source-path \"src/assets/images/hero.jpg\"
                    :width 800
                    :height 600
-                   :format \"webp\"  ; optional, defaults to source format
-                   :quality 85      ; optional, defaults to 80
                    :output-dir \".temp/images\"})
    
-   Supported output formats: JPEG, PNG, BMP, GIF"
+   Features:
+   - High-quality image scaling using imgscalr
+   - Preserves image format (no conversion)
+   - Generates placeholders for missing images"
   (:require [clojure.java.io :as io]
             [clojure.string :as str])
-  (:import [net.coobird.thumbnailator Thumbnails Thumbnails$Builder]
-           [net.coobird.thumbnailator.resizers Scalers]
+  (:import [org.imgscalr Scalr]
+           [org.imgscalr Scalr$Method]
+           [org.imgscalr Scalr$Mode]
            [javax.imageio ImageIO]
            [java.io File]
            [java.awt Graphics2D Color Font BasicStroke RenderingHints]
@@ -21,47 +23,38 @@
 
 (set! *warn-on-reflection* true)
 
-(defn- get-image-format
-  "Determine output format from source extension and format parameter"
-  [source-path format]
-  (or format
-      (when source-path
-        (let [ext (-> source-path
-                      (str/split #"\.")
-                      last
-                      str/lower-case)]
-          (case ext
-            "jpg" "jpeg"
-            "jpeg" "jpeg"
-            "png" "png"
-            "gif" "gif"
-            "bmp" "bmp"
-            ;; Default to PNG for unsupported formats
-            "png")))))
+(defn- get-image-extension
+  "Get the file extension from a path"
+  [source-path]
+  (when source-path
+    (-> source-path
+        (str/split #"\.")
+        last
+        str/lower-case)))
 
 (defn- generate-output-filename
-  "Generate output filename with dimensions and format"
-  [source-path width height format]
+  "Generate output filename with dimensions"
+  [source-path width height]
   (let [file (io/file source-path)
         file-name (.getName ^File file)
         parts (str/split file-name #"\.")
         name-without-ext (if (> (count parts) 1)
                            (str/join "." (butlast parts))
                            file-name)
-        actual-format (get-image-format source-path format)
-        ;; Build filename based on what processing is needed
+        extension (get-image-extension source-path)
+        ;; Build filename based on dimensions
         output-name (cond
                       ;; Both width and height specified
                       (and width height)
-                      (str name-without-ext "-" width "x" height "." actual-format)
+                      (str name-without-ext "-" width "x" height "." extension)
 
                       ;; Only width specified
                       width
-                      (str name-without-ext "-" width "x." actual-format)
+                      (str name-without-ext "-" width "x." extension)
 
-                      ;; No dimensions but format conversion
-                      format
-                      (str name-without-ext "." actual-format)
+                      ;; Only height specified
+                      height
+                      (str name-without-ext "-x" height "." extension)
 
                       ;; No processing - keep original name
                       :else
@@ -71,13 +64,13 @@
 (defn- create-placeholder-image
   "Create a simple placeholder BufferedImage"
   [^Integer width ^Integer height ^String text]
-  (let [img (BufferedImage. width height BufferedImage/TYPE_INT_RGB)
+  (let [img (BufferedImage. width height BufferedImage/TYPE_INT_ARGB)
         g ^Graphics2D (.createGraphics img)]
     ;; Enable antialiasing
-    (.setRenderingHint g java.awt.RenderingHints/KEY_ANTIALIASING
-                       java.awt.RenderingHints/VALUE_ANTIALIAS_ON)
-    (.setRenderingHint g java.awt.RenderingHints/KEY_TEXT_ANTIALIASING
-                       java.awt.RenderingHints/VALUE_TEXT_ANTIALIAS_ON)
+    (.setRenderingHint g RenderingHints/KEY_ANTIALIASING
+                       RenderingHints/VALUE_ANTIALIAS_ON)
+    (.setRenderingHint g RenderingHints/KEY_TEXT_ANTIALIASING
+                       RenderingHints/VALUE_TEXT_ANTIALIAS_ON)
 
     ;; Background
     (.setColor g (Color. 224 224 224)) ; #e0e0e0
@@ -90,9 +83,9 @@
       (.drawRect g margin margin (- width (* 2 margin)) (- height (* 2 margin))))
 
     ;; Text
-    (.setColor g (Color. 51 51 51)) ; #333 - darker for better contrast
+    (.setColor g (Color. 51 51 51)) ; #333
     (let [font-size (int (* 0.1 (min width height)))
-          font (Font. "Arial" Font/BOLD font-size)] ; Use bold font
+          font (Font. "Arial" Font/BOLD font-size)]
       (.setFont g font)
       (let [fm (.getFontMetrics g)
             text-width (.stringWidth fm text)]
@@ -117,19 +110,19 @@
 
 (defn- generate-placeholder
   "Generate placeholder image when source is missing"
-  [{:keys [output-path width height source-path format]
+  [{:keys [output-path width height source-path]
     :or {}}]
   (let [file (io/file source-path)
         filename (.getName ^File file)
         buffered-image (create-placeholder-image width height filename)
-        output-format (get-image-format source-path format)
+        extension (get-image-extension source-path)
         output-file (io/file output-path)]
 
     ;; Ensure parent directory exists
     (io/make-parents output-file)
 
     ;; Write the image using ImageIO
-    (ImageIO/write ^BufferedImage buffered-image ^String output-format ^File output-file)
+    (ImageIO/write ^BufferedImage buffered-image ^String extension ^File output-file)
 
     {:output-path (.getAbsolutePath ^File output-file)
      :processed? true
@@ -138,12 +131,14 @@
 (defn process-image
   "Process a single image with given options.
    Generates placeholder if source doesn't exist.
-   Copies as-is if no width/height/format specified.
-   No-op if output already exists."
-  [{:keys [source-path width height format quality output-dir]
-    :or {quality 80}}]
+   Copies as-is if no width/height specified.
+   No-op if output already exists.
+   
+   Options:
+   - :allow-stretch - Set to true to allow stretching images (default: false)"
+  [{:keys [source-path width height output-dir allow-stretch]}]
   (try
-    (let [output-filename (generate-output-filename source-path width height format)
+    (let [output-filename (generate-output-filename source-path width height)
           output-file (io/file output-dir output-filename)
           output-path (.getAbsolutePath ^File output-file)]
 
@@ -162,56 +157,52 @@
               ;; Ensure output directory exists
               (io/make-parents output-file)
 
-              (if (or width height format)
-                ;; Process with Thumbnailator
-                (let [quality-decimal (/ quality 100.0)
-                      files ^"[Ljava.io.File;" (into-array File [source-file])
-                      builder ^Thumbnails$Builder (Thumbnails/of files)
-                      ;; Detect source format
-                      source-format (get-image-format source-path nil)
-                      is-png? (= source-format "png")
-                      ;; Determine output format
-                      output-format (get-image-format source-path format)
-                      output-is-png? (= output-format "png")]
+              (if (or width height)
+                ;; Scale with imgscalr
+                (let [original ^BufferedImage (ImageIO/read source-file)
+                      ;; Empty BufferedImageOp array for varargs
+                      ops ^"[Ljava.awt.image.BufferedImageOp;" (make-array java.awt.image.BufferedImageOp 0)
+                      ;; Use ULTRA_QUALITY for best results
+                      ^BufferedImage scaled (cond
+                                              ;; Both dimensions: only use FIT_EXACT if stretching is allowed
+                                              (and width height)
+                                              (if allow-stretch
+                                                ;; User explicitly wants stretching
+                                                (Scalr/resize original
+                                                              Scalr$Method/ULTRA_QUALITY
+                                                              Scalr$Mode/FIT_EXACT
+                                                              ^Integer width
+                                                              ^Integer height
+                                                              ops)
+                                                ;; Default: fit within bounds maintaining aspect ratio
+                                                (Scalr/resize original
+                                                              Scalr$Method/ULTRA_QUALITY
+                                                              Scalr$Mode/AUTOMATIC
+                                                              ^Integer width
+                                                              ^Integer height
+                                                              ops))
 
-                  ;; Only set size if dimensions are provided
-                  (when (and width height)
-                    (.size builder width height)
-                    ;; Use bicubic scaling for better quality
-                    (.scalingMode builder Scalers/BICUBIC))
+                                              ;; Width only: scale maintaining aspect ratio
+                                              width
+                                              (Scalr/resize original
+                                                            Scalr$Method/ULTRA_QUALITY
+                                                            ^Integer width
+                                                            ops)
 
-                  ;; Configure based on format
-                  (cond
-                    ;; PNG to PNG: preserve quality, don't use quality parameter
-                    (and is-png? output-is-png?)
-                    (do
-                      ;; PNG doesn't use quality settings
-                      ;; Thumbnailator will preserve transparency automatically
-                      (.outputFormat builder "png"))
+                                              ;; Height only: use FIT_TO_HEIGHT mode
+                                              :else
+                                              (Scalr/resize original
+                                                            Scalr$Method/ULTRA_QUALITY
+                                                            Scalr$Mode/FIT_TO_HEIGHT
+                                                            ^Integer height
+                                                            ops))
+                      extension (get-image-extension source-path)]
 
-                    ;; PNG to JPEG: handle transparency with white background
-                    (and is-png? (or (= output-format "jpeg") (= output-format "jpg")))
-                    (do
-                      (.outputQuality builder quality-decimal)
-                      (.outputFormat builder "jpeg")
-                      ;; Note: Thumbnailator automatically handles transparency conversion
-                      )
+                  ;; Write the scaled image
+                  (ImageIO/write scaled ^String extension output-file)
 
-                    ;; JPEG: use quality setting
-                    (or (= output-format "jpeg") (= output-format "jpg"))
-                    (do
-                      (.outputQuality builder quality-decimal)
-                      (.outputFormat builder "jpeg"))
-
-                    ;; Other formats with quality support
-                    :else
-                    (do
-                      (when-not output-is-png?
-                        (.outputQuality builder quality-decimal))
-                      (.outputFormat builder output-format)))
-
-                  ;; Write to file
-                  (.toFile builder output-file)
+                  ;; Flush the scaled image to free memory
+                  (.flush scaled)
 
                   {:output-path output-path
                    :processed? true
@@ -230,11 +221,23 @@
             (generate-placeholder {:output-path output-path
                                    :width (or width 400)
                                    :height (or height 300)
-                                   :source-path source-path
-                                   :format format})))))
+                                   :source-path source-path})))))
 
     (catch Exception e
       {:output-path nil
        :processed? false
        :placeholder? false
        :error (.getMessage e)})))
+
+(comment
+  ;; Test scaling
+  (process-image {:source-path "site/assets/images/values-technology.png"
+                  :width 295
+                  :height 295
+                  :output-dir ".temp/images"})
+
+  ;; Test placeholder
+  (process-image {:source-path "site/assets/images/missing.png"
+                  :width 400
+                  :height 300
+                  :output-dir ".temp/images"}))

@@ -6,12 +6,7 @@
         org.babashka/sci {:mvn/version "0.10.47"}
 
         ;; Image processing dependencies
-        net.coobird/thumbnailator {:mvn/version "0.4.20"}
-        com.twelvemonkeys.imageio/imageio-core {:mvn/version "3.10.1"}
-        com.twelvemonkeys.imageio/imageio-webp {:mvn/version "3.10.1"}
-        com.twelvemonkeys.imageio/imageio-batik {:mvn/version "3.10.1"}
-        org.apache.xmlgraphics/batik-codec {:mvn/version "1.17"}
-        org.apache.xmlgraphics/batik-transcoder {:mvn/version "1.17"}}
+        org.imgscalr/imgscalr-lib {:mvn/version "4.2"}}
 
  :aliases {:run {:main-opts ["-m" "anteo.website.core"]}
            :dev {:main-opts ["-m" "dev"]}

@@ -202,7 +202,7 @@
    Returns a vector of maps with :url, :path, :params, and :replace-url.
    Only extracts local images (not http/https) that have query parameters."
   [content]
-  (let [;; Regex to match URLs in src attributes and url() in CSS
+  (let [ ;; Regex to match URLs in src attributes and url() in CSS
         ;; Captures: full URL including query params
         url-pattern #"(?:src=[\"']?|url\([\"']?)(/assets/images/[^\"')\s]+\?[^\"')\s]+)"
 
@@ -214,23 +214,19 @@
                                      (case k
                                        "size" (if-let [[_ w h] (re-matches #"^(\d+)x(.*)$" v)]
                                                 (cond
-                                                ;; Both width and height present
+                                                  ;; Both width and height present
                                                   (not (clojure.string/blank? h))
                                                   (if (re-matches #"\d+" h)
                                                     (assoc m :width (Long/parseLong w)
                                                            :height (Long/parseLong h))
                                                     (assoc m :error (str "Invalid height: " h)))
 
-                                                ;; Width only (e.g. "800x")
+                                                  ;; Width only (e.g. "800x")
                                                   :else
                                                   (assoc m :width (Long/parseLong w)))
 
-                                              ;; Doesn't match pattern at all
+                                                ;; Doesn't match pattern at all
                                                 (assoc m :error (str "Invalid size format: " v)))
-                                       "quality" (if-let [q (try (Long/parseLong v) (catch Exception _ nil))]
-                                                   (assoc m :quality q)
-                                                   (assoc m :error (str "Invalid quality: " v)))
-                                       "format" (assoc m :format v)
                                        m)))
                                  {}
                                  pairs)))
@@ -239,13 +235,12 @@
                                (let [[base-path ext] (let [last-dot (.lastIndexOf path ".")]
                                                        [(subs path 0 last-dot)
                                                         (subs path (inc last-dot))])
-                                     {:keys [width height format]} params
-                                     new-ext (or format ext)
+                                     {:keys [width height]} params
                                      size-suffix (cond
                                                    (and width height) (str "-" width "x" height)
                                                    width (str "-" width "x")
                                                    :else "")]
-                                 (str base-path size-suffix "." new-ext)))]
+                                 (str base-path size-suffix "." ext)))]
 
     (->> (re-seq url-pattern content)
          (map (fn [[_ url]]
@@ -253,7 +248,7 @@
                       params (parse-params query-string)]
                   (cond-> {:url url
                            :source-path path}
-                    (not (:error params)) (merge (select-keys params [:width :height :format :quality])
+                    (not (:error params)) (merge (select-keys params [:width :height])
                                                  {:replace-url (generate-replace-url path params)})
                     (:error params) (assoc :error (:error params))))))
          vec)))
