@@ -25,14 +25,14 @@
       [:p "Vi tror de beste løsningene skapes i lag. Gjennom tett dialog med brukerne våre utvikler vi systemer som gir mening i hverdagen."]]]
 
     [:div.value-block
-     [:img {:src "/assets/images/values-technology.png" :alt "Teknologi sirkel"}]
+     [:img {:src "/assets/images/values-technology.png?size=295x295" :alt "Teknologi sirkel"}]
      [:div.value-content
       [:p]
       [:p [:em "TEKNOLOGI"]]
       [:p "Vi brenner for å gjøre teknologi nyttig. Praktiske, smarte verktøy som løser ekte behov."]]]
 
     [:div.value-block
-     [:img {:src "/assets/images/values-sustainability.png?size=295x295" :alt "Bærekfraft sirkel"}]
+     [:img {:src "/assets/images/values-sustainability.png" :alt "Bærekfraft sirkel"}]
      [:div.value-content
       [:p]
       [:p [:em "BÆREKRAFT"]]
@@ -108,9 +108,4 @@
           [:p.bio "Tor Anders har jobbet med systemutvikling i diverse selskap. Fra 2018 har han vært ansatt som Senior Systemarkitekt hos oss hvor han jobber med programmering i adminmodulen og App-programmering med ansvar for FishCtrl og FishJrnl."]
           [:div.contact-info
            [:p [:strong "E-post:"] " " [:a {:href "mailto:tor.anders@anteo.no"} "tor.anders@anteo.no"]]
-           [:p [:strong "Tel:"] " " [:a {:href "tel:+47 90728054"} "+47 90728054"]]]]]]]]]
-
-    [:div.team-section
-     [:div.team-section-inner
-      [:div.team-grid
-       [:sg/for :team-member]]]]]]]]
+           [:p [:strong "Tel:"] " " [:a {:href "tel:+47 90728054"} "+47 90728054"]]]]]]]]]]]]]

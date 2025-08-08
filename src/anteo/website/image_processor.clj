@@ -13,9 +13,10 @@
   (:require [clojure.java.io :as io]
             [clojure.string :as str])
   (:import [net.coobird.thumbnailator Thumbnails Thumbnails$Builder]
+           [net.coobird.thumbnailator.resizers Scalers]
            [javax.imageio ImageIO]
            [java.io File]
-           [java.awt Graphics2D Color Font BasicStroke]
+           [java.awt Graphics2D Color Font BasicStroke RenderingHints]
            [java.awt.image BufferedImage]))
 
 (set! *warn-on-reflection* true)
@@ -165,12 +166,50 @@
                 ;; Process with Thumbnailator
                 (let [quality-decimal (/ quality 100.0)
                       files ^"[Ljava.io.File;" (into-array File [source-file])
-                      builder ^Thumbnails$Builder (Thumbnails/of files)]
+                      builder ^Thumbnails$Builder (Thumbnails/of files)
+                      ;; Detect source format
+                      source-format (get-image-format source-path nil)
+                      is-png? (= source-format "png")
+                      ;; Determine output format
+                      output-format (get-image-format source-path format)
+                      output-is-png? (= output-format "png")]
+
                   ;; Only set size if dimensions are provided
                   (when (and width height)
-                    (.size builder width height))
-                  ;; Set quality
-                  (.outputQuality builder quality-decimal)
+                    (.size builder width height)
+                    ;; Use bicubic scaling for better quality
+                    (.scalingMode builder Scalers/BICUBIC))
+
+                  ;; Configure based on format
+                  (cond
+                    ;; PNG to PNG: preserve quality, don't use quality parameter
+                    (and is-png? output-is-png?)
+                    (do
+                      ;; PNG doesn't use quality settings
+                      ;; Thumbnailator will preserve transparency automatically
+                      (.outputFormat builder "png"))
+
+                    ;; PNG to JPEG: handle transparency with white background
+                    (and is-png? (or (= output-format "jpeg") (= output-format "jpg")))
+                    (do
+                      (.outputQuality builder quality-decimal)
+                      (.outputFormat builder "jpeg")
+                      ;; Note: Thumbnailator automatically handles transparency conversion
+                      )
+
+                    ;; JPEG: use quality setting
+                    (or (= output-format "jpeg") (= output-format "jpg"))
+                    (do
+                      (.outputQuality builder quality-decimal)
+                      (.outputFormat builder "jpeg"))
+
+                    ;; Other formats with quality support
+                    :else
+                    (do
+                      (when-not output-is-png?
+                        (.outputQuality builder quality-decimal))
+                      (.outputFormat builder output-format)))
+
                   ;; Write to file
                   (.toFile builder output-file)
 

@@ -1,6 +1,6 @@
 # Development Workflow
 
-## ⚠️ CRITICAL LESSONS FROM RECENT SESSIONS ⚠️
+## ⚠️ CRITICAL LESSONS FROM SESSIONS ⚠️
 
 ### 🚨 SYSTEMATIC DEBUGGING IS NON-NEGOTIABLE 🚨
 
@@ -50,6 +50,21 @@ Common issues to fix:
 - Misplaced docstrings (put before argument list)
 - Unused bindings (use `_` prefix or remove)
 
+### 🚨 NEW LESSON: RELOAD NAMESPACES PROPERLY 🚨
+
+**The vector-of-vectors bug:** We fixed the issue in REPL but the file system still had the old code.
+
+**WHAT WENT WRONG:**
+1. Fixed `:sg/each` flattening in REPL
+2. Tested and it worked
+3. But `clj -X:build` still failed
+4. Realized we hadn't reloaded the namespace from disk
+
+**THE RULE:** Always reload with `:reload-all` when testing fixes:
+```clojure
+(require '[namespace] :reload-all)
+```
+
 ## Core Principles
 
 ### 0. Stick to the Plan (MOST IMPORTANT)
@@ -66,23 +81,8 @@ Common issues to fix:
 
 **Example from this session:**
 ```
-Human: "add a comment form at the bottom of core with code to run a build"
-Assistant: [adds the comment block, then STOPS]
-
-NOT:
-Assistant: [adds comment block, then also creates CLAUDE.md file without being asked]
-```
-
-**Good pattern:**
-```
-Assistant: "I notice the footer isn't rendering. Should I fix that?"
-Human: "Yes"
-Assistant: [fixes the footer]
-```
-
-**Bad pattern:**
-```
-Assistant: [notices issue, fixes it without asking]
+Human: "we're in the middle of implementing sg/each"
+Assistant: [focuses only on sg/each implementation]
 ```
 
 ### 1. Bottom-Up Development
@@ -92,22 +92,15 @@ Build and validate small pieces before combining them into larger solutions.
 
 **Example from this session:**
 ```clojure
-;; WRONG: Writing a complete function without testing parts
-(defn build-site [...] 
-  ;; 100 lines of untested code
-  )
+;; Test :sg/each parsing first
+(parse-sg-each-args [:items :limit 2 [:div "template"]])
+;; => {:collection-key :items, :options {:limit 2}, :template [:div "template"]}
 
-;; RIGHT: Test each piece first
-;; Test language detection
-(let [lang-config {:no {:default true}}]
-  (some (fn [[k v]] (when (:default v) k)) lang-config))
-;; => :no
+;; Test ordering logic
+(sort-by-options [{:date "2024-01"} {:date "2024-03"}] [:date :desc])
+;; => ({:date "2024-03"} {:date "2024-01"})
 
-;; Test path calculation  
-(defn calculate-output-path [path lang-code default-lang] ...)
-;; Test it works correctly
-
-;; THEN combine into build-site
+;; THEN implement full :sg/each
 ```
 
 ### 2. No Shortcuts
@@ -115,38 +108,34 @@ Every shortcut creates technical debt and bugs. Think through the problem proper
 
 **Example from this session:**
 ```clojure
-;; WRONG: Hardcoding assumptions
-(if (#{:footer :nav :header} k)  ; Why these? What about :sidebar?
-  (assoc m k v))
+;; WRONG: String concatenation hack
+(defn concatenate-adjacent-strings [v] ...)  ; Complex, fragile
 
-;; RIGHT: Let the system work it out
-:includes templates  ; Just pass all templates, let :sg/include decide
+;; RIGHT: Question the requirement
+;; "Does Hiccup actually need concatenated strings?"
+;; Answer: No! Remove unnecessary code
 ```
 
 ### 3. Test-Driven Development (TDD)
 
 Always write tests first, watch them fail, then implement.
 
-**Workflow:**
-1. Write test that describes what you want
-2. Run test - confirm it fails
-3. Write minimal code to pass
-4. Refactor if needed
+**Examples from this session:**
 
-**Example from this session:**
-```clojure
-;; 1. Write test first
-(deftest test-sg-get
-  (testing "Basic :sg/get replacement"
-    (let [template [:div [:h1 [:sg/get :title]]]
-          content {:title "Welcome"}
-          expected [:div [:h1 "Welcome"]]]
-      (is (= expected (sg/process template content))))))
+1. **:sg/each implementation**
+   - Wrote 6 comprehensive tests covering all features
+   - Tests failed as expected
+   - Implemented step by step until all passed
 
-;; 2. Run and see it fail
-;; 3. Implement :sg/get in process function
-;; 4. Run test again - green!
-```
+2. **Vector-of-vectors flattening**
+   - Reproduced exact error with test
+   - Test failed showing double-wrapped vectors
+   - Fixed and test passed
+
+3. **:sg/get missing values**
+   - Wrote test expecting key name as string
+   - Test failed (was returning directive)
+   - Implemented with logging
 
 ### 4. REPL-Driven Verification
 
@@ -154,29 +143,39 @@ Before implementing anything substantial, validate your approach in the REPL.
 
 **Example from this session:**
 ```clojure
-;; Before implementing language prefixes, test the logic:
-(calculate-output-path "/" :no :no)     ; => "/"
-(calculate-output-path "/" :en :no)     ; => "/en/"
-(calculate-output-path "/about.html" :en :no) ; => "/en/about.html"
+;; Testing what Hiccup does with mixed content
+(str (h/html [:div 1 "-" "C"]))
+;; => "<div>1-C</div>"  ; Hiccup concatenates!
 
-;; Validated? Now implement in build-site
+;; So our test expecting [:div "1-C"] was wrong
+;; Fixed test to expect [:div 1 "-" "C"]
+```
+
+### 5. Trace Through Complex Issues
+
+When facing mysterious errors, trace systematically.
+
+**Example from this session:**
+```clojure
+;; Error: "[:section.product-section ...] is not a valid element name"
+
+;; Step 1: Check if HTML files are strings
+(string? (:html (first html-files))) ; => true
+
+;; Step 2: Check where error occurs
+"Processing images..." ; After HTML generation!
+
+;; Step 3: Isolate the issue
+; Found :sg/each was returning [[:section ...] [:section ...]]
+; Instead of splicing
+
+;; Step 4: Write minimal reproduction
+(test-sg-each-in-vector-of-vectors)
 ```
 
 ### 6. Edit Files Carefully
 
-**NEVER make large, untested edits to files.** The site-generator corruption showed how dangerous this is.
-
-**Example from this session:**
-```clojure
-;; WRONG: Tried to edit process function, ended up with:
-(defn process
-  "Process a base template by replacing :sg/* directives"
-  [base content]
-  (let []))  ; CORRUPTED FILE!
-
-;; RIGHT: Should have used git to revert:
-git checkout src/anteo/website/site_generator.clj
-```
+**NEVER make large, untested edits to files.**
 
 **THE RULE:** 
 - Make small, focused edits
@@ -240,6 +239,8 @@ Before considering work complete:
 - [ ] REPL examples in comment block
 - [ ] Complex logic is documented
 - [ ] Check correct output directories
+- [ ] **Build succeeds** (`clj -X:build`)
+- [ ] Update planning documents (TODO.md, DECISIONS.md, etc.)
 
 ## Common Anti-Patterns to Avoid
 
@@ -248,6 +249,7 @@ Before considering work complete:
 3. **Ignoring warnings** - Fix them or understand why they're safe
 4. **"Temporary" hacks** - Do it right the first time
 5. **Assuming instead of checking** - Validate your assumptions
+6. **Over-engineering** - Question if complexity is needed (concatenate-adjacent-strings!)
 
 ## REPL Development Tips
 
@@ -268,4 +270,15 @@ Use the comment block at the bottom of files for common operations:
   ;; Test specific function
   (build-site (load-site-data "site/site.edn") {})
   )
+```
+
+## Testing Private Functions
+
+When tests need private functions, use the var:
+```clojure
+;; Instead of
+(core/render-page ...)  ; Fails if private
+
+;; Use
+(#'core/render-page ...)  ; Works with private functions
 ```
