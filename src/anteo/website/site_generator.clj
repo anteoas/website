@@ -101,7 +101,7 @@
           ;; Value not found - return key name as string and log
           (let [path-str (str/join "." (map name path))
                 verbose? (:verbose content)]
-            (println (str "WARNING: :sg/get key not found: " path-str))
+            (println (str "⚠️  :sg/get key not found: " path-str))
             (when verbose?
               (println "Context keys:" (keys data-source))
               (println "Full context:" (pr-str data-source)))
@@ -202,7 +202,7 @@
    Returns a vector of maps with :url, :path, :params, and :replace-url.
    Only extracts local images (not http/https) that have query parameters."
   [content]
-  (let [ ;; Regex to match URLs in src attributes and url() in CSS
+  (let [;; Regex to match URLs in src attributes and url() in CSS
         ;; Captures: full URL including query params
         url-pattern #"(?:src=[\"']?|url\([\"']?)(/assets/images/[^\"')\s]+\?[^\"')\s]+)"
 

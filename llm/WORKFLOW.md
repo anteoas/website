@@ -65,6 +65,23 @@ Common issues to fix:
 (require '[namespace] :reload-all)
 ```
 
+### 🛑 STOP AND CHECK RULE 🛑
+
+**THIS IS CRITICAL TO PREVENT SCOPE CREEP:**
+
+1. **After writing tests** → STOP and run them
+2. **Show test results to human** → WAIT for feedback
+3. **Do NOT implement until approved**
+4. **Do NOT add features that weren't requested**
+5. **Do NOT expand scope without explicit permission**
+
+**Examples of what NOT to do:**
+- Human asks for default values → Don't also add nested paths, multiple defaults, type checking
+- Human asks to fix a bug → Don't refactor the entire module
+- Human asks for feature A → Don't implement A, B, C, and D
+
+**THE RULE:** Implement EXACTLY what was asked, nothing more. If you have ideas for improvements, ASK FIRST.
+
 ### 🚨 NEW LESSON: VERIFY SMALL SNIPPETS IN REPL FIRST 🚨
 
 **The imgscalr implementation:** We made assumptions about API without testing.
@@ -282,6 +299,9 @@ Before considering work complete:
 4. **"Temporary" hacks** - Do it right the first time
 5. **Assuming instead of checking** - Validate your assumptions
 6. **Over-engineering** - Question if complexity is needed (concatenate-adjacent-strings!)
+7. **Scope Creep Without Permission** - Human asks for A, Claude adds A, B, C, and D without asking
+8. **Feature Tangents** - Human asks for simple fix, Claude redesigns entire system
+9. **Expanding Requirements** - Human asks for [:sg/get :key "default"], Claude adds nested paths, multiple defaults, etc.
 
 ## REPL Development Tips
 

@@ -1,5 +1,29 @@
 # Decision Log
 
+## Core Development Principles
+
+### Minimal Implementation First
+
+**Decision**: Always implement EXACTLY what was asked, nothing more.
+
+**Rationale**:
+- Prevents scope creep and unexpected behavior
+- Easier to review and understand changes
+- Reduces risk of introducing bugs
+- Respects the human's vision for the project
+
+**Examples**:
+- If asked for `:sg/get` with default value, implement ONLY that - not nested paths, not multiple defaults
+- If asked to fix a bug, fix ONLY that bug - don't refactor surrounding code
+- If asked for feature A, implement A - don't also add features B, C, and D
+
+**Process**:
+1. Understand the exact requirement
+2. Write minimal tests for ONLY that requirement
+3. Show tests and results to human
+4. Wait for approval before implementing
+5. Implement the minimal solution that makes tests pass
+
 ## 2024-08-08 - Template Processing Decisions
 
 ### :sg/each Directive Implementation

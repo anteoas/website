@@ -413,13 +413,7 @@
           ;; We expect the products to be spliced at the same level
           expected [[:h1 "Title"]
                     [:section "P1"]
-                    [:section "P2"]]
-
-          ;; But we're getting
-          actual [[:h1 "Title"]
-                  [[:section "P1"] [:section "P2"]]]]
-      (println "Expected:" (pr-str expected))
-      (println "Actual:" (pr-str result))
+                    [:section "P2"]]]
       (is (= expected result)))))
 
 (deftest test-sg-get-missing-value
