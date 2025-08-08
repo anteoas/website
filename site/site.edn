@@ -6,8 +6,8 @@
 
  :image-processor true
 
- ;; defaults
- ;; :templates "templates"
- ;; :assets "assets"
- ;; :content "content"
+ :templates "templates" ;; default
+ :assets "assets" ;; default
+ :content "content" ;; default
+
  }

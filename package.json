@@ -1,0 +1,16 @@
+{
+  "name": "anteo-site-generator",
+  "version": "1.0.0",
+  "description": "Static site generator for Anteo website",
+  "private": true,
+  "scripts": {
+    "dev": "browser-sync start --server site/dist --files 'site/dist/**/*' --no-notify",
+    "build:dev": "clojure -M:run site/site.edn --mode dev",
+    "build:prod": "clojure -M:run site/site.edn --mode prod",
+    "serve": "clojure -M:run site/site.edn --mode dev --serve"
+  },
+  "devDependencies": {
+    "browser-sync": "^2.29.3",
+    "esbuild": "^0.19.12"
+  }
+}

@@ -117,8 +117,8 @@
                 (let [[path query-string] (clojure.string/split url #"\?" 2)
                       params (parse-params query-string)]
                   (cond-> {:url url
-                           :path path}
-                    (not (:error params)) (assoc :params params
-                                                 :replace-url (generate-replace-url path params))
+                           :source-path path}
+                    (not (:error params)) (merge (select-keys params [:width :height :format :quality])
+                                                 {:replace-url (generate-replace-url path params)})
                     (:error params) (assoc :error (:error params))))))
          vec)))
