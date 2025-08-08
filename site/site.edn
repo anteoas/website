@@ -1,0 +1,13 @@
+{:wrapper :base
+ :lang {:no {:name "Norsk"
+             :icon "assets/images/flags/norway-flag.svg"}}
+ :render {:about "/about.html"
+          :landing "/"}
+
+ :image-processor true
+
+ ;; defaults
+ ;; :templates "templates"
+ ;; :assets "assets"
+ ;; :content "content"
+ }

@@ -115,6 +115,4 @@
     [:div.team-section
      [:div.team-section-inner
       [:div.team-grid
-       [:sg/for :team-member]]]]
-
-]]]]
+       [:sg/for :team-member]]]]]]]]

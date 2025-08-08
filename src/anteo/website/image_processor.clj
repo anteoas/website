@@ -48,7 +48,23 @@
                            (str/join "." (butlast parts))
                            file-name)
         actual-format (get-image-format source-path format)
-        output-name (clojure.core/format "%s-%dx%d.%s" name-without-ext width height actual-format)]
+        ;; Build filename based on what processing is needed
+        output-name (cond
+                      ;; Both width and height specified
+                      (and width height)
+                      (str name-without-ext "-" width "x" height "." actual-format)
+
+                      ;; Only width specified
+                      width
+                      (str name-without-ext "-" width "x." actual-format)
+
+                      ;; No dimensions but format conversion
+                      format
+                      (str name-without-ext "." actual-format)
+
+                      ;; No processing - keep original name
+                      :else
+                      file-name)]
     output-name))
 
 (defn- create-placeholder-image
@@ -121,6 +137,7 @@
 (defn process-image
   "Process a single image with given options.
    Generates placeholder if source doesn't exist.
+   Copies as-is if no width/height/format specified.
    No-op if output already exists."
   [{:keys [source-path width height format quality output-dir]
     :or {quality 80}}]
@@ -139,28 +156,41 @@
         ;; Check if source exists
         (let [source-file (io/file source-path)]
           (if (.exists ^File source-file)
-            ;; Process the actual image
+            ;; Process or copy the actual image
             (do
               ;; Ensure output directory exists
               (io/make-parents output-file)
 
-              ;; Use Thumbnailator for processing
-              (let [quality-decimal (/ quality 100.0)
-                    files ^"[Ljava.io.File;" (into-array File [source-file])]
-                (doto ^Thumbnails$Builder (Thumbnails/of files)
-                  (.size width height)
-                  (.outputQuality quality-decimal)
-                  (.toFile output-file))
+              (if (or width height format)
+                ;; Process with Thumbnailator
+                (let [quality-decimal (/ quality 100.0)
+                      files ^"[Ljava.io.File;" (into-array File [source-file])
+                      builder ^Thumbnails$Builder (Thumbnails/of files)]
+                  ;; Only set size if dimensions are provided
+                  (when (and width height)
+                    (.size builder width height))
+                  ;; Set quality
+                  (.outputQuality builder quality-decimal)
+                  ;; Write to file
+                  (.toFile builder output-file)
 
-                {:output-path output-path
-                 :processed? true
-                 :placeholder? false
-                 :error nil}))
+                  {:output-path output-path
+                   :processed? true
+                   :placeholder? false
+                   :error nil})
+
+                ;; Just copy the file as-is
+                (do
+                  (io/copy source-file output-file)
+                  {:output-path output-path
+                   :processed? true
+                   :placeholder? false
+                   :error nil})))
 
             ;; Generate placeholder
             (generate-placeholder {:output-path output-path
-                                   :width width
-                                   :height height
+                                   :width (or width 400)
+                                   :height (or height 300)
                                    :source-path source-path
                                    :format format})))))
 
