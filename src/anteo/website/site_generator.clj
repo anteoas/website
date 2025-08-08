@@ -61,7 +61,19 @@
 
       ;; Handle :sg/body
       (= (first base) :sg/body)
-      body-content
+      ;; Process body-content if it's a vector of vectors
+      (if (vector-of-vectors? body-content)
+        (vec (mapcat (fn [elem]
+                       (let [result (process elem content)]
+                         ;; If result is from :sg/each (vector of vectors), flatten it
+                         (if (and (vector? elem)
+                                  (= (first elem) :sg/each)
+                                  (vector? result)
+                                  (every? vector? result))
+                           result
+                           [result])))
+                     body-content))
+        body-content)
 
       ;; Handle :sg/include
       (and (= (first base) :sg/include)
@@ -160,12 +172,21 @@
             ;; Process children
             processed-children (mapcat (fn [child]
                                          (let [result (process child content)]
-                                           ;; If this was an :sg/each that returned a vector of elements
-                                           (if (and (vector? child)
-                                                    (= (first child) :sg/each)
-                                                    (vector? result)
-                                                    (not (keyword? (first result))))
+                                           (cond
+                                             ;; If this was an :sg/each that returned a vector of elements
+                                             (and (vector? child)
+                                                  (= (first child) :sg/each)
+                                                  (vector? result)
+                                                  (not (keyword? (first result))))
                                              result
+
+                                             ;; If this was :sg/body that returned a vector of vectors
+                                             (and (vector? child)
+                                                  (= (first child) :sg/body)
+                                                  (vector-of-vectors? result))
+                                             result
+
+                                             :else
                                              [result])))
                                        children)]
         ;; Reconstruct the element
