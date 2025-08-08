@@ -1,4 +1,4 @@
-type: team-member
+template: team-member
 name: Lill-Kristin Karlsen
 position: Systemutvikler
 email: 

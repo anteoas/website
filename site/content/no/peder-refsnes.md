@@ -1,4 +1,4 @@
-type: team-member
+template: team-member
 name: Peder Refsnes
 position: CTO
 email: peder@anteo.no

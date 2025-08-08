@@ -1,4 +1,4 @@
-type: team-member
+template: team-member
 name: Tor Anders Aas
 position: Senior systemarkitekt
 email: tor.anders@anteo.no

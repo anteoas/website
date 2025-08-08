@@ -1,4 +1,4 @@
-type: team-member
+template: team-member
 name: Sverre Marvik
 position: CEO
 email: sverre@anteo.no

@@ -1,4 +1,4 @@
-type: team-member
+template: team-member
 name: Svein Vegard Volden
 position: Forretningsutvikler
 email: svein.vegard@anteo.no

@@ -1,4 +1,4 @@
-type: team-member
+template: team-member
 name: Christine Nordal Sunde
 position: CCO
 email: christine@anteo.no

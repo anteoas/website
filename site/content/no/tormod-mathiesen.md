@@ -1,4 +1,4 @@
-type: team-member
+template: team-member
 name: Tormod Mathiesen
 position: Systemutvikler
 email: 

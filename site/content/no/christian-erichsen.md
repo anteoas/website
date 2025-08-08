@@ -1,4 +1,4 @@
-type: team-member
+template: team-member
 name: Christian Erichsen
 position: Forretningsutvikler og Styremedlem
 email: christian@anteo.no

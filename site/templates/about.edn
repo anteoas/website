@@ -4,10 +4,10 @@
     [:section.hero-headline.page-hero {:style "background-image: linear-gradient(130deg, #003f7e4d, #3fb4984d), url('/assets/images/hero-about.jpg'); text-align: right"}
      [:div.container
       [:div.hero-content
-       [:h1 "Om Anteo"]]]]
+       [:h1 [:sg/get :page-title]]]]]
 
     [:h2 "Hvem er vi?"]
-    [:p "Anteo er et norsk teknologiselskap som siden 2012 har jobbet for én ting: å gjøre hverdagen i havbruksnæringen enklere, smartere – og bedre for både folk og fisk. Vi utvikler digitale verktøy for logistikk, samhandling og fiskehelse, i tett dialog med næringen selv."]
+    [:p [:sg/get :intro-text]]
     [:p "Målet vårt er ikke å være størst, men å være til hjelp – med løsninger som faktisk fungerer i praksis. Vi tror at god teknologi starter med å forstå virkeligheten. Derfor samarbeider vi med aktører på tvers av verdikjeden for å løse konkrete utfordringer knyttet til effektiv drift, fiskevelferd og miljøansvar."]
 
     [:h2 "Vår visjon"]
@@ -109,8 +109,6 @@
           [:div.contact-info
            [:p [:strong "E-post:"] " " [:a {:href "mailto:tor.anders@anteo.no"} "tor.anders@anteo.no"]]
            [:p [:strong "Tel:"] " " [:a {:href "tel:+47 90728054"} "+47 90728054"]]]]]]]]]
-
-
 
     [:div.team-section
      [:div.team-section-inner

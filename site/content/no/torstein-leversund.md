@@ -1,4 +1,4 @@
-type: team-member
+template: team-member
 name: Torstein Leversund
 position: Systemutvikler
 email: 

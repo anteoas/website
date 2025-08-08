@@ -1,4 +1,4 @@
-type: team-member
+template: team-member
 name: Kjetil Lund
 position: Utvikler
 email: 
