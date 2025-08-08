@@ -57,7 +57,16 @@
       ;; then this is a collection of elements to process
       (and (vector? (first base))
            (keyword? (first (first base))))
-      (mapv #(process % content) base)
+      (vec (mapcat (fn [elem]
+                     (let [result (process elem content)]
+                       ;; If this was an :sg/each that returned multiple elements
+                       (if (and (vector? elem)
+                                (= (first elem) :sg/each)
+                                (vector? result)
+                                (every? vector? result))
+                         result
+                         [result])))
+                   base))
 
       ;; Handle :sg/body
       (= (first base) :sg/body)
@@ -89,7 +98,14 @@
             value (get-in data-source path)]
         (if (some? value)
           value
-          base)) ; Return placeholder if not found
+          ;; Value not found - return key name as string and log
+          (let [path-str (str/join "." (map name path))
+                verbose? (:verbose content)]
+            (println (str "WARNING: :sg/get key not found: " path-str))
+            (when verbose?
+              (println "Context keys:" (keys data-source))
+              (println "Full context:" (pr-str data-source)))
+            path-str))) ; Return placeholder if not found
 
       ;; Handle :sg/each
       (and (= (first base) :sg/each)

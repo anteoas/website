@@ -189,10 +189,10 @@
           expected [:div [:h1 "Welcome"]]]
       (is (= expected (sg/process template content)))))
 
-  (testing ":sg/get with missing key returns placeholder"
+  (testing ":sg/get with missing key returns key name"
     (let [template [:div [:h1 [:sg/get :missing-key]]]
           content {:data {:title "Welcome"}}
-          expected [:div [:h1 [:sg/get :missing-key]]]]
+          expected [:div [:h1 "missing-key"]]]
       (is (= expected (sg/process template content)))))
 
   (testing ":sg/get nested in attributes"
@@ -389,5 +389,58 @@
                     [:div "Item 2"]
                     [:p "Footer"]]
           actual (sg/process base-template content)]
+      (is (= expected actual)))))
+
+(deftest test-sg-get-in-attributes
+  (testing ":sg/get in attributes when value exists"
+    (let [template [:div {:class [:sg/get :wrap-class]} "Content"]
+          content {:wrap-class "reversed"}
+          expected [:div {:class "reversed"} "Content"]
+          actual (sg/process template content)]
+      (is (= expected actual)))))
+
+(deftest test-sg-each-in-vector-of-vectors
+  (testing ":sg/each in a vector of vectors should splice results properly"
+    (let [;; Template is a vector of vectors (like landing.edn)
+          template [[:h1 "Title"]
+                    [:sg/each :products
+                     [:section [:sg/get :name]]]]
+          content {:products [{:name "P1"} {:name "P2"}]}
+
+          ;; Process the template
+          result (sg/process template content)
+
+          ;; We expect the products to be spliced at the same level
+          expected [[:h1 "Title"]
+                    [:section "P1"]
+                    [:section "P2"]]
+
+          ;; But we're getting
+          actual [[:h1 "Title"]
+                  [[:section "P1"] [:section "P2"]]]]
+      (println "Expected:" (pr-str expected))
+      (println "Actual:" (pr-str result))
+      (is (= expected result)))))
+
+(deftest test-sg-get-missing-value
+  (testing ":sg/get with missing value should return the key name as string"
+    (let [template [:div [:sg/get :missing-key]]
+          content {:other-key "value"}
+          expected [:div "missing-key"]
+          actual (sg/process template content)]
+      (is (= expected actual))))
+
+  (testing ":sg/get with nested missing value"
+    (let [template [:div [:sg/get :deeply :nested :missing]]
+          content {:deeply {:nested {:other "value"}}}
+          expected [:div "deeply.nested.missing"]
+          actual (sg/process template content)]
+      (is (= expected actual))))
+
+  (testing ":sg/get in attributes with missing value"
+    (let [template [:div {:class [:sg/get :missing-class]} "Content"]
+          content {}
+          expected [:div {:class "missing-class"} "Content"]
+          actual (sg/process template content)]
       (is (= expected actual)))))
 

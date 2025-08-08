@@ -23,7 +23,7 @@
           config {:wrapper :wrapper}
 
           ;; Call render-page
-          result (core/render-page {:config config :templates templates} page)]
+          result (#'core/render-page {:config config :templates templates} page)]
 
       ;; Check the HTML contains our text
       (is (some? (:html result)))
@@ -36,5 +36,5 @@
     (let [page {:content-key :test :lang-code :no}
           templates {}
           config {:wrapper :wrapper}
-          result (core/render-page {:config config :templates templates} page)]
+          result (#'core/render-page {:config config :templates templates} page)]
       (is (= page result))))) ; Should return the page unchanged

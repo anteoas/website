@@ -10,7 +10,46 @@
             [anteo.website.site-generator :as sg]
             [anteo.website.image-processor :as img]))
 
-(defn load-template
+(defmacro capture-env
+  "Capture local bindings.
+
+  Example:
+
+  (defn adder [x y]
+    (user/capture-env)
+    (+ x y))
+
+  expands to:
+
+  (defn adder [x y]
+    (def x x)
+    (def y y)
+    (+ x y))
+
+  you can also specify which symbols to capture
+
+  (defn adder [x y]
+    (user/capture-env y)
+    (+ x y))
+
+  expands to:
+
+  (defn adder [x y]
+    (def y y)
+    (+ x y))
+
+
+  Useful for debugging function bodies in the repl."
+  ([]
+   `(capture-env ~@(keys &env)))
+  ([& symbols]
+   (cons 'do
+         (map (fn [local]
+                `(def ~local ~local))
+              symbols))))
+
+
+(defn- load-template
   "Load a single template file. Returns template data or function."
   [template-file]
   (let [path (.getPath template-file)]
@@ -24,7 +63,7 @@
 
       :else nil)))
 
-(defn load-templates
+(defn- load-templates
   "Load all templates from a directory into a map."
   [templates-dir]
   (reduce (fn [templates file]
@@ -38,7 +77,7 @@
           (filter #(re-matches #".*\.(edn|clj)$" (.getName %))
                   (file-seq templates-dir))))
 
-(defn parse-markdown
+(defn- parse-markdown
   "Parse markdown file with metadata. Returns map with metadata and :markdown/content."
   [content]
   (let [;; Simple metadata parser - looks for key: value lines at start
@@ -60,7 +99,7 @@
                          metadata-lines)]
     (assoc metadata :markdown/content (str/join "\n" content-lines))))
 
-(defn load-content-file
+(defn- load-content-file
   "Load a single content file."
   [file]
   (let [path (str file)]
@@ -73,14 +112,14 @@
 
       :else nil)))
 
-(defn load-content-directory
+(defn- load-content-directory
   "Load all content files from a directory"
   [dir]
   (when (fs/exists? dir)
     (let [files (fs/glob dir "*.{edn,md}")]
       (vec (keep load-content-file files)))))
 
-(defn load-site-data
+(defn- load-site-data
   "Load all site data from filesystem."
   [site-edn-path]
   (let [root-path (-> site-edn-path io/file .getParentFile .getAbsolutePath)
@@ -90,7 +129,7 @@
     {:config config
      :templates (load-templates (io/file root-path "templates"))}))
 
-(defn find-default-language
+(defn- find-default-language
   "Find the default language and assoc it to context"
   [{:keys [config] :as ctx}]
   (let [lang-config (:lang config)
@@ -98,7 +137,7 @@
                          (first (keys lang-config)))]
     (assoc ctx :default-lang default-lang)))
 
-(defn expand-render-targets
+(defn- expand-render-targets
   "Expand render targets into individual page specs"
   [{:keys [config] :as ctx}]
   (let [pages (for [[lang-code lang-config] (:lang config)
@@ -109,7 +148,7 @@
                  :output-path output-path})]
     (assoc ctx :pages pages)))
 
-(defn load-page-content
+(defn- load-page-content
   "Load content file for a specific page/language combination"
   [{:keys [config]} page]
   (let [lang-code (name (:lang-code page))
@@ -131,12 +170,12 @@
                (seq products) (assoc :products products)
                (seq news) (assoc :news news))))))
 
-(defn load-all-content
+(defn- load-all-content
   "Load content for all pages"
   [{:keys [pages] :as ctx}]
   (assoc ctx :pages (map #(load-page-content ctx %) pages)))
 
-(defn process-page-content
+(defn- process-page-content
   "Process markdown and add language info"
   [{:keys [default-lang]} page]
   (if-let [content (:content page)]
@@ -151,12 +190,12 @@
       (assoc page :content processed))
     page))
 
-(defn process-all-content
+(defn- process-all-content
   "Process content for all pages"
   [{:keys [pages default-lang] :as ctx}]
   (assoc ctx :pages (map #(process-page-content {:default-lang default-lang} %) pages)))
 
-(defn calculate-page-path
+(defn- calculate-page-path
   "Calculate final output path with language prefix"
   [{:keys [default-lang]} page]
   (let [{:keys [output-path lang-code]} page
@@ -165,12 +204,12 @@
                      (str "/" (name lang-code) "/" (str/replace output-path #"^/" "")))]
     (assoc page :path final-path)))
 
-(defn calculate-all-paths
+(defn- calculate-all-paths
   "Calculate paths for all pages"
   [{:keys [pages default-lang] :as ctx}]
   (assoc ctx :pages (map #(calculate-page-path {:default-lang default-lang} %) pages)))
 
-(defn render-page
+(defn- render-page
   "Render page HTML if content exists"
   [{:keys [config templates]} page]
   (if-let [content (:content page)]
@@ -190,12 +229,12 @@
       (println (str "ERROR: No content for " (:content-key page) " in " (:lang-code page)))
       page)))
 
-(defn render-all-pages
+(defn- render-all-pages
   "Render all pages"
   [{:keys [pages config templates] :as ctx}]
   (assoc ctx :pages (map #(render-page {:config config :templates templates} %) pages)))
 
-(defn build-site
+(defn- build-site
   "Build static site from prepared data (content-driven).
    Data map should contain:
      :config - Original site.edn data with :root-path
@@ -222,7 +261,7 @@
       (->> (filter :html)
            (map #(select-keys % [:path :html])))))
 
-(defn process-images
+(defn- process-images
   "Process images in HTML and CSS files based on query parameters."
   [html-files css-files root-path]
   (let [;; Extract image URLs from all HTML and CSS
@@ -263,7 +302,7 @@
              (assoc html-file :html updated-html)))
          html-files)))
 
-(defn bundle-css
+(defn- bundle-css
   "Bundle CSS with esbuild"
   [site-root output-dir mode]
   (let [css-path "assets/css/style.css"
@@ -279,7 +318,7 @@
       (catch Exception e
         (println "✗ CSS bundling failed:" (.getMessage e))))))
 
-(defn bundle-js
+(defn- bundle-js
   "Bundle JavaScript with esbuild"
   [site-root output-dir mode]
   (let [js-path "assets/js/index.js"
@@ -298,13 +337,13 @@
       (catch Exception e
         (println "✗ JavaScript bundling failed:" (.getMessage e))))))
 
-(defn bundle-assets
+(defn- bundle-assets
   "Bundle all CSS and JS assets"
   [site-root output-dir mode]
   (bundle-css site-root output-dir mode)
   (bundle-js site-root output-dir mode))
 
-(defn start-dev-server
+(defn- start-dev-server
   "Start browser-sync dev server"
   [output-dir]
   (println "Starting development server...")
@@ -321,7 +360,7 @@
     ;; Return process so it can be managed
     proc))
 
-(defn write-output
+(defn- write-output
   "Write HTML files to disk."
   [html-files output-dir]
   (doseq [{:keys [path html]} html-files]
@@ -337,7 +376,7 @@
       (spit output-file html)
       (println "Wrote:" (.getPath output-file)))))
 
-(defn parse-args
+(defn- parse-args
   "Parse command line arguments"
   [args]
   (loop [args args
@@ -369,7 +408,7 @@
 (defn build
   "Build the site. Suitable for clj -X invocation.
    Example: clj -X anteo.website.core/build :site-edn '\"site/site.edn\"' :output-dir '\"dist\"' :mode :prod"
-  [{:keys [site-edn output-dir mode] :or {mode :prod}}]
+  [& {:keys [site-edn output-dir mode] :or {mode :prod}}]
   (when-not site-edn
     (throw (ex-info "Missing required :site-edn parameter" {})))
 
@@ -424,7 +463,7 @@
 (defn dev
   "Build and start dev server. Suitable for clj -X invocation.
    Example: clj -X anteo.website.core/dev :site-edn '\"site/site.edn\"'"
-  [{:keys [site-edn output-dir] :or {output-dir "dist"}}]
+  [& {:keys [site-edn output-dir] :or {output-dir "dist"}}]
   ;; Build with dev mode
   (build {:site-edn site-edn
           :output-dir output-dir
@@ -438,8 +477,8 @@
 (defn clean
   "Clean build artifacts. Suitable for clj -X invocation.
    Example: clj -X anteo.website.core/clean"
-  [{:keys [output-dir temp-dir site-edn]
-    :or {output-dir "dist" temp-dir ".temp"}}]
+  [& {:keys [output-dir temp-dir site-edn]
+      :or {output-dir "dist" temp-dir ".temp"}}]
   ;; If site-edn provided, use its root path
   (let [dirs-to-clean (if site-edn
                         (let [root-path (-> site-edn load-site-data :config :root-path)]
@@ -490,84 +529,267 @@
         (System/exit 1)))))
 
 (comment
-  ;; Development helper functions
 
-  ;; Load and inspect site data
-  (def site-data (load-site-data "site/site.edn"))
+  (clean nil)
 
-  ;; Check what templates are loaded
-  (keys (:templates site-data))
-  ;; => (:about :base :footer :landing)
+  (build {:site-edn "site/site.edn" :mode :dev})
 
-  ;; Check site configuration
-  (:config site-data)
-
-  ;; Build the site to dist directory
-  (do
-    (def site-data (load-site-data "site/site.edn"))
-    (def html-files (build-site site-data {:verbose true}))
-    (println "Generated" (count html-files) "pages"))
-
-  ;; Quick build - no image processing
-  (let [site-data (load-site-data "site/site.edn")
-        output-dir "dist-dev"]
-    (write-output (build-site site-data {:verbose true}) (io/file output-dir))
-    (bundle-assets (:root-path (:config site-data)) output-dir :dev)
-    (println "Quick build complete!"))
-
-  ;; Full build with image processing
-  ;; Full build with image processing
-  (-main "site/site.edn" "--output-dir" "dist-test")
-
-  ;; Build and serve
-  (-main "site/site.edn" "--serve")
-
-  ;; Using -X style invocations
-  (build {:site-edn "site/site.edn" :output-dir "dist-test" :mode :prod})
   (dev {:site-edn "site/site.edn"})
-  (clean {:site-edn "site/site.edn"})
-  ;; => {:template :landing, 
-  ;;     :hero-title "Internettbasert...", 
-  ;;     :hero-subtitle "Beslutningsstøttesystemer..."}
 
-  ;; Test template processing
+[:html
+ {:lang "no"}
+ [:head
+  [:meta {:charset "UTF-8"}]
+  [:meta
+   {:name "viewport",
+    :content "width=device-width, initial-scale=1.0"}]
+  [:meta {:name "theme-color", :content "#112a38"}]
+  [:title "Anteo - Bærekraftige løsninger for havbruk - Anteo AS"]
+  [:meta
+   {:name "description",
+    :content
+    "Beslutningsstøttesystemer for en bærekraftig havbruksnæring"}]
+  [:link
+   {:rel "icon",
+    :type "image/png",
+    :sizes "32x32",
+    :href "/assets/images/favicon-32x32.png"}]
+  [:link {:rel "stylesheet", :href "/assets/css/style.css"}]]
+ [:body.landing-page
+  [:header
+   [:nav
+    [:div.container
+     [:a.logo
+      {:href "/"}
+      [:img
+       {:src "/assets/images/anteo-logo.png",
+        :alt "Anteo",
+        :height "80"}]]
+     [:button.mobile-menu-toggle
+      {:aria-label "Toggle menu", :aria-expanded "false"}
+      [:span.hamburger-line]
+      [:span.hamburger-line]
+      [:span.hamburger-line]]
+     [:ul.nav-menu
+      [:li [:a {:href "/products.html"} "Produkter"]]
+      [:li [:a {:href "/news.html"} "Aktuelt"]]
+      [:li [:a {:href "/sustainability.html"} "Bærekraft"]]
+      [:li [:a {:href "/about.html"} "Om oss"]]
+      [:li [:a {:href "/contact.html"} "Kontakt oss"]]
+      [:li.language-switcher
+       [:div.language-dropdown
+        [:button.language-toggle
+         {:aria-label "Select language"}
+         [:img
+          {:src "/assets/images/flags/norway-flag.svg",
+           :alt "Norsk",
+           :width "24",
+           :height "18"}]
+         [:span "Norsk"]
+         [:svg.dropdown-arrow
+          {:width "12", :height "8", :viewBox "0 0 12 8", :fill "none"}
+          [:path
+           {:d "M1 1.5L6 6.5L11 1.5",
+            :stroke "currentColor",
+            :stroke-width "2",
+            :stroke-linecap "round",
+            :stroke-linejoin "round"}]]]
+        [:div.language-menu
+         [:a.language-option
+          {:href "/index.html"}
+          [:img
+           {:src "/assets/images/flags/norway-flag.svg",
+            :alt "Norsk",
+            :width "24",
+            :height "18"}]
+          [:span "Norsk"]]
+         [:a.language-option
+          {:href "/en/index.html"}
+          [:img
+           {:src "/assets/images/flags/uk-flag.svg",
+            :alt "English",
+            :width "24",
+            :height "18"}]
+          [:span "English"]]]]]]]]]
+  [:main
+   [:section.hero-headline
+    [:div.container
+     [:h1
+      "Internettbasert sanntidssystemer for planlegging, overvåking og varsling"]]]
+   [:section.hero-main
+    [:div.container
+     [:div.column-wrap
+      [:div.content-block-left
+       [:div.content-wrap
+        [:p.title "Anteo"]
+        [:h2.heading-primary
+         "Beslutningsstøttesystemer for en bærekraftig havbruksnæring"]
+        [:p.paragraph.blue
+         "Anteo er et selskap som utvikler beslutningsstøttesystemer som skal bidra til en bærekraftig utvikling av norsk havbruksnæringen. Vi leverer sann tids løsninger for overvåkning og varsling av aktiviteter som kan være i strid med biosikkerhetsprinsippet, samtidig som løsningene skal bidra til forslag til risikoreduserende tiltak."]
+        [:a.btn.btn-primary {:href "/about.html"} "Les mer"]]]
+      [:div.image-block
+       [:img
+        {:src "/assets/images/hero-about.jpg",
+         :alt "Anteo havbruk"}]]]]]
+   [[:section.product-section ;; <<-- error is here
+     [:div.container
+      [:div.product-wrap
+       {:class [:sg/get :wrap-class]}
+       [:div.product-image
+        [:img
+         {:src "/assets/images/logistikk-hero.jpg",
+          :alt "Anteo Logistikk"}]]
+       [:div.product-content
+        [:h2 "Anteo Logistikk"]
+        [:p
+         "Anteos verktøy for logistikk gir tilgang på fartøy, sensorer, data og rapporter som øker beslutningsstøtten og effektiviserer informasjonsinnhenting og deling. Det gir en unik mulighet til å sammenligne data for lokalitet eller fartøy, som igjen kan brukes til å utvikle produksjonen og gjøre logistikken rundt last og dokumentasjon knyttet til transport av biologisk materiale enklere."]
+        [:a.btn.btn-primary
+         {:href "/products/logistics"}
+         "Les mer"]]]]]
+    [:section.product-section
+     [:div.container
+      [:div.product-wrap
+       {:class "reversed"}
+       [:div.product-image
+        [:img
+         {:src "/assets/images/fiskehelse-hero.jpg",
+          :alt "Anteo Fiskehelse"}]]
+       [:div.product-content
+        [:h2 "Anteo Fiskehelse"]
+        [:p
+         "Våre verktøy for fiskehelse sørger for rask og presis registrering av fiskevelferdsindikatorer samt myndighetspålagt lusetelling og en enkel, presis og sikker journalføring av fiskehelsedata."]
+        [:a.btn.btn-primary
+         {:href "/products/fish-health"}
+         "Les mer"]]]]]]
+   [:section.news-section
+    [:div.container
+     [:div.section-header
+      [:p.title "Aktuelt"]
+      [:h2 "Nyheter & Oppdateringer"]]
+     [:div.news-grid
+      [:article.news-card
+       [:div.news-card-image
+        [:a
+         {:href "/news/2024-04-15-partnerskap.html"}
+         [:img
+          {:src
+           "/assets/images/news/2024-01-10-fishjrnl-lansering.jpeg",
+           :alt
+           "Anteo inngår partnerskap med ledende utstyrsleverandør"}]]]
+       [:div.news-card-content
+        [:time.news-date "2024-04-15"]
+        [:h3
+         [:a
+          {:href "/news/2024-04-15-partnerskap.html"}
+          "Anteo inngår partnerskap med ledende utstyrsleverandør"]]
+        [:p.news-excerpt
+         "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur."]
+        [:a.read-more
+         {:href "/news/2024-04-15-partnerskap.html"}
+         "Les mer →"]]]
+      [:article.news-card
+       [:div.news-card-image
+        [:a
+         {:href "/news/2024-04-01-for-planlegging.html"}
+         [:img
+          {:src "/assets/images/news/2024-01-20-miljoepris.png",
+           :alt "Vellykket pilot med automatisk fôrplanlegging"}]]]
+       [:div.news-card-content
+        [:time.news-date "2024-04-01"]
+        [:h3
+         [:a
+          {:href "/news/2024-04-01-for-planlegging.html"}
+          "Vellykket pilot med automatisk fôrplanlegging"]]
+        [:p.news-excerpt
+         "Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates."]
+        [:a.read-more
+         {:href "/news/2024-04-01-for-planlegging.html"}
+         "Les mer →"]]]
+      [:article.news-card
+       [:div.news-card-image
+        [:a
+         {:href "/news/2024-03-15-temperatur-modul.html"}
+         [:img
+          {:src
+           "/assets/images/news/2024-01-15-samhandling-havbruk.png",
+           :alt "Lansering av ny modul for temperaturovervåking"}]]]
+       [:div.news-card-content
+        [:time.news-date "2024-03-15"]
+        [:h3
+         [:a
+          {:href "/news/2024-03-15-temperatur-modul.html"}
+          "Lansering av ny modul for temperaturovervåking"]]
+        [:p.news-excerpt
+         "At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum."]
+        [:a.read-more
+         {:href "/news/2024-03-15-temperatur-modul.html"}
+         "Les mer →"]]]]
+     [:div.news-more
+      [:a.read-more {:href "/news.html"} "Se flere artikler →"]]]]]
+  [:footer
+   [:div.footer-content
+    [:div.footer-left
+     [:img
+      {:src "/assets/images/anteo-logo-white.svg",
+       :alt "Anteo",
+       :width "180"}]
+     [:div.footer-box
+      [:p
+       "Vågsallmenningen 6, 5040 Bergen"
+       [:br]
+       "Industrivegen 12, 7900 Rørvik"
+       [:br]
+       "Krambugata 2 (Digs), 7011 Trondheim"
+       [:br]
+       "Fugleskjærgata 16, 6905 Florø"
+       [:br]]
+      [:p {:style "color: var(--light-blue);"} "Org. nr. 999 168 817"]
+      [:p [:a {:href "mailto:post@anteo.no"} "post@anteo.no"]]
+      [:p [:a {:href "tel:+47 952 84 007"} "+47 952 84 007"]]]]
+    [:div.footer-right
+     [:div.sitemap-container
+      [:div.footer-section
+       [:h4 "Anteo Logistikk"]
+       [:a {:href "/products/logistics/logifish.html"} "Logifish"]
+       [:a
+        {:href "/products/logistics/kartverktoy.html"}
+        "Kartverktøy"]
+       [:a {:href "/products/logistics/boatcheck.html"} "Boatcheck"]
+       [:a {:href "/products/logistics/anteo-re.html"} "Anteo RE"]]
+      [:div.footer-section
+       [:h4 "Anteo Fiskehelse"]
+       [:a {:href "/products/fish-health/fishjrnl.html"} "FishJrnl"]
+       [:a {:href "/products/fish-health/fishctrl.html"} "FishCtrl"]]
+      [:div.footer-section
+       [:h4 "Anteo AS"]
+       [:a {:href "/products.html"} "Produkter"]
+       [:a {:href "/news.html"} "Aktuelt"]
+       [:a {:href "/sustainability.html"} "Bærekraft"]
+       [:a {:href "/about.html"} "Om oss"]
+       [:a {:href "/contact.html"} "Kontakt oss"]
+       [:div.footer-social
+        [:a
+         {:href "https://www.facebook.com/anteoas", :target "_blank"}
+         [:img
+          {:src "/assets/images/facebook-icon.svg",
+           :width "40",
+           :height "40",
+           :alt "facebook"}]]
+        [:a
+         {:href "https://www.instagram.com/anteo_softwaresolutions/",
+          :target "_blank"}
+         [:img
+          {:src "/assets/images/instagram-icon.svg",
+           :width "40",
+           :height "40",
+           :alt "instagram"}]]]]]]]
+   [:div.footer-bottom
+    [:p "Anteo © 2025"]
+    [:p.footer-links
+     [:a {:href "/privacy.html"} "Personvern"]
+     [:span.footer-separator "|"]
+     [:a {:href "/terms.html"} "Brukervilkår"]]]]
+  [:script {:src "/assets/js/bundle.min.js"}]]]
 
-  (let [template [:h1 [:sg/get :title]]
-        content {:title "Test"}]
-    (sg/process template content))
-  ;; => [:h1 "Test"]
-
-  ;; Debug a specific page build
-  (let [site-data (load-site-data "site/site.edn")
-        templates (:templates site-data)
-        landing-content (load-content-file (io/file "site/content/no/landing.edn"))
-        landing-template (get templates :landing)
-        processed (sg/process landing-template landing-content)]
-    (println "First element of processed landing:")
-    (prn (first processed)))
-
-  ;; Check why footer might not be rendering
-  (let [site-data (load-site-data "site/site.edn")
-        templates (:templates site-data)]
-    (println "Footer template exists?" (some? (:footer templates)))
-    (println "Footer template type:" (type (:footer templates))))
-
-  ;; Test language prefix calculation
-  (let [config {:lang {:no {:name "Norsk" :default true}
-                       :en {:name "English"}}}
-        default-lang (or (some (fn [[lang-code lang-config]]
-                                 (when (:default lang-config)
-                                   lang-code))
-                               (:lang config))
-                         (first (keys (:lang config))))]
-    (println "Default language:" default-lang)
-    (println "Path for :no:" (if (= :no default-lang) "/" "/no/"))
-    (println "Path for :en:" (if (= :en default-lang) "/" "/en/")))
-
-  ;; Clean build directories
-  (do
-
-    (fs/delete-tree "dist")
-    (fs/delete-tree ".temp")
-    (println "Cleaned build directories")))
+)
 
