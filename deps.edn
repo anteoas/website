@@ -6,7 +6,10 @@
         org.babashka/sci {:mvn/version "0.10.47"}
 
         ;; Image processing dependencies
-        org.imgscalr/imgscalr-lib {:mvn/version "4.2"}}
+        org.imgscalr/imgscalr-lib {:mvn/version "4.2"}
+
+        ;; File watching
+        hawk-eye/hawk-eye {:local/root "lib/hawk-eye"}}
 
  :aliases {:run {:main-opts ["-m" "anteo.website.core"]}
            :dev {:main-opts ["-m" "dev"]}

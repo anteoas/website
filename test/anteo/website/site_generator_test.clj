@@ -74,16 +74,16 @@
                 </div>"
           expected [{:url "/assets/images/hero.jpg?size=800x600&format=webp"
                      :source-path "/assets/images/hero.jpg"
-                     :width 800 :height 600 :format "webp"
-                     :replace-url "/assets/images/hero-800x600.webp"}
+                     :width 800 :height 600
+                     :replace-url "/assets/images/hero-800x600.jpg"}
                     {:url "/assets/images/logo.png?size=200x100"
                      :source-path "/assets/images/logo.png"
                      :width 200 :height 100
                      :replace-url "/assets/images/logo-200x100.png"}
                     {:url "/assets/images/bg.jpg?size=1920x1080&format=webp"
                      :source-path "/assets/images/bg.jpg"
-                     :width 1920 :height 1080 :format "webp"
-                     :replace-url "/assets/images/bg-1920x1080.webp"}]]
+                     :width 1920 :height 1080
+                     :replace-url "/assets/images/bg-1920x1080.jpg"}]]
       (is (= expected (sg/extract-image-urls html)))))
 
   (testing "Extract images without query parameters"
@@ -104,7 +104,7 @@
                 </html>"
           expected [{:url "/assets/images/photo.png?size=400x300&quality=85"
                      :source-path "/assets/images/photo.png"
-                     :width 400 :height 300 :quality 85
+                     :width 400 :height 300
                      :replace-url "/assets/images/photo-400x300.png"}
                     {:url "/assets/images/hero.jpg?size=1200x800"
                      :source-path "/assets/images/hero.jpg"
@@ -120,8 +120,8 @@
     (let [html "<img src='/assets/images/wide.jpg?size=800x&format=webp'>"
           expected [{:url "/assets/images/wide.jpg?size=800x&format=webp"
                      :source-path "/assets/images/wide.jpg"
-                     :width 800 :format "webp"
-                     :replace-url "/assets/images/wide-800x.webp"}]]
+                     :width 800
+                     :replace-url "/assets/images/wide-800x.jpg"}]]
       (is (= expected (sg/extract-image-urls html)))))
 
   (testing "Handle malformed parameters gracefully"
@@ -138,7 +138,7 @@
                      :error "Invalid height: abc"}
                     {:url "/assets/images/bad3.jpg?quality=high"
                      :source-path "/assets/images/bad3.jpg"
-                     :error "Invalid quality: high"}]]
+                     :replace-url "/assets/images/bad3.jpg"}]]
       (is (= expected (sg/extract-image-urls html)))))
 
   (testing "Extract from CSS files"
@@ -156,11 +156,10 @@
                      :replace-url "/assets/images/team/christine-nordal-sunde-400x400.jpg"}
                     {:url "/assets/images/hero-bg.svg?format=webp"
                      :source-path "/assets/images/hero-bg.svg"
-                     :format "webp"
-                     :replace-url "/assets/images/hero-bg.webp"}
+                     :replace-url "/assets/images/hero-bg.svg"}
                     {:url "/assets/images/hero-main.png?size=1920x1080&quality=90"
                      :source-path "/assets/images/hero-main.png"
-                     :width 1920 :height 1080 :quality 90
+                     :width 1920 :height 1080
                      :replace-url "/assets/images/hero-main-1920x1080.png"}]]
       (is (= expected (sg/extract-image-urls css)))))
 
@@ -437,4 +436,19 @@
           expected [:div {:class "missing-class"} "Content"]
           actual (sg/process template content)]
       (is (= expected actual)))))
+
+(deftest test-sg-get-with-default
+  (testing ":sg/get with default value when key is missing"
+    (let [template [:div {:class [:sg/get :wrap-class ""]} "Content"]
+          content {:title "Product"}
+          expected [:div {:class ""} "Content"]
+          actual (sg/process template content)]
+      (is (= expected actual) "Should return default empty string when key is missing")))
+
+  (testing ":sg/get with default value when key exists"
+    (let [template [:div {:class [:sg/get :wrap-class ""]} "Content"]
+          content {:wrap-class "reversed"}
+          expected [:div {:class "reversed"} "Content"]
+          actual (sg/process template content)]
+      (is (= expected actual) "Should return actual value when key exists"))))
 

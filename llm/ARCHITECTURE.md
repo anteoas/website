@@ -116,8 +116,10 @@ Retrieves values with fallback behavior:
 ```clojure
 [:sg/get :title]           ; Returns "title" if not found
 [:sg/get :user :name]      ; Returns "user.name" if not found
+[:sg/get :wrap-class ""]   ; Returns "" if not found (default value)
 ```
-With `:verbose true` in content, logs full context for debugging.
+- With `:verbose true` in content, logs full context for debugging
+- Last argument can be a default value (non-keyword)
 
 ## Key Design Decisions
 

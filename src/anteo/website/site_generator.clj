@@ -94,18 +94,25 @@
       ;; Handle :sg/get
       (and (= (first base) :sg/get)
            (> (count base) 1))
-      (let [path (rest base)
+      (let [args (rest base)
+            ;; Check if last arg is not a keyword (it's a default value)
+            has-default? (and (> (count args) 1)
+                              (not (keyword? (last args))))
+            path (if has-default? (butlast args) args)
+            default-value (when has-default? (last args))
             value (get-in data-source path)]
         (if (some? value)
           value
-          ;; Value not found - return key name as string and log
-          (let [path-str (str/join "." (map name path))
-                verbose? (:verbose content)]
-            (println (str "⚠️  :sg/get key not found: " path-str))
-            (when verbose?
-              (println "Context keys:" (keys data-source))
-              (println "Full context:" (pr-str data-source)))
-            path-str))) ; Return placeholder if not found
+          ;; Value not found - return default or key name
+          (if has-default?
+            default-value
+            (let [path-str (str/join "." (map name path))
+                  verbose? (:verbose content)]
+              (println (str "⚠️  :sg/get key not found: " path-str))
+              (when verbose?
+                (println "Context keys:" (keys data-source))
+                (println "Full context:" (pr-str data-source)))
+              path-str)))) ; Return placeholder if not found
 
       ;; Handle :sg/each
       (and (= (first base) :sg/each)

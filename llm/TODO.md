@@ -57,6 +57,12 @@
   - Calculate absolute output-path early in load-site-data
   - All functions now use absolute paths, eliminating directory context issues
 
+- [x] Add default value support to :sg/get
+  - Syntax: [:sg/get :key "default"]
+  - If key is missing, returns the default value instead of key name
+  - Useful for optional template values like :wrap-class
+  - Only activates when last argument is not a keyword
+
 ## Pending Tasks
 
 - [ ] Implement :sg/if directive for conditional rendering

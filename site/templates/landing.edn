@@ -17,7 +17,7 @@
  [:sg/each :products :order-by [:order :asc]
   [:section.product-section
    [:div.container
-    [:div.product-wrap {:class [:sg/get :wrap-class]}
+    [:div.product-wrap {:class [:sg/get :wrap-class ""]}
      [:div.product-image
       [:img {:src [:sg/get :image] :alt [:sg/get :title]}]]
      [:div.product-content

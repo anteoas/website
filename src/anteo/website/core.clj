@@ -7,8 +7,20 @@
             [clojure.java.process :as process]
             [markdown.core :as md]
             [sci.core :as sci]
+            [hawk-eye.core :as hawk]
             [anteo.website.site-generator :as sg]
             [anteo.website.image-processor :as img]))
+
+
+(def stop-watch
+  (hawk/watch 
+   (hawk/find-all-directories "site")
+   (fn [event] 
+     (prn event))
+   (fn [e ctx] 
+     (prn "Error:" ctx)
+     (println (.getMessage e)))))
+
 
 (defmacro capture-env
   "Capture local bindings.
