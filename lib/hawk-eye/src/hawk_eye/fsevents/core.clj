@@ -71,16 +71,31 @@
   [handler]
   (reify hawk_eye.fsevents.FSEventCallback
     (callback [_ _ _ numEvents eventPaths eventFlags eventIds]
-      (let [paths-ptr eventPaths]
-        (dotimes [i (int numEvents)]
-          (let [path-ptr (.getPointer paths-ptr (* i (Native/POINTER_SIZE)))
-                path (.getString path-ptr 0)
-                flag (.getInt eventFlags (* i 4))
-                event-id (.getLong eventIds (* i 8))]
-            (handler {:path path
-                      :event-id event-id
-                      :flags flag
-                      :flag-names (decode-flags flag)})))))))
+      (try
+        (let [paths-ptr eventPaths
+              num-events (int numEvents)]
+          (dotimes [i num-events]
+            (try
+              (let [path-ptr (.getPointer paths-ptr (* i (Native/POINTER_SIZE)))
+                    ;; Defensive: check for null pointer before string access
+                    path (when (and path-ptr (not (.equals path-ptr Pointer/NULL)))
+                           (.getString path-ptr 0))
+                    flag (when eventFlags
+                           (.getInt eventFlags (* i 4)))
+                    event-id (when eventIds
+                               (.getLong eventIds (* i 8)))]
+                ;; Only process if we got valid data
+                (when (and path flag event-id)
+                  (handler {:path path
+                            :event-id event-id
+                            :flags flag
+                            :flag-names (decode-flags flag)})))
+              (catch Exception e
+                ;; Log but don't crash on individual event errors
+                (println "Error processing FSEvent:" (.getMessage e))))))
+        (catch Exception e
+          ;; Log but don't crash on callback errors
+          (println "Error in FSEvents callback:" (.getMessage e)))))))
 
 (defn watch
   "Start watching directories for file system events.
@@ -174,32 +189,43 @@
    - monitor: The monitor object returned by `watch`"
   [monitor]
   (when monitor
-    ;; Check if already stopped by looking at the stream
-    (when-let [stream (:stream monitor)]
-      (try
-        (.invoke FSEventStreamStop Void/TYPE (to-array [stream]))
-        (.invoke FSEventStreamInvalidate Void/TYPE (to-array [stream]))
-        (.invoke FSEventStreamRelease Void/TYPE (to-array [stream]))
-        (catch Exception e
-          ;; Ignore errors - might already be stopped
-          nil))
+    ;; Use a lock to ensure single execution
+    (locking monitor
+      ;; Check if already stopped by looking at the stream
+      (when-let [stream (:stream monitor)]
+        ;; Mark as stopped first to prevent race conditions
+        (let [stopped? (atom false)]
+          (when (compare-and-set! stopped? false true)
+            ;; Stop the stream
+            (try
+              (.invoke FSEventStreamStop Void/TYPE (to-array [stream]))
+              (catch Exception _ nil))
 
-      ;; Release other resources
-      (when-let [cf-paths (:cf-paths monitor)]
-        (try
-          (.invoke CFRelease Void/TYPE (to-array [cf-paths]))
-          (catch Exception e nil)))
+            ;; Give time for callbacks to complete
+            (Thread/sleep 50)
 
-      (when-let [cf-paths-vec (:cf-paths-vec monitor)]
-        (doseq [cf-path cf-paths-vec]
-          (try
-            (.invoke CFRelease Void/TYPE (to-array [cf-path]))
-            (catch Exception e nil))))
+            ;; Invalidate and release
+            (try
+              (.invoke FSEventStreamInvalidate Void/TYPE (to-array [stream]))
+              (.invoke FSEventStreamRelease Void/TYPE (to-array [stream]))
+              (catch Exception _ nil))
 
-      (when-let [run-loop (:run-loop monitor)]
-        (try
-          (.invoke CFRunLoopStop Void/TYPE (to-array [run-loop]))
-          (catch Exception e nil))))))
+            ;; Release other resources in reverse order
+            (when-let [cf-paths (:cf-paths monitor)]
+              (try
+                (.invoke CFRelease Void/TYPE (to-array [cf-paths]))
+                (catch Exception _ nil)))
+
+            (when-let [cf-paths-vec (:cf-paths-vec monitor)]
+              (doseq [cf-path (reverse cf-paths-vec)]
+                (try
+                  (.invoke CFRelease Void/TYPE (to-array [cf-path]))
+                  (catch Exception _ nil))))
+
+            (when-let [run-loop (:run-loop monitor)]
+              (try
+                (.invoke CFRunLoopStop Void/TYPE (to-array [run-loop]))
+                (catch Exception _ nil)))))))))
 
 (defn run-loop
   "Run the event loop for a monitor. Blocks until the monitor is stopped.
