@@ -95,6 +95,10 @@
    
    Returns a monitor object that should be passed to `stop` to cease monitoring."
   [paths handler]
+  ;; Check for empty paths
+  (when (empty? paths)
+    (throw (IllegalArgumentException. "No paths provided to watch")))
+
   (let [;; Create CFStrings for all paths
         cf-paths-vec (mapv (fn [path]
                              (let [cf-str (.invoke CFStringCreateWithCString
@@ -170,13 +174,32 @@
    - monitor: The monitor object returned by `watch`"
   [monitor]
   (when monitor
-    (.invoke FSEventStreamStop Void/TYPE (to-array [(:stream monitor)]))
-    (.invoke FSEventStreamInvalidate Void/TYPE (to-array [(:stream monitor)]))
-    (.invoke FSEventStreamRelease Void/TYPE (to-array [(:stream monitor)]))
-    (.invoke CFRelease Void/TYPE (to-array [(:cf-paths monitor)]))
-    (doseq [cf-path (:cf-paths-vec monitor)]
-      (.invoke CFRelease Void/TYPE (to-array [cf-path])))
-    (.invoke CFRunLoopStop Void/TYPE (to-array [(:run-loop monitor)]))))
+    ;; Check if already stopped by looking at the stream
+    (when-let [stream (:stream monitor)]
+      (try
+        (.invoke FSEventStreamStop Void/TYPE (to-array [stream]))
+        (.invoke FSEventStreamInvalidate Void/TYPE (to-array [stream]))
+        (.invoke FSEventStreamRelease Void/TYPE (to-array [stream]))
+        (catch Exception e
+          ;; Ignore errors - might already be stopped
+          nil))
+
+      ;; Release other resources
+      (when-let [cf-paths (:cf-paths monitor)]
+        (try
+          (.invoke CFRelease Void/TYPE (to-array [cf-paths]))
+          (catch Exception e nil)))
+
+      (when-let [cf-paths-vec (:cf-paths-vec monitor)]
+        (doseq [cf-path cf-paths-vec]
+          (try
+            (.invoke CFRelease Void/TYPE (to-array [cf-path]))
+            (catch Exception e nil))))
+
+      (when-let [run-loop (:run-loop monitor)]
+        (try
+          (.invoke CFRunLoopStop Void/TYPE (to-array [run-loop]))
+          (catch Exception e nil))))))
 
 (defn run-loop
   "Run the event loop for a monitor. Blocks until the monitor is stopped.

@@ -4,7 +4,7 @@ A lightweight, cross-platform file watching library for Clojure with debouncing 
 
 ## Features
 
-- 🚀 **Fast & Efficient**: Uses native FSEvents on macOS, virtual threads on Java 21+, and optimized polling elsewhere
+- 🚀 **Fast & Efficient**: Uses native FSEvents on macOS, virtual threads on Java 21+, and polling elsewhere
 - 🎯 **Simple API**: Just two main functions - `watch` and `debounce`
 - 🔄 **Auto-recursive**: Automatically watches subdirectories and newly created directories
 - ⚡ **Debouncing Built-in**: Avoid triggering on rapid-fire changes
@@ -161,24 +161,17 @@ Create a debounced version of a function that only executes after a quiet period
 
 ### macOS (FSEvents)
 
-On macOS, hawk-eye automatically attempts to use the native FSEvents API for optimal performance. If initialization fails, it will display a helpful warning and fall back to WatchService polling.
+On macOS, Java's WatchService has a ~2 second delay for detecting file changes. To avoid this, hawk-eye uses the native FSEvents API which provides near-instant file event detection.
 
-To enable FSEvents:
+If FSEvents initialization fails, you'll see a warning and hawk-eye will fall back to the slower WatchService polling:
 
-1. Add the JVM flag: `--enable-native-access=ALL-UNNAMED`
-2. Or add to your `deps.edn` alias:
-
-```clojure
-{:aliases {:dev {:jvm-opts ["--enable-native-access=ALL-UNNAMED"]}}}
-```
-
-Without this flag on newer JVMs, you'll see:
 ```
 WARNING: FSEvents initialization failed. Falling back to slower WatchService polling.
-  To use the faster FSEvents on macOS, add this JVM flag:
-    --enable-native-access=ALL-UNNAMED
+  Cause: <error message>
   Note: WatchService polling is significantly slower on macOS.
 ```
+
+When this happens, file events will be delayed by approximately 2 seconds.
 
 ### Java 21+ (Virtual Threads)
 
@@ -230,7 +223,7 @@ hawk-eye/
 ### Running Tests
 
 ```bash
-clojure -T:test
+clojure -X:test
 ```
 
 ### Building
@@ -251,10 +244,6 @@ clojure -T:build jar
 
 This warning appears when using FSEvents on macOS without the proper JVM flag. Add `--enable-native-access=ALL-UNNAMED` to your JVM options. The library will still work but will use the slower polling method.
 
-### High CPU Usage on macOS
-
-Without FSEvents, the WatchService implementation polls the file system. Enable FSEvents for better performance or increase the `:poll-ms` value.
-
 ### Missing Events
 
 Some file systems or editors create temporary files and rename them. You might see delete/create events instead of modify events. This is normal behavior.
@@ -264,9 +253,3 @@ Some file systems or editors create temporary files and rename them. You might s
 - Ensure the directories exist before watching
 - Check that your error-fn is handling exceptions
 - On some systems, very rapid changes might be coalesced
-
-## License
-
-Copyright © 2024
-
-Distributed under the Eclipse Public License version 1.0.

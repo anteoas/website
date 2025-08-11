@@ -1,8 +1,7 @@
 (ns hawk-eye.core
   "Simple file watching library for Clojure.
    Provides directory watching with debouncing support."
-  (:require [clojure.string :as str]
-            [clojure.java.io :as io])
+  (:require [clojure.string :as str])
   (:import [java.nio.file FileSystems Files Paths StandardWatchEventKinds WatchService WatchKey WatchEvent]
            [java.nio.file LinkOption]))
 
@@ -155,95 +154,114 @@
 (defrecord VirtualThreadWatcher [^WatchService watcher thread watching?]
   WatchStrategy
   (start-watching [_ directories notify-fn error-fn watch-keys]
-    (reset! watch-keys (register-directories watcher directories))
-    (reset! thread
-            (Thread/startVirtualThread
-             (fn []
-               (try
-                 (while @watching?
+    (if (empty? directories)
+      (error-fn (IllegalArgumentException. "No valid directories to watch")
+                {:phase :start-vthread :directories directories})
+      (do
+        (reset! watch-keys (register-directories watcher directories))
+        (reset! thread
+                (Thread/startVirtualThread
+                 (fn []
                    (try
-                     (when-let [^WatchKey key (.take watcher)]
-                       (when @watching? ; Only process if still watching
-                         (process-watch-key key watcher watch-keys notify-fn error-fn)))
-                     (catch InterruptedException _
-                       ;; Thread interrupted, exit gracefully
-                       nil)
-                     (catch java.nio.file.ClosedWatchServiceException _
-                       ;; Watcher closed, exit gracefully
-                       nil)))
-                 (catch Exception e
-                   (when @watching?
-                     (error-fn e {:phase :watch-loop}))))))))
+                     (while @watching?
+                       (try
+                         (when-let [^WatchKey key (.take watcher)]
+                           (when @watching? ; Only process if still watching
+                             (process-watch-key key watcher watch-keys notify-fn error-fn)))
+                         (catch InterruptedException _
+                           ;; Thread interrupted, exit gracefully
+                           nil)
+                         (catch java.nio.file.ClosedWatchServiceException _
+                           ;; Watcher closed, exit gracefully
+                           nil)))
+                     (catch Exception e
+                       (when @watching?
+                         (error-fn e {:phase :watch-loop}))))))))))
 
   (stop-watching [_ error-fn]
-    (reset! watching? false)
-    ;; Close the watcher first to unblock any .take() calls
-    (try
-      (.close watcher)
-      (catch Exception e
-        (error-fn e {:phase :shutdown})))
-    ;; Then interrupt the thread if needed
-    (when-let [t @thread]
-      (.interrupt ^Thread t)
-      ;; Wait for thread to finish
+    ;; Use compare-and-set to ensure we only stop once
+    (when (compare-and-set! watching? true false)
+      ;; Close the watcher first to unblock any .take() calls
       (try
-        (.join ^Thread t 1000)
-        (catch Exception _)))))
+        (.close watcher)
+        (catch Exception e
+          (error-fn e {:phase :shutdown})))
+      ;; Then interrupt the thread if needed
+      (when-let [t @thread]
+        (.interrupt ^Thread t)
+        ;; Wait for thread to finish
+        (try
+          (.join ^Thread t 1000)
+          (catch Exception _))))))
 
 ;; Polling implementation
 (defrecord PollingWatcher [^WatchService watcher thread watching? poll-ms]
   WatchStrategy
   (start-watching [_ directories notify-fn error-fn watch-keys]
-    (reset! watch-keys (register-directories watcher directories))
-    (reset! thread
-            (future
-              (try
-                (while @watching?
-                  ;; Poll ALL available events without blocking
-                  (loop [found-events? false]
-                    (if-let [^WatchKey key (.poll watcher)]
-                      (do
-                        (process-watch-key key watcher watch-keys notify-fn error-fn)
-                        (recur true))
-                      ;; No more events available, sleep if we didn't find any
-                      (when-not found-events?
-                        (Thread/sleep (long poll-ms))))))
-                (catch Exception e
-                  (when @watching?
-                    (error-fn e {:phase :watch-loop})))))))
+    (if (empty? directories)
+      (error-fn (IllegalArgumentException. "No valid directories to watch")
+                {:phase :start-poll :directories directories})
+      (do
+        (reset! watch-keys (register-directories watcher directories))
+        (reset! thread
+                (future
+                  (try
+                    (while @watching?
+                      ;; Poll ALL available events without blocking
+                      (loop [found-events? false]
+                        (if-let [^WatchKey key (.poll watcher)]
+                          (do
+                            (process-watch-key key watcher watch-keys notify-fn error-fn)
+                            (recur true))
+                          ;; No more events available, sleep if we didn't find any
+                          (when-not found-events?
+                            (Thread/sleep (long poll-ms))))))
+                    (catch Exception e
+                      (when @watching?
+                        (error-fn e {:phase :watch-loop})))))))))
 
   (stop-watching [_ error-fn]
-    (reset! watching? false)
-    ;; Close the watcher first
-    (try
-      (.close watcher)
-      (catch Exception e
-        (error-fn e {:phase :shutdown})))
-    ;; Then cancel the future
-    (when-let [f @thread]
-      (future-cancel f))))
+    ;; Use compare-and-set to ensure we only stop once
+    (when (compare-and-set! watching? true false)
+      ;; Close the watcher first
+      (try
+        (.close watcher)
+        (catch Exception e
+          (error-fn e {:phase :shutdown})))
+      ;; Then cancel the future
+      (when-let [f @thread]
+        (future-cancel f)))))
 
 ;; FSEvents implementation
 (defrecord FSEventsWatcher [watcher watching?]
   WatchStrategy
   (start-watching [_ directories notify-fn error-fn _]
     (try
-      ;; Dynamically load fsevents support
-      (let [watch-paths (requiring-resolve 'hawk-eye.fsevents.monitor/watch-paths)
-            monitor (watch-paths directories notify-fn error-fn)]
-        (reset! watcher monitor))
+      ;; Check if we have any directories to watch
+      (if (empty? directories)
+        (do
+          (error-fn (IllegalArgumentException. "No valid directories to watch")
+                    {:phase :start-fsevents :directories directories})
+          ;; Return a dummy monitor that can be stopped
+          (reset! watcher :no-op))
+        ;; Dynamically load fsevents support
+        (let [watch-paths (requiring-resolve 'hawk-eye.fsevents.monitor/watch-paths)
+              monitor (watch-paths directories notify-fn error-fn)]
+          (reset! watcher monitor)))
       (catch Exception e
         (error-fn e {:phase :start-fsevents})
         (throw e))))
 
   (stop-watching [_ error-fn]
     (reset! watching? false)
-    (when-let [monitor @watcher]
-      (try
-        (let [stop-all (requiring-resolve 'hawk-eye.fsevents.monitor/stop-all)]
-          (stop-all monitor))
-        (catch Exception e
-          (error-fn e {:phase :stop-fsevents}))))))
+    ;; Use swap! to ensure we only stop once
+    (when-let [monitor (swap! watcher (fn [m] (when m nil)))]
+      (when-not (= monitor :no-op)
+        (try
+          (let [stop-all (requiring-resolve 'hawk-eye.fsevents.monitor/stop-all)]
+            (stop-all monitor))
+          (catch Exception e
+            (error-fn e {:phase :stop-fsevents})))))))
 
 ;; Helper functions
 (defn- virtual-threads-available?
@@ -298,7 +316,7 @@
    (stop)"
   ([paths notify-fn error-fn]
    (watch paths notify-fn error-fn {}))
-  ([paths notify-fn error-fn {:keys [mode] :or {mode :auto} :as opts}]
+  ([paths notify-fn error-fn & {:keys [mode] :or {mode :auto} :as opts}]
    (let [;; Always expand paths recursively
          directories (mapcat find-all-directories paths)
          watch-keys (atom {})
@@ -334,3 +352,28 @@
      (with-meta
        (fn [] (stop-watching watcher error-fn))
        {:hawk-eye/mode actual-mode}))))
+
+(comment
+
+  (def stop-fsevents
+    (watch
+     ["tmp"]
+     (fn [event] (println "FSEvents:" event))
+     (fn [e ctx] (println "Error:" e) (prn ctx))))
+  (stop-fsevents)
+
+  (def stop-poll
+    (watch
+     ["tmp"]
+     (fn [event] (println "Poll:" event))
+     (fn [e ctx] (println "Error:" e) (prn ctx))
+     :mode :poll))
+  (stop-poll)
+
+  (def stop-vthread
+    (watch
+     ["tmp"]
+     (fn [event] (println "VThread:" event))
+     (fn [e ctx] (println "Error:" e) (prn ctx))
+     :mode :poll))
+  (stop-vthread))

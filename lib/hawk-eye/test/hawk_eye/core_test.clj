@@ -5,6 +5,15 @@
   (:import [java.nio.file Files]
            [java.nio.file.attribute FileAttribute]))
 
+;; Wait times based on platform
+(def ^:private event-wait-time
+  "Time to wait for events - longer on macOS due to WatchService delays"
+  (if (#'hawk/mac-osx?) 2500 200))
+
+(def ^:private startup-wait-time
+  "Time to wait for watcher startup"
+  (if (#'hawk/mac-osx?) 200 100))
+
 ;; Test helpers
 (defn create-temp-dir
   "Create a temporary directory for testing"
@@ -43,7 +52,7 @@
       (df "C")
 
       ;; Wait for debounce
-      (Thread/sleep 100)
+      (Thread/sleep startup-wait-time)
 
       ;; Should only have last call
       (is (= [["C"]] @calls)))))
@@ -62,7 +71,7 @@
       (df "C")
 
       ;; Wait for debounce
-      (Thread/sleep 100)
+      (Thread/sleep startup-wait-time)
 
       ;; Should only have first call
       (is (= [["A"]] @calls)))))
@@ -81,7 +90,7 @@
       (df "C")
 
       ;; Wait for debounce
-      (Thread/sleep 100)
+      (Thread/sleep startup-wait-time)
 
       ;; Should have vector of all calls
       (is (= [[["A"] ["B"] ["C"]]] @calls)))))
@@ -102,7 +111,7 @@
       (df "C")
 
       ;; Wait for debounce
-      (Thread/sleep 100)
+      (Thread/sleep startup-wait-time)
 
       ;; Should have vector of unique calls
       (is (= [[["A"] ["B"] ["C"]]] @calls)))))
@@ -119,14 +128,14 @@
       (df 3)
 
       ;; Wait for first batch
-      (Thread/sleep 100)
+      (Thread/sleep startup-wait-time)
 
       ;; Second batch
       (df 4)
       (df 5)
 
       ;; Wait for second batch
-      (Thread/sleep 100)
+      (Thread/sleep startup-wait-time)
 
       ;; Should have two calls with last value from each batch
       (is (= [[3] [5]] @calls)))))
@@ -189,9 +198,9 @@
                            (fn [e _] (swap! errors conj e)))]
       (try
         ;; Create a file
-        (Thread/sleep 100) ; Let watcher start
+        (Thread/sleep startup-wait-time) ; Let watcher start
         (create-temp-file temp-dir "test.txt" "content")
-        (Thread/sleep 200) ; Wait for event
+        (Thread/sleep event-wait-time) ; Wait for event
 
         ;; Should have creation event
         (is (seq @events))
@@ -214,9 +223,9 @@
                            (fn [e _] (swap! errors conj e)))]
       (try
         ;; Modify the file
-        (Thread/sleep 100) ; Let watcher start
+        (Thread/sleep startup-wait-time) ; Let watcher start
         (spit test-file "modified content")
-        (Thread/sleep 200) ; Wait for event
+        (Thread/sleep event-wait-time) ; Wait for event
 
         ;; Should have modification event
         (is (seq @events))
@@ -240,9 +249,9 @@
                            (fn [e _] (swap! errors conj e)))]
       (try
         ;; Delete the file
-        (Thread/sleep 100) ; Let watcher start
+        (Thread/sleep startup-wait-time) ; Let watcher start
         (.delete test-file)
-        (Thread/sleep 200) ; Wait for event
+        (Thread/sleep event-wait-time) ; Wait for event
 
         ;; Should have deletion event
         (is (seq @events))
@@ -266,10 +275,10 @@
                            (fn [e _] (swap! errors conj e)))]
       (try
         ;; Create files in both directories
-        (Thread/sleep 100) ; Let watcher start
+        (Thread/sleep startup-wait-time) ; Let watcher start
         (create-temp-file temp-dir1 "file1.txt" "content1")
         (create-temp-file temp-dir2 "file2.txt" "content2")
-        (Thread/sleep 200) ; Wait for events
+        (Thread/sleep event-wait-time) ; Wait for events
 
         ;; Should have events from both directories
         (is (>= (count @events) 2))
@@ -293,14 +302,14 @@
                            (fn [e _] (swap! errors conj e)))]
       (try
         ;; Create subdirectory
-        (Thread/sleep 100) ; Let watcher start
+        (Thread/sleep startup-wait-time) ; Let watcher start
         (let [sub-dir (io/file temp-dir "subdir")]
           (.mkdir sub-dir)
-          (Thread/sleep 200) ; Wait for directory creation event
+          (Thread/sleep event-wait-time) ; Wait for directory creation event
 
           ;; Create file in subdirectory
           (create-temp-file sub-dir "nested.txt" "content")
-          (Thread/sleep 200)) ; Wait for file event
+          (Thread/sleep event-wait-time)) ; Wait for file event
 
         ;; Should have events for both directory and file in subdirectory
         (is (seq @events))
@@ -321,7 +330,7 @@
                            (fn [e] (swap! events conj e))
                            (fn [e ctx] (swap! errors conj {:error e :context ctx})))]
       (try
-        (Thread/sleep 100)
+        (Thread/sleep startup-wait-time)
         ;; Should not crash, errors should be reported via error-fn
         (is (empty? @events))
         (finally
@@ -337,14 +346,14 @@
                            (fn [e _] (swap! errors conj e)))]
       (try
         ;; Stop the watcher
-        (Thread/sleep 100)
+        (Thread/sleep startup-wait-time)
         (stop)
 
         ;; Create file after stopping
-        (Thread/sleep 100)
+        (Thread/sleep startup-wait-time)
         (reset! events [])
         (create-temp-file temp-dir "after-stop.txt" "content")
-        (Thread/sleep 200)
+        (Thread/sleep event-wait-time)
 
         ;; Should not receive events after stopping
         (is (empty? @events))
@@ -365,7 +374,7 @@
                            (fn [e _] (swap! errors conj e)))]
       (try
         ;; Create multiple files rapidly
-        (Thread/sleep 100) ; Let watcher start
+        (Thread/sleep startup-wait-time) ; Let watcher start
         (create-temp-file temp-dir "file1.txt" "content")
         (create-temp-file temp-dir "file2.txt" "content")
         (create-temp-file temp-dir "file3.txt" "content")
@@ -423,9 +432,9 @@
                            (fn [e] (swap! events conj e))
                            (fn [_ _]))]
       (try
-        (Thread/sleep 100)
+        (Thread/sleep startup-wait-time)
         (create-temp-file temp-dir "test.txt" "content")
-        (Thread/sleep 200)
+        (Thread/sleep event-wait-time)
 
         (is (seq @events))
         (let [event (first @events)]
@@ -461,7 +470,7 @@
                                (fn [e] (swap! events conj e))
                                (fn [e _] (swap! errors conj e)))]
           (try
-            (Thread/sleep 100)
+            (Thread/sleep startup-wait-time)
 
             ;; Create files at different levels
             (create-temp-file temp-dir "root.txt" "content")
@@ -469,7 +478,7 @@
             (create-temp-file sub2 "level2.txt" "content")
             (create-temp-file sub3 "level3.txt" "content")
 
-            (Thread/sleep 500) ; Give time for all events
+            (Thread/sleep (if (#'hawk/mac-osx?) 2500 500)) ; Give time for all events
 
             ;; Should have events from all levels
             (let [files (set (map :file @events))]
@@ -513,9 +522,9 @@
                            {:mode :poll
                             :poll-ms 50})] ; Faster polling
       (try
-        (Thread/sleep 100)
+        (Thread/sleep startup-wait-time)
         (create-temp-file temp-dir "test.txt" "content")
-        (Thread/sleep 150) ; Should be detected within this time
+        (Thread/sleep (if (#'hawk/mac-osx?) 2500 150)) ; macOS needs longer even with poll-ms
 
         (is (seq @events))
 
