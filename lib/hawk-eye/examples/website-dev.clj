@@ -11,7 +11,6 @@
   ;; Set up file watching
   (let [site-data (load-site-data site-edn output-dir)
         root-path (:root-path (:config site-data))
-        dirs (hawk/find-all-directories root-path)
 
         rebuild! (fn [event]
                    (println "\n♻️  File changed:" (:file event))
@@ -23,14 +22,14 @@
 
         debounced-rebuild (hawk/debounce rebuild! 200)
 
-        stop-fn (hawk/watch dirs
+        stop-fn (hawk/watch [root-path]
                             debounced-rebuild
                             (fn [e ctx]
                               (println "Watch error:" (.getMessage e) ctx)))]
 
     ;; Start dev server
     (let [server (start-dev-server output-dir)]
-      (println "\n👁️  Watching" (count dirs) "directories for changes...")
+      (println "\n👁️  Watching for changes in" root-path "...")
       (println "Press Ctrl+C to stop.\n")
 
       ;; Wait for interrupt

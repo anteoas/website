@@ -1,7 +1,34 @@
 (ns hawk-eye.core-test
-  (:require [clojure.test :refer [deftest is testing]]
-            [hawk-eye.core :as hawk]))
+  (:require [clojure.test :refer [deftest is testing use-fixtures]]
+            [clojure.java.io :as io]
+            [hawk-eye.core :as hawk])
+  (:import [java.nio.file Files]
+           [java.nio.file.attribute FileAttribute]))
 
+;; Test helpers
+(defn create-temp-dir
+  "Create a temporary directory for testing"
+  []
+  (str (Files/createTempDirectory "hawk-test" (make-array FileAttribute 0))))
+
+(defn create-temp-file
+  "Create a temporary file in the given directory"
+  [dir name content]
+  (let [file (io/file dir name)]
+    (spit file content)
+    file))
+
+(defn delete-recursively
+  "Delete a directory and all its contents"
+  [path]
+  (let [file (io/file path)]
+    (when (.exists file)
+      (if (.isDirectory file)
+        (doseq [child (.listFiles file)]
+          (delete-recursively child)))
+      (.delete file))))
+
+;; Debounce tests
 (deftest test-debounce-last
   (testing "debounce with :last (default) mode"
     (let [calls (atom [])
@@ -104,24 +131,25 @@
       ;; Should have two calls with last value from each batch
       (is (= [[3] [5]] @calls)))))
 
+;; Private function tests
 (deftest test-find-all-directories
   (testing "find-all-directories returns all subdirectories"
     ;; Create a temp directory structure
-    (let [temp-dir (java.nio.file.Files/createTempDirectory
+    (let [temp-dir (Files/createTempDirectory
                     "test"
-                    (make-array java.nio.file.attribute.FileAttribute 0))
-          sub1 (java.nio.file.Files/createDirectory
+                    (make-array FileAttribute 0))
+          sub1 (Files/createDirectory
                 (.resolve temp-dir "sub1")
-                (make-array java.nio.file.attribute.FileAttribute 0))
-          sub2 (java.nio.file.Files/createDirectory
+                (make-array FileAttribute 0))
+          sub2 (Files/createDirectory
                 (.resolve temp-dir "sub2")
-                (make-array java.nio.file.attribute.FileAttribute 0))
-          subsub (java.nio.file.Files/createDirectory
+                (make-array FileAttribute 0))
+          subsub (Files/createDirectory
                   (.resolve sub1 "subsub")
-                  (make-array java.nio.file.attribute.FileAttribute 0))]
+                  (make-array FileAttribute 0))]
 
       (try
-        (let [dirs (set (hawk/find-all-directories (str temp-dir)))]
+        (let [dirs (set (#'hawk/find-all-directories (str temp-dir)))]
           ;; Should find all directories
           (is (contains? dirs (str temp-dir)))
           (is (contains? dirs (str sub1)))
@@ -131,21 +159,366 @@
 
         ;; Cleanup
         (finally
-          (java.nio.file.Files/delete subsub)
-          (java.nio.file.Files/delete sub1)
-          (java.nio.file.Files/delete sub2)
-          (java.nio.file.Files/delete temp-dir))))))
+          (Files/delete subsub)
+          (Files/delete sub1)
+          (Files/delete sub2)
+          (Files/delete temp-dir))))))
 
 (deftest test-find-all-directories-nonexistent
   (testing "find-all-directories returns empty for nonexistent path"
-    (is (= [] (hawk/find-all-directories "/nonexistent/path/that/does/not/exist")))))
+    (is (= [] (#'hawk/find-all-directories "/nonexistent/path/that/does/not/exist")))))
 
 (deftest test-find-all-directories-file
   (testing "find-all-directories returns empty for file path"
-    (let [temp-file (java.nio.file.Files/createTempFile
+    (let [temp-file (Files/createTempFile
                      "test" ".txt"
-                     (make-array java.nio.file.attribute.FileAttribute 0))]
+                     (make-array FileAttribute 0))]
       (try
-        (is (= [] (hawk/find-all-directories (str temp-file))))
+        (is (= [] (#'hawk/find-all-directories (str temp-file))))
         (finally
-          (java.nio.file.Files/delete temp-file))))))
+          (Files/delete temp-file))))))
+
+;; File watching tests
+(deftest test-watch-file-creation
+  (testing "watch detects file creation"
+    (let [temp-dir (create-temp-dir)
+          events (atom [])
+          errors (atom [])
+          stop (hawk/watch [temp-dir]
+                           (fn [e] (swap! events conj e))
+                           (fn [e _] (swap! errors conj e)))]
+      (try
+        ;; Create a file
+        (Thread/sleep 100) ; Let watcher start
+        (create-temp-file temp-dir "test.txt" "content")
+        (Thread/sleep 200) ; Wait for event
+
+        ;; Should have creation event
+        (is (seq @events))
+        (is (= :create (:type (first @events))))
+        (is (= "test.txt" (:file (first @events))))
+        (is (empty? @errors))
+
+        (finally
+          (stop)
+          (delete-recursively temp-dir))))))
+
+(deftest test-watch-file-modification
+  (testing "watch detects file modification"
+    (let [temp-dir (create-temp-dir)
+          test-file (create-temp-file temp-dir "test.txt" "initial")
+          events (atom [])
+          errors (atom [])
+          stop (hawk/watch [temp-dir]
+                           (fn [e] (swap! events conj e))
+                           (fn [e _] (swap! errors conj e)))]
+      (try
+        ;; Modify the file
+        (Thread/sleep 100) ; Let watcher start
+        (spit test-file "modified content")
+        (Thread/sleep 200) ; Wait for event
+
+        ;; Should have modification event
+        (is (seq @events))
+        (let [modify-events (filter #(= :modify (:type %)) @events)]
+          (is (seq modify-events))
+          (is (= "test.txt" (:file (first modify-events)))))
+        (is (empty? @errors))
+
+        (finally
+          (stop)
+          (delete-recursively temp-dir))))))
+
+(deftest test-watch-file-deletion
+  (testing "watch detects file deletion"
+    (let [temp-dir (create-temp-dir)
+          test-file (create-temp-file temp-dir "test.txt" "content")
+          events (atom [])
+          errors (atom [])
+          stop (hawk/watch [temp-dir]
+                           (fn [e] (swap! events conj e))
+                           (fn [e _] (swap! errors conj e)))]
+      (try
+        ;; Delete the file
+        (Thread/sleep 100) ; Let watcher start
+        (.delete test-file)
+        (Thread/sleep 200) ; Wait for event
+
+        ;; Should have deletion event
+        (is (seq @events))
+        (let [delete-events (filter #(= :delete (:type %)) @events)]
+          (is (seq delete-events))
+          (is (= "test.txt" (:file (first delete-events)))))
+        (is (empty? @errors))
+
+        (finally
+          (stop)
+          (delete-recursively temp-dir))))))
+
+(deftest test-watch-multiple-directories
+  (testing "watch monitors multiple directories"
+    (let [temp-dir1 (create-temp-dir)
+          temp-dir2 (create-temp-dir)
+          events (atom [])
+          errors (atom [])
+          stop (hawk/watch [temp-dir1 temp-dir2]
+                           (fn [e] (swap! events conj e))
+                           (fn [e _] (swap! errors conj e)))]
+      (try
+        ;; Create files in both directories
+        (Thread/sleep 100) ; Let watcher start
+        (create-temp-file temp-dir1 "file1.txt" "content1")
+        (create-temp-file temp-dir2 "file2.txt" "content2")
+        (Thread/sleep 200) ; Wait for events
+
+        ;; Should have events from both directories
+        (is (>= (count @events) 2))
+        (let [files (set (map :file @events))]
+          (is (contains? files "file1.txt"))
+          (is (contains? files "file2.txt")))
+        (is (empty? @errors))
+
+        (finally
+          (stop)
+          (delete-recursively temp-dir1)
+          (delete-recursively temp-dir2))))))
+
+(deftest test-watch-subdirectory-creation
+  (testing "watch automatically monitors new subdirectories"
+    (let [temp-dir (create-temp-dir)
+          events (atom [])
+          errors (atom [])
+          stop (hawk/watch [temp-dir]
+                           (fn [e] (swap! events conj e))
+                           (fn [e _] (swap! errors conj e)))]
+      (try
+        ;; Create subdirectory
+        (Thread/sleep 100) ; Let watcher start
+        (let [sub-dir (io/file temp-dir "subdir")]
+          (.mkdir sub-dir)
+          (Thread/sleep 200) ; Wait for directory creation event
+
+          ;; Create file in subdirectory
+          (create-temp-file sub-dir "nested.txt" "content")
+          (Thread/sleep 200)) ; Wait for file event
+
+        ;; Should have events for both directory and file in subdirectory
+        (is (seq @events))
+        (let [nested-events (filter #(re-find #"nested\.txt" (:path %)) @events)]
+          (is (seq nested-events)))
+        (is (empty? @errors))
+
+        (finally
+          (stop)
+          (delete-recursively temp-dir))))))
+
+(deftest test-watch-error-handling
+  (testing "watch handles errors gracefully"
+    (let [errors (atom [])
+          events (atom [])
+          ;; Try to watch non-existent directory
+          stop (hawk/watch ["/non/existent/path"]
+                           (fn [e] (swap! events conj e))
+                           (fn [e ctx] (swap! errors conj {:error e :context ctx})))]
+      (try
+        (Thread/sleep 100)
+        ;; Should not crash, errors should be reported via error-fn
+        (is (empty? @events))
+        (finally
+          (stop))))))
+
+(deftest test-stop-function
+  (testing "stop function properly shuts down watcher"
+    (let [temp-dir (create-temp-dir)
+          events (atom [])
+          errors (atom [])
+          stop (hawk/watch [temp-dir]
+                           (fn [e] (swap! events conj e))
+                           (fn [e _] (swap! errors conj e)))]
+      (try
+        ;; Stop the watcher
+        (Thread/sleep 100)
+        (stop)
+
+        ;; Create file after stopping
+        (Thread/sleep 100)
+        (reset! events [])
+        (create-temp-file temp-dir "after-stop.txt" "content")
+        (Thread/sleep 200)
+
+        ;; Should not receive events after stopping
+        (is (empty? @events))
+
+        (finally
+          (delete-recursively temp-dir))))))
+
+(deftest test-debounced-watch
+  (testing "using debounce with watch"
+    (let [temp-dir (create-temp-dir)
+          rebuild-calls (atom [])
+          debounced-rebuild (hawk/debounce
+                             (fn [e] (swap! rebuild-calls conj e))
+                             100)
+          errors (atom [])
+          stop (hawk/watch [temp-dir]
+                           debounced-rebuild
+                           (fn [e _] (swap! errors conj e)))]
+      (try
+        ;; Create multiple files rapidly
+        (Thread/sleep 100) ; Let watcher start
+        (create-temp-file temp-dir "file1.txt" "content")
+        (create-temp-file temp-dir "file2.txt" "content")
+        (create-temp-file temp-dir "file3.txt" "content")
+        (Thread/sleep 300) ; Wait for debounce
+
+        ;; Should only have one rebuild call due to debounce
+        (is (= 1 (count @rebuild-calls)))
+        (is (empty? @errors))
+
+        (finally
+          (stop)
+          (delete-recursively temp-dir))))))
+
+;; Mode tests
+(deftest test-watch-modes
+  (testing "watch returns correct mode in metadata"
+    (let [temp-dir (create-temp-dir)]
+      (try
+        ;; Test auto mode
+        (let [stop (hawk/watch [temp-dir]
+                               (fn [_])
+                               (fn [_ _]))]
+          (try
+            (let [mode (:hawk-eye/mode (meta stop))]
+              (is (contains? #{:poll :vthread :fsevents} mode)))
+            (finally (stop))))
+
+        ;; Test explicit poll mode
+        (let [stop (hawk/watch [temp-dir]
+                               (fn [_])
+                               (fn [_ _])
+                               {:mode :poll})]
+          (try
+            (is (= :poll (:hawk-eye/mode (meta stop))))
+            (finally (stop))))
+
+        ;; Test explicit vthread mode if available
+        (when (#'hawk/virtual-threads-available?)
+          (let [stop (hawk/watch [temp-dir]
+                                 (fn [_])
+                                 (fn [_ _])
+                                 {:mode :vthread})]
+            (try
+              (is (= :vthread (:hawk-eye/mode (meta stop))))
+              (finally (stop)))))
+
+        (finally
+          (delete-recursively temp-dir))))))
+
+(deftest test-event-structure
+  (testing "events have correct structure"
+    (let [temp-dir (create-temp-dir)
+          events (atom [])
+          stop (hawk/watch [temp-dir]
+                           (fn [e] (swap! events conj e))
+                           (fn [_ _]))]
+      (try
+        (Thread/sleep 100)
+        (create-temp-file temp-dir "test.txt" "content")
+        (Thread/sleep 200)
+
+        (is (seq @events))
+        (let [event (first @events)]
+          ;; Check event structure
+          (is (contains? event :type))
+          (is (contains? event :file))
+          (is (contains? event :path))
+          (is (contains? event :timestamp))
+
+          ;; Check event values
+          (is (keyword? (:type event)))
+          (is (string? (:file event)))
+          (is (string? (:path event)))
+          (is (number? (:timestamp event))))
+
+        (finally
+          (stop)
+          (delete-recursively temp-dir))))))
+
+(deftest test-recursive-watching
+  (testing "watch recursively monitors all subdirectories by default"
+    (let [temp-dir (create-temp-dir)
+          events (atom [])
+          errors (atom [])]
+
+      ;; Create nested directory structure before watching
+      (let [sub1 (io/file temp-dir "sub1")
+            sub2 (io/file sub1 "sub2")
+            sub3 (io/file sub2 "sub3")]
+        (.mkdirs sub3)
+
+        (let [stop (hawk/watch [temp-dir]
+                               (fn [e] (swap! events conj e))
+                               (fn [e _] (swap! errors conj e)))]
+          (try
+            (Thread/sleep 100)
+
+            ;; Create files at different levels
+            (create-temp-file temp-dir "root.txt" "content")
+            (create-temp-file sub1 "level1.txt" "content")
+            (create-temp-file sub2 "level2.txt" "content")
+            (create-temp-file sub3 "level3.txt" "content")
+
+            (Thread/sleep 500) ; Give time for all events
+
+            ;; Should have events from all levels
+            (let [files (set (map :file @events))]
+              (is (contains? files "root.txt"))
+              (is (contains? files "level1.txt"))
+              (is (contains? files "level2.txt"))
+              (is (contains? files "level3.txt")))
+
+            (is (empty? @errors))
+
+            (finally
+              (stop)
+              (delete-recursively temp-dir))))))))
+
+;; Platform-specific tests
+(when (#'hawk/mac-osx?)
+  (deftest test-fsevents-mode
+    (testing "FSEvents mode is used on macOS when available"
+      (let [temp-dir (create-temp-dir)]
+        (try
+          ;; When JNA is available, should use FSEvents
+          (let [stop (hawk/watch [temp-dir]
+                                 (fn [_])
+                                 (fn [_ _])
+                                 {:mode :auto})]
+            (try
+              ;; On macOS with JNA, should be either fsevents or poll (if JNA failed)
+              (is (contains? #{:fsevents :poll} (:hawk-eye/mode (meta stop))))
+              (finally (stop))))
+
+          (finally
+            (delete-recursively temp-dir)))))))
+
+(deftest test-poll-interval
+  (testing "poll mode respects poll-ms option"
+    (let [temp-dir (create-temp-dir)
+          events (atom [])
+          stop (hawk/watch [temp-dir]
+                           (fn [e] (swap! events conj e))
+                           (fn [_ _])
+                           {:mode :poll
+                            :poll-ms 50})] ; Faster polling
+      (try
+        (Thread/sleep 100)
+        (create-temp-file temp-dir "test.txt" "content")
+        (Thread/sleep 150) ; Should be detected within this time
+
+        (is (seq @events))
+
+        (finally
+          (stop)
+          (delete-recursively temp-dir))))))

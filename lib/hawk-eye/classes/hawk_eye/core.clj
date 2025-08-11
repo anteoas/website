@@ -85,7 +85,7 @@
 ;; Protocol for different watch implementations
 (defprotocol WatchStrategy
   (start-watching [this directories notify-fn error-fn watch-keys])
-  (stop-watching [this error-fn]))
+  (stop-watching [this]))
 
 ;; Common WatchService functions
 (defn- register-directories
@@ -175,13 +175,13 @@
                    (when @watching?
                      (error-fn e {:phase :watch-loop}))))))))
 
-  (stop-watching [_ error-fn]
+  (stop-watching [_]
     (reset! watching? false)
     ;; Close the watcher first to unblock any .take() calls
     (try
       (.close watcher)
       (catch Exception e
-        (error-fn e {:phase :shutdown})))
+        nil))
     ;; Then interrupt the thread if needed
     (when-let [t @thread]
       (.interrupt ^Thread t)
@@ -212,38 +212,27 @@
                   (when @watching?
                     (error-fn e {:phase :watch-loop})))))))
 
-  (stop-watching [_ error-fn]
+  (stop-watching [_]
     (reset! watching? false)
     ;; Close the watcher first
     (try
       (.close watcher)
       (catch Exception e
-        (error-fn e {:phase :shutdown})))
+        nil))
     ;; Then cancel the future
     (when-let [f @thread]
       (future-cancel f))))
 
-;; FSEvents implementation
+;; FSEvents implementation (stub for now)
 (defrecord FSEventsWatcher [watcher watching?]
   WatchStrategy
-  (start-watching [_ directories notify-fn error-fn _]
-    (try
-      ;; Dynamically load fsevents support
-      (let [watch-paths (requiring-resolve 'hawk-eye.fsevents.monitor/watch-paths)
-            monitor (watch-paths directories notify-fn error-fn)]
-        (reset! watcher monitor))
-      (catch Exception e
-        (error-fn e {:phase :start-fsevents})
-        (throw e))))
+  (start-watching [_ directories notify-fn error-fn watch-keys]
+    ;; TODO: Implement using fsevents-jna
+    (throw (UnsupportedOperationException. "FSEvents support not yet implemented")))
 
-  (stop-watching [_ error-fn]
-    (reset! watching? false)
-    (when-let [monitor @watcher]
-      (try
-        (let [stop-all (requiring-resolve 'hawk-eye.fsevents.monitor/stop-all)]
-          (stop-all monitor))
-        (catch Exception e
-          (error-fn e {:phase :stop-fsevents}))))))
+  (stop-watching [_]
+    ;; TODO: Stop FSEvents watcher
+    (reset! watching? false)))
 
 ;; Helper functions
 (defn- virtual-threads-available?
@@ -258,8 +247,8 @@
     (catch Exception _
       false)))
 
-(defn- mac-osx?
-  "Check if running on macOS."
+(defn- fsevents-available?
+  "Check if FSEvents is available (macOS only)."
   []
   (= "Mac OS X" (System/getProperty "os.name")))
 
@@ -270,9 +259,10 @@
                                      (atom nil) (atom true))
     :poll (->PollingWatcher (.newWatchService (FileSystems/getDefault))
                             (atom nil) (atom true) (:poll-ms opts 10))
-    :fsevents (->FSEventsWatcher (atom nil) (atom true))
+    :fsevents (->FSEventsWatcher nil (atom true))
     :auto (cond
-            (mac-osx?) (create-watcher :fsevents opts)
+            (and (= "Mac OS X" (System/getProperty "os.name"))
+                 (fsevents-available?)) (create-watcher :fsevents opts)
             (virtual-threads-available?) (create-watcher :vthread opts)
             :else (create-watcher :poll opts))))
 
@@ -302,35 +292,15 @@
    (let [;; Always expand paths recursively
          directories (mapcat find-all-directories paths)
          watch-keys (atom {})
-         ;; Try to create watcher, with fallback for FSEvents on macOS
-         [watcher actual-mode] (if (and (= mode :auto) (mac-osx?))
-                                 ;; Try FSEvents first, fall back to polling
-                                 (try
-                                   (let [w (create-watcher :fsevents opts)]
-                                     ;; Test that we can start watching
-                                     (start-watching w directories notify-fn error-fn watch-keys)
-                                     [w :fsevents])
-                                   (catch Exception e
-                                     ;; FSEvents failed, warn and fall back
-                                     (println "\nWARNING: FSEvents initialization failed. Falling back to slower WatchService polling.")
-                                     (println "  Cause:" (.getMessage e))
-                                     (when (str/includes? (str e) "has been called by com.sun.jna.Native")
-                                       (println "  To use the faster FSEvents on macOS, add this JVM flag:")
-                                       (println "    --enable-native-access=ALL-UNNAMED"))
-                                     (println "  Note: WatchService polling is significantly slower on macOS.\n")
-                                     (let [w (create-watcher :poll opts)]
-                                       (start-watching w directories notify-fn error-fn watch-keys)
-                                       [w :poll])))
-                                 ;; Not auto mode on macOS, create normally
-                                 (let [w (create-watcher mode opts)]
-                                   (try
-                                     (start-watching w directories notify-fn error-fn watch-keys)
-                                     (catch Exception e
-                                       (error-fn e {:phase :registration :directories directories})
-                                       (throw e)))
-                                   [w mode]))]
+         watcher (create-watcher mode opts)]
+
+     ;; Start watching
+     (try
+       (start-watching watcher directories notify-fn error-fn watch-keys)
+       (catch Exception e
+         (error-fn e {:phase :registration :directories directories})))
 
      ;; Return stop function with metadata about mode used
      (with-meta
-       (fn [] (stop-watching watcher error-fn))
-       {:hawk-eye/mode actual-mode}))))
+       (fn [] (stop-watching watcher))
+       {:hawk-eye/mode mode}))))
