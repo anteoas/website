@@ -1,0 +1,4 @@
+[:div.page-wrapper
+ [:div.container
+  [:article.page-content
+   [:eden/get :html/content]]]]

@@ -1,0 +1,3 @@
+[:section.hero-headline
+ [:div.container
+  [:h1 [:eden/get :hero-text]]]]

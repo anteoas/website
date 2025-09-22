@@ -1,0 +1,16 @@
+[:div.page-wrapper
+ [:div.page-content
+  [:h1 [:eden/get :title]]
+  [:div.products-intro
+   [:eden/get :html/content]]
+
+  ;; Group products by category and render each group
+  [:eden/each :eden/all :where {:type :product} :group-by :category :order-by [:eden.each/group-key]
+   [:section.product-category
+    [:h2 [:eden/get :eden.each/group-key]]
+
+    [:eden/each :eden.each/group-items
+     ;; Render each product using its template with section ID for hash navigation
+     [:eden/render {:data [:eden/get :content-key]
+                    :template :product-section
+                    :section-id [:eden/get :content-key]}]]]]]]

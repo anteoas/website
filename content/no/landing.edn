@@ -1,0 +1,23 @@
+{:template :landing
+ :title "Forsiden"
+ :slug ""
+
+ :hero-text "Internettbasert sanntidssystemer for planlegging, overvåking og varsling"
+
+ :hero-subtitle "Beslutningsstøttesystemer for en bærekraftig havbruksnæring"
+ :hero-description "Anteo er et selskap som utvikler beslutningsstøttesystemer som skal bidra til en bærekraftig utvikling av norsk havbruksnæringen. Vi leverer sann tids løsninger for overvåkning og varsling av aktiviteter som kan være i strid med biosikkerhetsprinsippet, samtidig som løsningene skal bidra til forslag til risikoreduserende tiltak."
+ :hero-cta-text "Les mer"
+ :hero-cta-url "/about.html"
+ :hero-image "/assets/images/hero-about.jpg"
+ :hero-image-alt "Anteo havbruk"
+
+ :company-name "Anteo"
+
+ :products {:logistics {:title "Anteo Logistikk"
+                        :description "Anteos verktøy for logistikk gir tilgang på fartøy, sensorer, data og rapporter som øker beslutningsstøtten og effektiviserer informasjonsinnhenting og deling. Det gir en unik mulighet til å sammenligne data for lokalitet eller fartøy, som igjen kan brukes til å utvikle produksjonen og gjøre logistikken rundt last og dokumentasjon knyttet til transport av biologisk materiale enklere."}
+            :fish-health {:title "Anteo Fiskehelse"
+                          :description "Våre verktøy for fiskehelse sørger for rask og presis registrering av fiskevelferdsindikatorer samt myndighetspålagt lusetelling og en enkel, presis og sikker journalføring av fiskehelsedata."}}
+
+ :news-section-label "Aktuelt"
+ :news-section-title "Nyheter & Oppdateringer"
+ :news-more-text "Se flere artikler →"}

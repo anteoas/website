@@ -1,0 +1,11 @@
+[:section.product-section-template
+ [:h3 [:eden/get :title]]
+
+ [:div.product-section-template-container
+
+  [:div.content-wrapper
+   [:div [:eden/get :html/content]]]
+
+  [:div.image-wrapper
+   [:img {:src [:eden/get :image-src]
+          :alt [:eden/get :image-alt]}]]]]

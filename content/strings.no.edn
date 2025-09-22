@@ -1,0 +1,30 @@
+{;; Navigation
+ :nav/home "Forsiden"
+ :nav/products "Produkter"
+ :nav/news "Aktuelt"
+ :nav/sustainability "Bærekraft"
+ :nav/about "Om oss"
+ :nav/contact "Kontakt oss"
+ :nav/back-to "← Tilbake til"
+ :nav/toggle-menu "Åpne meny"
+
+ ;; Common UI
+ :common/read-more "Les mer"
+ :common/logo "Anteo logo"
+ :common/language "Språk"
+ :common/select-language "Velg språk"
+
+ ;; Footer
+ :footer/copyright "© {{year}} Anteo AS"
+ :footer/org-number "Org. nr. {{number}}"
+ :footer/privacy "Personvern"
+ :footer/terms "Brukervilkår"
+
+ ;; Products
+ :products/logistics "Anteo Logistikk"
+ :products/fish-health "Anteo Fiskehelse"
+
+ ;; Actions
+ :action/contact-us "Kontakt oss"
+ :action/learn-more "Lær mer"
+ :action/get-started "Kom i gang"}
