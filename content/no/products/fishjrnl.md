@@ -9,9 +9,6 @@
 }
 ---
 
-FishJrnl tilbyr en komplett løsning for digital fiskehelsedokumentasjon med fire hovedfunksjoner som dekker alle aspekter av journalføring i havbruk. Med velferdsregistrering kan du enkelt og effektivt registrere alle velferdsindikatorer, mens systemet automatisk sikrer at alle myndighetskrav og bransjestandarder følges. Lusetellingsfunksjonen forenkler denne kritiske oppgaven med nøyaktige registreringer og automatisk beregning av gjennomsnitt og trender over tid.
+FishJrnl er en komplett løsning for digital fiskehelsedokumentasjon med fire hovedfunksjoner som dekker all journalføring i havbruk. Systemet inkluderer velferdsregistrering med automatisk overholdelse av myndighetskrav og bransjestandarder, lusetelling med nøyaktige registreringer og trendberegning, sikker journalføring tilgjengelig offline, samt kraftige analyse og rapportverktøy for intern bruk og myndighetsrapportering. 
 
-Kjernen i systemet er en enkel, presis og sikker journalføring av all fiskehelsedata som alltid er tilgjengelig, selv når du arbeider offline. Dette kompletteres med kraftige analyse- og rapporteringsverktøy som gir deg verdifull innsikt i trender og mønstre i dataene dine. Du kan enkelt generere rapporter både for internt bruk og for innlevering til myndigheter.
-FishJrnl skiller seg ut ved at det er utviklet i tett samarbeid med aktører i havbruksnæringen. Dette sikrer at løsningen møter reelle behov og utfordringer som oppdrettere møter i hverdagen.
-
-Fordelene med å ta i bruk FishJrnl er betydelige. Systemet er tidsbesparende og reduserer dramatisk tiden som brukes på dokumentasjon, samtidig som nøyaktigheten økes gjennom minimering av feil i registreringer. Du får full sporbarhet med komplett historikk for hver lokalitet, og kan være trygg på at du alltid er i samsvar med regelverket siden systemet kontinuerlig oppdateres i henhold til myndighetskrav.
+FishJrnl er utviklet i samarbeid med havbruksaktører for å møte reelle behov, og gir tidsbesparelse, økt nøyaktighet, full sporbarhet med historikk for hver lokalitet, og kontinuerlig samsvar med regelverket.
