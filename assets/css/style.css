@@ -9,7 +9,7 @@
    ======================================== */
 * {
     margin: 0;
-    padding: 0;
+    padding: 80;
     box-sizing: border-box;
 }
 
@@ -239,11 +239,12 @@ body.landing-page main {
 /* ========================================
    TYPOGRAPHY
    ======================================== */
-h1, h2, h3, h4, h5, h6 {
-    margin-bottom: var(--space-md);
+   h1, h2, h3, h4, h5, h6 {
+    margin-bottom: var(--space-lg); /* more breathing room */
     line-height: 1.2;
     font-weight: 500;
 }
+
 
 h1 { 
     font-size: 2.5rem; 
@@ -275,12 +276,12 @@ p {
 /* ========================================
    PAGE LAYOUTS
    ======================================== */
-.page-wrapper {
+   .page-wrapper {
     margin-top: 7.5rem; /* 120px */
 }
 
 .page-content {
-    max-width: 1200px;
+    max-width: 1250px;
     margin: 0 auto;
 }
 
@@ -305,8 +306,14 @@ p {
 /* ========================================
    PRODUCT PAGES
    ======================================== */
-.product-header {
+   .product-header {
     margin-bottom: var(--space-xl);
+}
+
+.product-image img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
 }
 
 .product-meta {
@@ -346,6 +353,52 @@ p {
     left: 0;
     color: var(--secondary-color);
     font-weight: bold;
+}
+
+/* ========================================
+   CUSTOM LAYOUT FOR PRODUCTS PAGE
+   ======================================== */
+
+/* Intro section: "Produkter" left, text right */
+.products-intro {
+    max-width: 1250px;
+    margin: 0 auto;
+    padding: 80px 2rem;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 3rem;
+    align-items: center;
+}
+
+.products-intro h2 {
+    color: var(--secondary-color);
+    font-size: 2rem;
+    margin: 0;
+}
+
+.products-intro p {
+    font-size: 1.125rem;
+    line-height: 1.6;
+    color: var(--text-color);
+}
+
+/* Product section with alternating layouts */
+.product-section {
+    padding: 80px 0;
+    background: white;
+    color: var(--text-color);
+}
+
+.product-wrap {
+    max-width: 1250px;
+    margin: 0 auto;
+    display: flex;
+    gap: 3rem;
+    align-items: center;
+}
+
+.product-wrap.reversed {
+    flex-direction: row-reverse;
 }
 
 /* ========================================
@@ -407,20 +460,19 @@ p {
 
 .team-card {
     display: flex;
-    min-height: 350px;
+    flex-direction: column; /* force vertical layout */
+    min-height: auto;       /* remove fixed height */
 }
 
-/* Image section - 1/3 width, portrait orientation */
 .team-image {
-    width: 33.333%;
+    width: 100%;            /* full width on top */
+    height: 300px;          /* set a fixed height for images */
     background-size: cover;
-    background-position: center top;
-    background-repeat: no-repeat;
+    background-position: center;
 }
 
-/* Text section - 2/3 width */
 .team-content {
-    width: 66.667%;
+    width: 100%;            /* full width below image */
     padding: var(--space-lg);
     display: flex;
     flex-direction: column;
@@ -498,6 +550,7 @@ p {
         width: 100%;
     }
 }
+
 
 /* ========================================
    COMPONENTS
@@ -1084,13 +1137,13 @@ footer {
 /* ========================================
    CUSTOM CONTAINERS
    ======================================== */
-.value-block {
+   .value-block {
     display: flex;
     align-items: flex-start;
     gap: 2rem;
-    margin-top: 3rem;
-    margin-bottom: 3rem;
+    margin: 5rem 0; /* bigger spacing above and below */
 }
+
 
 .value-block img {
     flex-shrink: 0;
@@ -1568,7 +1621,32 @@ section.product-category {
   }
 }
 
+/* ========================================
+   GLOBAL SECTION SPACING
+   ======================================== */
 
+   section,
+   .about-section,
+   .team-section,
+   .value-block,
+   .news-section,
+   .product-section {
+     margin-top: 100px;
+     margin-bottom: 100px;
+   }
+   
+   @media (max-width: 768px) {
+     section,
+     .about-section,
+     .team-section,
+     .value-block,
+     .news-section,
+     .product-section {
+       margin-top: 60px;
+       margin-bottom: 60px;
+     }
+   }
+   
 
 /* ========================================
    PRODUCT SECTION TEMPLATE
@@ -1605,3 +1683,4 @@ section.product-category {
 .products-intro {
     max-width: calc(var(--max-width) * 0.8);
 }
+

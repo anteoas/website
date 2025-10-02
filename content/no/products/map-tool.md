@@ -8,7 +8,6 @@
  :image-alt "Produktbilde for Anteo Kartverktøy"
  }
 ---
-Anteo Kartverktøy is an advanced mapping solution tailored for aquaculture, combining geographic information with real-time data for optimal operations.
-The system offers five core functions: interactive maps updated with live data, vessel tracking and route planning, integrated weather and wave alerts, detailed site and facility information, and historical data with trend analyses for improved decision making.
+Anteo Kartverktøy er en avansert kartløsning utviklet for havbruk, som kombinerer geografisk informasjon med sanntidsdata for optimale operasjoner. Systemet tilbyr fem kjernefunksjoner: interaktive kart oppdatert med live data, fartøysporing og ruteplanlegging, integrerte varsler for vær og bølger, detaljert informasjon om lokaliteter og anlegg, samt historiske data med trendanalyser for bedre beslutningsgrunnlag.
 
-Benefits include better operational planning through centralized information, enhanced safety with real-time weather updates, optimized transport routes saving time and fuel, and reduced operational costs through more efficient resource use and fewer unforeseen events.
+Fordelene inkluderer bedre operasjonsplanlegging gjennom sentralisert informasjon, økt sikkerhet med sanntids værvarsler, optimaliserte transportruter som sparer tid og drivstoff, samt reduserte driftskostnader gjennom mer effektiv ressursbruk og færre uforutsette hendelser.

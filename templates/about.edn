@@ -109,3 +109,14 @@
           [:div.contact-info
            [:p [:strong "E-post:"] " " [:a {:href "mailto:tor.anders@anteo.no"} "tor.anders@anteo.no"]]
            [:p [:strong "Tel:"] " " [:a {:href "tel:+47 90728054"} "+47 90728054"]]]]]]]]]]]]]
+
+        [:div.team-member
+        [:div.team-card
+         [:div.team-image {:style "background-image: url('/assets/images/team/tor-anders-aas.png')"}]
+         [:div.team-content
+          [:h3 "Bjørn Straume"]
+          [:p.position "CSO"]
+          [:p.bio "Bjørn har erfaring fra operasjonelt arbeid i havbruk, samt internasjonalt B2B-salg, kundeoppfølging og teknologiløsninger. Hos Anteo jobber han med kundeutvikling, salg og forretningsstøtte."]
+          [:div.contact-info
+           [:p [:strong "E-post:"] " " [:a {:href "mailto:tor.anders@anteo.no"} "tor.anders@anteo.no"]]
+           [:p [:strong "Tel:"] " " [:a {:href "tel:+47 90728054"} "+47 90728054"]]]]]]]]]]]]]

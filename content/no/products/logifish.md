@@ -8,6 +8,6 @@
  :image-alt "Produktbilde for Logifish"
 }
 ---
-Logifish is a complete digital solution for fish transport, ensuring full control and traceability throughout the transport chain. The system includes five core functions: digital transport documentation, end-to-end traceability, continuous temperature logging, systematic biosecurity checks, and direct integration with regulatory reporting.
+Logifish er en komplett digital løsning for fisketransport, som sikrer full kontroll og sporbarhet gjennom hele transportkjeden. Systemet består av fem kjernefunksjoner: digital transportdokumentasjon, ende-til-ende sporbarhet, kontinuerlig temperaturlogging, systematiske biosikkerhetssjekker og direkte integrasjon med myndighetsrapportering.
 
-Logifish prioritizes safety and traceability by storing full transport histories, monitoring critical parameters in real time, and sending automatic alerts for any deviations. All activities, from loading to unloading, are logged in detail. Benefits include compliance with regulations, reduced human error through digital automation, time and resource savings, and enhanced biosecurity that protects fish health for both transporters and producers.
+Logifish prioriterer sikkerhet og sporbarhet ved å lagre komplette transporthistorikker, overvåke kritiske parametere i sanntid og sende automatiske varsler ved avvik. Alle aktiviteter, fra lasting til lossing, loggføres i detalj. Fordelene inkluderer etterlevelse av regelverk, redusert menneskelig feil gjennom digital automatisering, tids- og ressursbesparelser, samt forbedret biosikkerhet som beskytter fiskehelsen for både transportører og produsenter.
