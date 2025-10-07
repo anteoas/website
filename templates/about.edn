@@ -8,13 +8,13 @@
 
     [:h2 "Hvem er vi?"]
     [:p [:eden/get :intro-text]]
-    [:p "Målet vårt er ikke å være størst, men å være til hjelp – med løsninger som faktisk fungerer i praksis. Vi tror at god teknologi starter med å forstå virkeligheten. Derfor samarbeider vi med aktører på tvers av verdikjeden for å løse konkrete utfordringer knyttet til effektiv drift, fiskevelferd og miljøansvar."]
+    [:p "Anteo er et norsk SaaS selskap som ble stiftet i 2012. Vi tilbyr teknologiske løsninger knyttet til logistikk, samhandling og fiskehelse innen havbruksnæringen. Vårt ønske er å bidra til å modernisere og løfte havbruksnæringen. Hos Anteo finner du bred kompetanse innad i selskapet, som kan bidra til å finne gode og effektive løsninger til aktuelle problemer innen havbruksnæringen."]
 
     [:h2 "Vår visjon"]
-    [:p "Å bidra til en moderne havbruksnæring – der effektiv samhandling gir bedre beslutninger og mer bærekraftig produksjon."]
+    [:p " Bidra til en moderne havbruksnæring gjennom effektiv samhandling, samarbeid på tvers av fagområder og implementering av nye teknologier."]
 
     [:h2 "Misjon"]
-    [:p "Vi hjelper havbruksnæringen å jobbe smartere – med digitale verktøy som gir bedre kontroll, mindre manuelt arbeid og full oversikt fra merdkant til logistikk. Vi forenkler planlegging, samhandling og dokumentasjon – så du kan bruke tiden der den trengs mest."]
+    [:p "Vi skal støtte havbruksnæringen og tilhørende sektorer med å effektivisere logistikken, redusere miljøavtrykket og forbedre fiskevelferd. Dette gjør vi ved å tilby smarte, moderne verktøy som gir muligheten til samhandling, planlegging og dokumentasjon av virksomheten på en enklere, mer effektiv måte."]
 
     [:h2 "Verdier"]
     [:div.value-block
@@ -120,3 +120,39 @@
           [:div.contact-info
            [:p [:strong "E-post:"] " " [:a {:href "mailto:tor.anders@anteo.no"} "tor.anders@anteo.no"]]
            [:p [:strong "Tel:"] " " [:a {:href "tel:+47 90728054"} "+47 90728054"]]]]]]]]]]]]]
+
+
+        [:div.team-member
+        [:div.team-card
+         [:div.team-image {:style "background-image: url('/assets/images/team/tor-anders-aas.png')"}]
+         [:div.team-content
+          [:h3 "Kjetil Lund"]
+          [:p.position "Utvikler"]
+          [:p.bio "I Anteo arbeider Kjetil med programmering, både backend og frontend, med ulike teknologier som er mest populære i dagens systemer. Hovedansvarlig for kartverktøyet og logistikk systemene Anteo i dag leverer til våre kunder."]
+          [:div.contact-info
+           [:p [:strong "E-post:"] " " [:a {:href "mailto:tor.anders@anteo.no"} " "]]
+           [:p [:strong "Tel:"] " " [:a {:href " "} "+47 90728054"]]]]]]]]]]]]]
+                
+                
+                [:div.team-member
+        [:div.team-card
+         [:div.team-image {:style "background-image: url('/assets/images/team/tor-anders-aas.png')"}]
+         [:div.team-content
+          [:h3 "Tormod Mathiesen"]
+          [:p.position "Systemutvikler"]
+          [:p.bio "Tormod er en utvikler fra Bergen med et par års erfaring som både konsulent og utvikler i startup. Han jobber med både backend og frontend, og har en spesiell forkjærlighet for programmeringsspråket Clojure og data-drevet utvikling."]
+          [:div.contact-info
+           [:p [:strong "E-post:"] " " [:a {:href "mailto:tor.anders@anteo.no"} " "]]
+           [:p [:strong "Tel:"] " " [:a {:href " "} "+47 90728054"]]]]]]]]]]]]]
+
+
+        [:div.team-member
+        [:div.team-card
+         [:div.team-image {:style "background-image: url('/assets/images/team/tor-anders-aas.png')"}]
+         [:div.team-content
+          [:h3 "Lill-Kristin Karlsen"]
+          [:p.position "Systemutvikler"]
+          [:p.bio "Lill-Kristin har over 25 års erfaring innen systemadministrasjon og serverdrift, i tillegg til teknisk ledererfaring i ulike roller. Hun har nå omskolert seg til utvikler og jobber med både front- og backendutvikling i Anteo."]
+          [:div.contact-info
+           [:p [:strong "E-post:"] " " [:a {:href "mailto:tor.anders@anteo.no"} " "]]
+           [:p [:strong "Tel:"] " " [:a {:href " "} "+47 90728054"]]]]]]]]]]]]]

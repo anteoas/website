@@ -4,48 +4,33 @@
    [:img {:src "/assets/images/anteo-logo-white.svg" :alt "Anteo" :width "180"}]
    [:div.footer-box
     [:p
-     "Vågsallmenningen 6, 5040 Bergen" [:br]
      "Industrivegen 12, 7900 Rørvik" [:br]
      "Krambugata 2 (Digs), 7011 Trondheim" [:br]
-     "Fugleskjærgata 16, 6905 Florø" [:br]]
+     "Vestre Skostredet 2 (Bergen.Works), 5017 Bergen" [:br]]
     [:p {:style "color: var(--light-blue);"} "Org. nr. 999 168 817"]
     [:p [:a {:href "mailto:post@anteo.no"} "post@anteo.no"]]
     [:p [:a {:href "tel:+47 952 84 007"} "+47 952 84 007"]]]]
 
   [:div.footer-right
    [:div.sitemap-container
-    [:eden/each :eden/all :where {:type :product} :group-by :category :order-by [:eden.each/group-key]
-     [:div.footer-section
-      [:h4 [:eden/get :eden.each/group-key]]
-      [:eden/each :eden.each/group-items
-       [:eden/link [:eden/get :content-key]
-        [:a {:href [:eden/get :link/href]} [:eden/get :title]]]]]]
-    [:div]
-    [:div]
     [:div.footer-section
      [:h4 "Anteo AS"]
-     [:eden/link :products
-      [:a {:href [:eden/get :link/href]} [:eden/get :link/title]]]
-     [:eden/link :news
-      [:a {:href [:eden/get :link/href]} [:eden/get :link/title]]]
-     [:eden/link :sustainability
-      [:a {:href [:eden/get :link/href]} [:eden/get :link/title]]]
-     [:eden/link :about
-      [:a {:href [:eden/get :link/href]} [:eden/get :link/title]]]
-     [:eden/link :contact
-      [:a {:href [:eden/get :link/href]} [:eden/get :link/title]]]
+     [:a {:href "/produkter"} "Produkter"]
+     [:a {:href "/aktuelt"} "Aktuelt"]]
+    [:div.footer-section
+     [:h4 "Om Oss"]
+     [:a {:href "/baerekraft"} "Bærekraft"]
+     [:a {:href "/selskapet"} "Selskapet"]
+     [:a {:href "/kontakt"} "Kontakt oss"]]
+    [:div.footer-social
+     [:a {:href "https://www.facebook.com/anteoas" :target "_blank"}
+      [:img {:src "/assets/images/facebook-icon.svg" :width "40" :height "40" :alt "facebook"}]]
+     [:a {:href "https://www.instagram.com/anteo_softwaresolutions/" :target "_blank"}
+      [:img {:src "/assets/images/instagram-icon.svg" :width "40" :height "40" :alt "instagram"}]]]]]]
 
-     [:div.footer-social
-      [:a {:href "https://www.facebook.com/anteoas" :target "_blank"}
-       [:img {:src "/assets/images/facebook-icon.svg" :width "40" :height "40" :alt "facebook"}]]
-      [:a {:href "https://www.instagram.com/anteo_softwaresolutions/" :target "_blank"}
-       [:img {:src "/assets/images/instagram-icon.svg" :width "40" :height "40" :alt "instagram"}]]]]]]]
  [:div.footer-bottom
-  [:p [:eden/t :footer/copyright {:year [:eden/get :eden/current-year]}]]
+  [:p "© " [:eden/get :eden/current-year] " Anteo AS. Alle rettigheter reservert."]
   [:p.footer-links
-   [:eden/link :privacy
-    [:a {:href [:eden/get :link/href]} [:eden/get :link/title]]]
+   [:a {:href "/personvern"} "Personvern"]
    [:span.footer-separator "|"]
-   [:eden/link :terms
-    [:a {:href [:eden/get :link/href]} [:eden/get :link/title]]]]]]
-
+   [:a {:href "/vilkar"} "Vilkår"]]]]
