@@ -4,6 +4,21 @@
   [:div.products-intro
    [:eden/get :html/content]]
 
+  ;; NEW: Intro section under hero
+  [:section.products-intro-section
+   {:style {:display "flex" 
+            :align-items "center" 
+            :gap "2rem" 
+            :margin-bottom "2rem"}}
+   ;; Left: small header
+   [:div.products-intro-left
+    {:style {:flex "0 0 150px"}}  ;; fixed width for left column
+    [:h3 "Produkter"]]
+   ;; Right: description text
+   [:div.products-intro-right
+    {:style {:flex "1"}}  ;; take remaining width
+    [:p "En kort introduksjon til 'Produkter' page."]]]
+
   ;; Group products by category and render each group
  [:eden/each :eden/all 
               :where {:type :product} 

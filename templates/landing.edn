@@ -13,6 +13,18 @@
     [:div.image-block
      [:img {:src [:eden/get :hero-image] :alt [:eden/get :hero-image-alt]}]]]]]
 
+ ;; NEW: Contact info section under hero
+ [:section.contact-intro
+  {:style {:display "flex"
+           :align-items "flex-start"
+           :gap "2rem"
+           :margin-bottom "2rem"}}
+  [:div.contact-left {:style {:flex "0 0 150px"}}
+   [:h3 "Kontakt oss"]]
+  [:div.contact-right {:style {:flex "1"}}
+   [:p [:strong "E-post:"] " post@anteo.no"]
+   [:p [:strong "Telefon:"] " +47 XXX XX XXX"]]]
+   
  ;; Logistics
  [:eden/link
   :products
@@ -44,27 +56,51 @@
        {:href [:eden/get :link/href]} [:eden/t :common/read-more]]]]]]]
 
  ;; News section
- [:section.news-section
-  [:div.container
-   [:div.section-header
-    [:p.title [:eden/get :news-section-label]]
-    [:h2 [:eden/get :news-section-title]]]
-   [:div.news-grid
-    [:eden/each :eden/all :where {:type :news :published true} :order-by [:date :desc] :limit 3
-     [:article.news-card
-      [:div.news-card-image
-       [:eden/link [:eden/get :content-key]
-        [:a {:href [:eden/get :link/href]}
-         [:img {:src "/assets/images/news/placeholder.jpg?size=400x300"
-                :alt [:eden/get :title]}]]]]
-      [:div.news-card-content
-       [:time.news-date [:eden/get :date]]
-       [:h3
+[:div.page-wrapper
+ [:div.page-content
+  ;; Hero / title
+  [:h1 [:eden/get :title]]
+  [:div.news-intro
+   [:eden/get :html/content]]
+
+  ;; NEW: Intro section under hero
+  [:section.news-intro-section
+   {:style {:display "flex" 
+            :align-items "center" 
+            :gap "2rem" 
+            :margin-bottom "2rem"}}
+   ;; Left: small header
+   [:div.news-intro-left
+    {:style {:flex "0 0 150px"}} 
+    [:h3 "Aktuelt"]]
+   ;; Right: description text
+   [:div.news-intro-right
+    {:style {:flex "1"}} 
+    [:p "En kort introduksjon til 'Aktuelt' page."]]]
+
+  ;; Existing news section
+  [:section.news-section
+   [:div.container
+    [:div.section-header
+     [:p.title [:eden/get :news-section-label]]
+     [:h2 [:eden/get :news-section-title]]]
+    [:div.news-grid
+     [:eden/each :eden/all :where {:type :news :published true} :order-by [:date :desc] :limit 3
+      [:article.news-card
+       [:div.news-card-image
         [:eden/link [:eden/get :content-key]
-         [:a {:href [:eden/get :link/href]} [:eden/get :title]]]]
-       [:p.news-excerpt [:eden/get :excerpt]]
-       [:eden/link [:eden/get :content-key]
-        [:a.read-more {:href [:eden/get :link/href]} [:eden/t :common/read-more]]]]]]]
-   [:div.news-more
-    [:eden/link :news
-     [:a.read-more {:href [:eden/get :link/href]} [:eden/get :news-more-text]]]]]]]
+         [:a {:href [:eden/get :link/href]}
+          [:img {:src "/assets/images/news/placeholder.jpg?size=400x300"
+                 :alt [:eden/get :title]}]]]]
+       [:div.news-card-content
+        [:time.news-date [:eden/get :date]]
+        [:h3
+         [:eden/link [:eden/get :content-key]
+          [:a {:href [:eden/get :link/href]} [:eden/get :title]]]]
+        [:p.news-excerpt [:eden/get :excerpt]]
+        [:eden/link [:eden/get :content-key]
+         [:a.read-more {:href [:eden/get :link/href]} [:eden/t :common/read-more]]]]]]]
+    [:div.news-more
+     [:eden/link :news
+      [:a.read-more {:href [:eden/get :link/href]} [:eden/get :news-more-text]]]]]]]]]
+

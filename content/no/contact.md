@@ -3,14 +3,20 @@
  :template :page}
 ---
 
+<!-- NEW: Contact info in two columns -->
+<div style="display:flex; gap:2rem; align-items:flex-start; margin-bottom:2rem;">
+  <div style="flex:0 0 150px;">
+    <h3>Kontakt oss</h3>
+  </div>
+  <div style="flex:1;">
+    <p><strong>E-post:</strong> post@anteo.no</p>
+    <p><strong>Telefon:</strong> +47 XXX XX XXX</p>
+  </div>
+</div>
+
 # Kontakt oss
 
 Vi hjelper deg gjerne med å finne den beste løsningen for din virksomhet.
-
-## Kontaktinformasjon
-
-**E-post**: post@anteo.no  
-**Telefon**: +47 XXX XX XXX
 
 ## Kontorer
 

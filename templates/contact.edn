@@ -1,0 +1,48 @@
+{:slug "kontakt"
+ :title "Kontakt oss"
+ :template :page}
+
+---
+
+[:div.page-wrapper
+ [:div.page-content
+
+  ;; Hero section
+  [:section.hero-main
+   [:div.container
+    [:div.column-wrap
+     [:div.content-block-left
+      [:div.content-wrap
+       [:h1 "Kontakt oss"]
+       [:p "Vi hjelper deg gjerne med å finne den beste løsningen for din virksomhet."]]]
+     [:div.image-block
+      [:img {:src "/assets/images/hero-contact.jpg" :alt "Kontakt oss hero"}]]]]]
+
+  ;; Contact info section (two columns)
+  [:section.contact-intro
+   {:style {:display "flex"
+            :align-items "flex-start"
+            :gap "2rem"
+            :margin-bottom "2rem"}}
+   [:div.contact-left {:style {:flex "0 0 150px"}}
+    [:h3 "Kontakt oss"]]
+   [:div.contact-right {:style {:flex "1"}}
+    [:p [:strong "E-post:"] " post@anteo.no"]
+    [:p [:strong "Telefon:"] " +47 XXX XX XXX"]]]
+
+  ;; Offices
+  [:section.offices
+   [:h2 "Kontorer"]
+   [:h3 "Trondheim"]
+   [:p "Adresse kommer"]
+   [:p "7000 Trondheim"]
+   [:h3 "Bergen"]
+   [:p "Adresse kommer"]
+   [:p "5000 Bergen"]]
+
+  ;; Contact form
+  [:section.contact-form
+   [:h2 "Send oss en melding"]
+   [:p "Bruk kontaktskjemaet nedenfor eller send oss en e-post direkte."]
+   [:p "[Kontaktskjema kommer]"]]]]
+

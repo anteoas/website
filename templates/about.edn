@@ -1,42 +1,92 @@
-[[:div.page-wrapper
-  [:div.container
-   [:article.page-content
-    [:section.hero-headline.page-hero {:style "background-image: linear-gradient(130deg, #003f7e4d, #3fb4984d), url('/assets/images/hero-about.jpg'); text-align: right"}
-     [:div.container
-      [:div.hero-content
-       [:h1 [:eden/get :page-title]]]]]
+[:div.page-wrapper
+ [:div.container
+  [:article.page-content
+   ;; Hero section stays the same
+   [:section.hero-headline.page-hero
+    {:style "background-image: linear-gradient(130deg, #003f7e4d, #3fb4984d), url('/assets/images/hero-about.jpg'); text-align: right"}
+    [:div.container
+     [:div.hero-content
+      [:h1 [:eden/get :page-title]]]]]
 
-    [:h2 "Hvem er vi?"]
-    [:p [:eden/get :intro-text]]
-    [:p "Anteo er et norsk SaaS selskap som ble stiftet i 2012. Vi tilbyr teknologiske løsninger knyttet til logistikk, samhandling og fiskehelse innen havbruksnæringen. Vårt ønske er å bidra til å modernisere og løfte havbruksnæringen. Hos Anteo finner du bred kompetanse innad i selskapet, som kan bidra til å finne gode og effektive løsninger til aktuelle problemer innen havbruksnæringen."]
+   ;; NEW: About sections in two-column style
+   ;; Section 1: Hvem er vi?
+   [:section.about-section
+    {:style {:display "flex"
+             :align-items "flex-start"
+             :gap "2rem"
+             :margin-bottom "2rem"}}
+    [:div.about-left {:style {:flex "0 0 150px"}}
+     [:h3 "Hvem er vi?"]]
+    [:div.about-right {:style {:flex "1"}}
+     [:p [:eden/get :intro-text]]
+     [:p "Anteo er et norsk SaaS selskap som ble stiftet i 2012. Vi tilbyr teknologiske løsninger knyttet til logistikk, samhandling og fiskehelse innen havbruksnæringen. Vårt ønske er å bidra til å modernisere og løfte havbruksnæringen. Hos Anteo finner du bred kompetanse innad i selskapet, som kan bidra til å finne gode og effektive løsninger til aktuelle problemer innen havbruksnæringen."]]]
 
-    [:h2 "Vår visjon"]
-    [:p " Bidra til en moderne havbruksnæring gjennom effektiv samhandling, samarbeid på tvers av fagområder og implementering av nye teknologier."]
+   ;; Section 2: Vår visjon
+   [:section.about-section
+    {:style {:display "flex"
+             :align-items "flex-start"
+             :gap "2rem"
+             :margin-bottom "2rem"}}
+    [:div.about-left {:style {:flex "0 0 150px"}}
+     [:h3 "Vår visjon"]]
+    [:div.about-right {:style {:flex "1"}}
+     [:p "Bidra til en moderne havbruksnæring gjennom effektiv samhandling, samarbeid på tvers av fagområder og implementering av nye teknologier."]]]
 
-    [:h2 "Misjon"]
-    [:p "Vi skal støtte havbruksnæringen og tilhørende sektorer med å effektivisere logistikken, redusere miljøavtrykket og forbedre fiskevelferd. Dette gjør vi ved å tilby smarte, moderne verktøy som gir muligheten til samhandling, planlegging og dokumentasjon av virksomheten på en enklere, mer effektiv måte."]
+   ;; Section 3: Misjon
+   [:section.about-section
+    {:style {:display "flex"
+             :align-items "flex-start"
+             :gap "2rem"
+             :margin-bottom "2rem"}}
+    [:div.about-left {:style {:flex "0 0 150px"}}
+     [:h3 "Misjon"]]
+    [:div.about-right {:style {:flex "1"}}
+     [:p "Vi skal støtte havbruksnæringen og tilhørende sektorer med å effektivisere logistikken, redusere miljøavtrykket og forbedre fiskevelferd. Dette gjør vi ved å tilby smarte, moderne verktøy som gir muligheten til samhandling, planlegging og dokumentasjon av virksomheten på en enklere, mer effektiv måte."]]]]]]
 
-    [:h2 "Verdier"]
-    [:div.value-block
-     [:img {:src "/assets/images/values-collaboration.png" :alt "Samarbeids sirkel"}]
-     [:div.value-content
-      [:p]
-      [:p [:em "SAMARBEID"]]
-      [:p "Vi tror de beste løsningene skapes i lag. Gjennom tett dialog med brukerne våre utvikler vi systemer som gir mening i hverdagen."]]]
+    [:section.values-section
+ [:h2 "Verdier"]
+ [:div.values-grid
+  {:style {:display "flex"
+           :gap "2rem"
+           :flex-wrap "wrap"
+           :justify-content "space-between"
+           :margin-top "2rem"}}
 
-    [:div.value-block
-     [:img {:src "/assets/images/values-technology.png?size=295x295" :alt "Teknologi sirkel"}]
-     [:div.value-content
-      [:p]
-      [:p [:em "TEKNOLOGI"]]
-      [:p "Vi brenner for å gjøre teknologi nyttig. Praktiske, smarte verktøy som løser ekte behov."]]]
+  ;; Card 1: Samarbeid
+  [:div.value-card
+   {:style {:flex "1 1 30%"
+            :min-width "250px"
+            :background "#f9f9f9"
+            :padding "1.5rem"
+            :border-radius "12px"
+            :text-align "center"}}
+   [:img {:src "/assets/images/values-collaboration.png" :alt "Samarbeids sirkel" :style {:width "80px" :margin-bottom "1rem"}}]
+   [:p [:em "SAMARBEID"]]
+   [:p "Vi tror de beste løsningene skapes i lag. Gjennom tett dialog med brukerne våre utvikler vi systemer som gir mening i hverdagen."]]
 
-    [:div.value-block
-     [:img {:src "/assets/images/values-sustainability.png" :alt "Bærekfraft sirkel"}]
-     [:div.value-content
-      [:p]
-      [:p [:em "BÆREKRAFT"]]
-      [:p "Vi tror på fremtiden til havbruket. Derfor ønsker vi å bidra til bedre beslutninger, redusert fotavtrykk og ansvarlig drift."]]]
+  ;; Card 2: Teknologi
+  [:div.value-card
+   {:style {:flex "1 1 30%"
+            :min-width "250px"
+            :background "#f9f9f9"
+            :padding "1.5rem"
+            :border-radius "12px"
+            :text-align "center"}}
+   [:img {:src "/assets/images/values-technology.png?size=295x295" :alt "Teknologi sirkel" :style {:width "80px" :margin-bottom "1rem"}}]
+   [:p [:em "TEKNOLOGI"]]
+   [:p "Vi brenner for å gjøre teknologi nyttig. Praktiske, smarte verktøy som løser ekte behov."]]
+
+  ;; Card 3: Bærekraft
+  [:div.value-card
+   {:style {:flex "1 1 30%"
+            :min-width "250px"
+            :background "#f9f9f9"
+            :padding "1.5rem"
+            :border-radius "12px"
+            :text-align "center"}}
+   [:img {:src "/assets/images/values-sustainability.png" :alt "Bærekfraft sirkel" :style {:width "80px" :margin-bottom "1rem"}}]
+   [:p [:em "BÆREKRAFT"]]
+   [:p "Vi tror på fremtiden til havbruket. Derfor ønsker vi å bidra til bedre beslutninger, redusert fotavtrykk og ansvarlig drift."]]]]
 
     [:h2 "Teamet vårt"]
     [:p "Møt folkene som jobber hver dag for å gjøre havbruksnæringen mer effektiv og bærekraftig."]
@@ -119,7 +169,7 @@
           [:p.bio "Bjørn har erfaring fra operasjonelt arbeid i havbruk, samt internasjonalt B2B-salg, kundeoppfølging og teknologiløsninger. Hos Anteo jobber han med kundeutvikling, salg og forretningsstøtte."]
           [:div.contact-info
            [:p [:strong "E-post:"] " " [:a {:href "mailto:tor.anders@anteo.no"} "tor.anders@anteo.no"]]
-           [:p [:strong "Tel:"] " " [:a {:href "tel:+47 90728054"} "+47 90728054"]]]]]]]]]]]]]
+           [:p [:strong "Tel:"] " " [:a {:href "tel:+47 90728054"} "+47 90728054"]]]]]]
 
 
         [:div.team-member
@@ -131,7 +181,7 @@
           [:p.bio "I Anteo arbeider Kjetil med programmering, både backend og frontend, med ulike teknologier som er mest populære i dagens systemer. Hovedansvarlig for kartverktøyet og logistikk systemene Anteo i dag leverer til våre kunder."]
           [:div.contact-info
            [:p [:strong "E-post:"] " " [:a {:href "mailto:tor.anders@anteo.no"} " "]]
-           [:p [:strong "Tel:"] " " [:a {:href " "} "+47 90728054"]]]]]]]]]]]]]
+           [:p [:strong "Tel:"] " " [:a {:href " "} "+47 90728054"]]]]]]
                 
                 
                 [:div.team-member
@@ -143,7 +193,7 @@
           [:p.bio "Tormod er en utvikler fra Bergen med et par års erfaring som både konsulent og utvikler i startup. Han jobber med både backend og frontend, og har en spesiell forkjærlighet for programmeringsspråket Clojure og data-drevet utvikling."]
           [:div.contact-info
            [:p [:strong "E-post:"] " " [:a {:href "mailto:tor.anders@anteo.no"} " "]]
-           [:p [:strong "Tel:"] " " [:a {:href " "} "+47 90728054"]]]]]]]]]]]]]
+           [:p [:strong "Tel:"] " " [:a {:href " "} "+47 90728054"]]]]]]
 
 
         [:div.team-member
@@ -152,7 +202,7 @@
          [:div.team-content
           [:h3 "Lill-Kristin Karlsen"]
           [:p.position "Systemutvikler"]
-          [:p.bio "Lill-Kristin har over 25 års erfaring innen systemadministrasjon og serverdrift, i tillegg til teknisk ledererfaring i ulike roller. Hun har nå omskolert seg til utvikler og jobber med både front- og backendutvikling i Anteo."]
+          [:p.bio "Tormod er en utvikler fra Bergen med et par års erfaring som både konsulent og utvikler i startup. Han jobber med både backend og frontend, og har en spesiell forkjærlighet for programmeringsspråket Clojure og data-drevet utvikling."]
           [:div.contact-info
            [:p [:strong "E-post:"] " " [:a {:href "mailto:tor.anders@anteo.no"} " "]]
-           [:p [:strong "Tel:"] " " [:a {:href " "} "+47 90728054"]]]]]]]]]]]]]
+           [:p [:strong "Tel:"] " " [:a {:href " "} "+47 90728054"]]]]]]
